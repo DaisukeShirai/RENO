@@ -381,7 +381,7 @@ function selectDiagPhoto(event){
 }
 
 function useDiagSample(){
-  diagPhotoUrl = 'samples/living.jpg';
+  diagPhotoUrl = '../assets/samples/living.jpg';
   showDiagPreview(diagPhotoUrl);
 }
 
@@ -395,7 +395,7 @@ function showDiagPreview(src){
 
 function startDiagnosis(){
   if (!diagPhotoUrl) {
-    diagPhotoUrl = 'samples/living.jpg';
+    diagPhotoUrl = '../assets/samples/living.jpg';
   }
   document.getElementById('diag-preview-stage').classList.add('diag-hidden');
   document.getElementById('diag-result-stage').classList.add('diag-hidden');
