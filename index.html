@@ -16,8 +16,8 @@ if (location.hash.indexOf('access_token') !== -1 || new URLSearchParams(location
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="RENO">
-<link rel="apple-touch-icon" href="/icons/icon-180.png">
-<link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/assets/icons/icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/assets/icons/icon-192.png">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
@@ -700,11 +700,11 @@ html.oauth-pending #oauthLoadingOverlay{display:flex;}
     </div>
     <div class="menu-version">RENO AI Agent</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px 20px 4px;">
-      <a href="/lp.html" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:5px;font-size:11px;color:var(--muted);letter-spacing:0.04em;text-decoration:none;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 6px;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--gold-light)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+      <a href="/pages/lp.html" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:5px;font-size:11px;color:var(--muted);letter-spacing:0.04em;text-decoration:none;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 6px;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--gold-light)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10z"/></svg>
         サービス紹介
       </a>
-      <a href="/agent.html" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:5px;font-size:11px;color:var(--muted);letter-spacing:0.04em;text-decoration:none;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 6px;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--gold-light)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+      <a href="/pages/agent.html" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:5px;font-size:11px;color:var(--muted);letter-spacing:0.04em;text-decoration:none;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 6px;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--gold-light)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
         AIエージェント
       </a>
@@ -806,7 +806,7 @@ html.oauth-pending #oauthLoadingOverlay{display:flex;}
       <button class="qr-btn-close" onclick="closeQrModal()">閉じる</button>
     </div>
     <div style="text-align:center;padding:10px 0 0;">
-      <a href="/lp.html" target="_blank" onclick="closeQrModal()" style="font-size:11px;color:var(--muted);text-decoration:none;border-bottom:1px solid var(--border);padding-bottom:1px;letter-spacing:0.04em;">サービスサイトを見る →</a>
+      <a href="/pages/lp.html" target="_blank" onclick="closeQrModal()" style="font-size:11px;color:var(--muted);text-decoration:none;border-bottom:1px solid var(--border);padding-bottom:1px;letter-spacing:0.04em;">サービスサイトを見る →</a>
     </div>
   </div>
 </div>
@@ -910,7 +910,7 @@ html.oauth-pending #oauthLoadingOverlay{display:flex;}
       <div id="googleLoginStatus" style="min-height:14px;margin-top:4px;font-size:10px;color:var(--muted);text-align:center;"></div>
     </div>
 
-    <a href="https://reno.taskra.jp/lp.html" target="_blank" style="display:block;margin-top:14px;font-size:11px;color:var(--muted);letter-spacing:0.06em;text-decoration:none;border-bottom:1px solid var(--border);padding-bottom:1px;">サービス紹介ページ →</a>
+    <a href="https://reno.taskra.jp/pages/lp.html" target="_blank" style="display:block;margin-top:14px;font-size:11px;color:var(--muted);letter-spacing:0.06em;text-decoration:none;border-bottom:1px solid var(--border);padding-bottom:1px;">サービス紹介ページ →</a>
   </div>
 </div>
 <div id="app">
@@ -1880,7 +1880,7 @@ async function getFallbackImage(prompt) {
     else if (p.includes('bedroom') || p.includes('寝室') || p.includes('子供')) file = 'after_bedroom.jpg';
     else if (p.includes('washitsu') || p.includes('和室'))                    file = 'after_washitsu.jpg';
     else if (p.includes('entrance') || p.includes('玄関'))                    file = 'after_entrance.jpg';
-    const res = await fetch(`/samples/${file}`);
+    const res = await fetch(`/assets/samples/${file}`);
     const blob = await res.blob();
     return URL.createObjectURL(blob);
   } catch(e) { return null; }
@@ -2517,13 +2517,13 @@ function closeUpgradeModal() {
 }
 
 const SAMPLE_IMAGES = [
-  { label: 'リビング',  src: '/samples/living.jpg' },
-  { label: '和室',      src: '/samples/washitsu.jpg' },
-  { label: '子供部屋',  src: '/samples/bedroom.jpg' },
-  { label: 'キッチン',  src: '/samples/kitchen.jpg' },
-  { label: '洗面所',    src: '/samples/washroom.jpg' },
-  { label: '浴室',      src: '/samples/bathroom.jpg' },
-  { label: '玄関',      src: '/samples/entrance.jpg' },
+  { label: 'リビング',  src: '/assets/samples/living.jpg' },
+  { label: '和室',      src: '/assets/samples/washitsu.jpg' },
+  { label: '子供部屋',  src: '/assets/samples/bedroom.jpg' },
+  { label: 'キッチン',  src: '/assets/samples/kitchen.jpg' },
+  { label: '洗面所',    src: '/assets/samples/washroom.jpg' },
+  { label: '浴室',      src: '/assets/samples/bathroom.jpg' },
+  { label: '玄関',      src: '/assets/samples/entrance.jpg' },
 ];
 
 // ── Guest PIN Panel ──

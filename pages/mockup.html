@@ -66,6 +66,24 @@ body{background:var(--bg2);font-family:'DM Sans','Hiragino Sans',sans-serif;colo
 .sev.mid{background:var(--gold-bg);color:var(--gold);}
 .sev.high{background:#fbeeec;color:var(--red);}
 .diag-note{margin-top:12px;font-size:11px;color:var(--muted);line-height:1.6;background:var(--bg);padding:9px 11px;border-radius:8px;}
+.diag-intro{font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px;}
+.diag-upload{border:1px dashed var(--gold-l);background:var(--gold-bg);border-radius:9px;padding:18px 12px;text-align:center;cursor:pointer;transition:background .15s,border-color .15s;}
+.diag-upload:hover{background:#fbf1df;border-color:var(--gold);}
+.diag-upload-icon{font-size:25px;line-height:1;margin-bottom:8px;}
+.diag-upload-title{font-size:12.5px;color:var(--text);font-weight:500;}
+.diag-upload-sub{font-size:10px;color:var(--muted);margin-top:4px;}
+.diag-actions{display:flex;gap:8px;margin-top:9px;}
+.diag-btn{flex:1;padding:9px 8px;border-radius:7px;border:1px solid var(--border);background:var(--white);color:var(--text2);font:inherit;font-size:11px;cursor:pointer;}
+.diag-btn.primary{background:var(--text);border-color:var(--text);color:var(--white);}
+.diag-btn:hover{opacity:.84;}
+.diag-hidden{display:none;}
+.diag-status{font-size:11px;color:var(--gold);background:var(--gold-bg);border-radius:7px;padding:9px 10px;margin-bottom:10px;}
+.diag-status strong{color:var(--text);font-weight:500;}
+.diag-summary{display:flex;justify-content:space-between;align-items:center;margin:10px 0 3px;}
+.diag-summary-title{font-size:12px;font-weight:600;color:var(--text);}
+.diag-confidence{font-size:9.5px;color:var(--muted);}
+.diag-cta{display:flex;gap:8px;margin-top:12px;}
+.diag-cta .diag-btn{background:var(--gold-bg);border-color:rgba(160,120,56,.25);color:var(--gold);}
 
 /* ── 2. RAGカタログ ── */
 .mat-item{display:flex;gap:11px;padding:11px 0;border-bottom:1px solid var(--bg2);}
@@ -147,38 +165,63 @@ body{background:var(--bg2);font-family:'DM Sans','Hiragino Sans',sans-serif;colo
     <div class="panel active" id="panel-0">
       <div class="msg agent">
         <div class="avatar agent">R</div>
-        <div class="bubble agent">お写真ありがとうございます！AIで状態を確認しますね。</div>
-      </div>
-      <div class="msg user">
-        <div class="avatar user">Y</div>
-        <div class="bubble user">これがリビングの写真です</div>
+        <div class="bubble agent">お部屋の写真から、壁紙・床材・建具の状態を確認できます。</div>
       </div>
       <div class="msg agent">
         <div class="avatar agent">R</div>
-        <div class="card" style="max-width:82%;">
+        <div class="card" style="max-width:88%;width:88%;">
           <div class="card-title">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-            状態診断結果
+            写真で状態を診断
           </div>
-          <div class="diag-photo"><div class="diag-scan"></div><div class="diag-photo-label">解析中の写真</div></div>
-          <div class="diag-row">
-            <div><div class="diag-part">壁紙（クロス）</div><div class="diag-part-sub">継ぎ目の浮き・黄ばみが見られます</div></div>
-            <span class="sev mid">経年劣化 中</span>
+          <div id="diag-upload-stage">
+            <div class="diag-intro">写真を1枚追加してください。気になる箇所が写っている、明るい写真がおすすめです。</div>
+            <label class="diag-upload" for="diag-file">
+              <div class="diag-upload-icon">＋</div>
+              <div class="diag-upload-title">写真をアップロード</div>
+              <div class="diag-upload-sub">JPG・PNG / 10MBまで</div>
+            </label>
+            <input id="diag-file" type="file" accept="image/*" style="display:none" onchange="selectDiagPhoto(event)">
+            <div class="diag-actions">
+              <button class="diag-btn" type="button" onclick="useDiagSample()">サンプルで試す</button>
+              <button class="diag-btn primary" type="button" onclick="startDiagnosis()">解析を開始</button>
+            </div>
           </div>
-          <div class="diag-row">
-            <div><div class="diag-part">床材</div><div class="diag-part-sub">複合フローリング（推定）・傷少なめ</div></div>
-            <span class="sev low">良好</span>
+          <div id="diag-preview-stage" class="diag-hidden">
+            <div class="diag-photo"><img id="diag-preview" src="" alt="診断する写真" style="width:100%;height:100%;object-fit:cover"><div class="diag-photo-label">診断する写真</div></div>
+            <div class="diag-status"><strong>写真を確認しました。</strong> 「解析を開始」を押すと診断結果を表示します。</div>
+            <div class="diag-actions">
+              <button class="diag-btn" type="button" onclick="resetDiagnosis()">写真を選び直す</button>
+              <button class="diag-btn primary" type="button" onclick="startDiagnosis()">解析を開始</button>
+            </div>
           </div>
-          <div class="diag-row">
-            <div><div class="diag-part">建具（ドア枠）</div><div class="diag-part-sub">日焼けによる色あせが目立ちます</div></div>
-            <span class="sev high">劣化 大</span>
+          <div id="diag-loading-stage" class="diag-hidden">
+            <div class="diag-photo"><img id="diag-loading-preview" src="" alt="解析中の写真" style="width:100%;height:100%;object-fit:cover"><div class="diag-scan"></div><div class="diag-photo-label">解析中</div></div>
+            <div class="diag-status">写真を解析しています…<br><span style="color:var(--muted)">部位の判定と劣化状態を確認中</span></div>
           </div>
-          <div class="diag-note">💡 壁紙の張替えと建具の再塗装を優先すると、費用対効果が高くなりそうです。</div>
+          <div id="diag-result-stage" class="diag-hidden">
+            <div class="diag-photo"><img id="diag-result-preview" src="" alt="解析した写真" style="width:100%;height:100%;object-fit:cover"><div class="diag-photo-label">解析済みの写真</div></div>
+            <div class="diag-summary"><div class="diag-summary-title">診断結果</div><div class="diag-confidence">AI判定の目安</div></div>
+            <div class="diag-row">
+              <div><div class="diag-part">壁紙（クロス）</div><div class="diag-part-sub">継ぎ目の浮き・黄ばみが見られます</div></div>
+              <span class="sev mid">経年劣化 中</span>
+            </div>
+            <div class="diag-row">
+              <div><div class="diag-part">床材</div><div class="diag-part-sub">複合フローリング（推定）・細かな擦り傷</div></div>
+              <span class="sev low">軽度</span>
+            </div>
+            <div class="diag-row">
+              <div><div class="diag-part">建具（ドア枠）</div><div class="diag-part-sub">日焼けによる色あせが目立ちます</div></div>
+              <span class="sev high">劣化 大</span>
+            </div>
+            <div class="diag-note">💡 壁紙の張替えと建具の再塗装を優先すると、費用対効果が高くなりそうです。</div>
+            <div class="diag-cta">
+              <button class="diag-btn" type="button" onclick="showTab(1, document.querySelectorAll('.tab')[1])">素材を探す</button>
+              <button class="diag-btn" type="button" onclick="showTab(2, document.querySelectorAll('.tab')[2])">概算を見る</button>
+            </div>
+            <button class="diag-btn" type="button" onclick="resetDiagnosis()" style="width:100%;margin-top:8px">別の写真を診断</button>
+          </div>
         </div>
-      </div>
-      <div class="msg agent">
-        <div class="avatar agent">R</div>
-        <div class="bubble agent">壁紙と建具の状態が気になりますね。この2箇所を中心にご提案しましょうか？</div>
       </div>
     </div>
 
@@ -328,6 +371,52 @@ body{background:var(--bg2);font-family:'DM Sans','Hiragino Sans',sans-serif;colo
 </div>
 
 <script>
+let diagPhotoUrl = '';
+
+function selectDiagPhoto(event){
+  const file = event.target.files[0];
+  if (!file) return;
+  diagPhotoUrl = URL.createObjectURL(file);
+  showDiagPreview(diagPhotoUrl);
+}
+
+function useDiagSample(){
+  diagPhotoUrl = 'samples/living.jpg';
+  showDiagPreview(diagPhotoUrl);
+}
+
+function showDiagPreview(src){
+  document.getElementById('diag-upload-stage').classList.add('diag-hidden');
+  document.getElementById('diag-result-stage').classList.add('diag-hidden');
+  document.getElementById('diag-loading-stage').classList.add('diag-hidden');
+  document.getElementById('diag-preview-stage').classList.remove('diag-hidden');
+  document.getElementById('diag-preview').src = src;
+}
+
+function startDiagnosis(){
+  if (!diagPhotoUrl) {
+    diagPhotoUrl = 'samples/living.jpg';
+  }
+  document.getElementById('diag-preview-stage').classList.add('diag-hidden');
+  document.getElementById('diag-result-stage').classList.add('diag-hidden');
+  document.getElementById('diag-loading-stage').classList.remove('diag-hidden');
+  document.getElementById('diag-loading-preview').src = diagPhotoUrl;
+  window.setTimeout(function(){
+    document.getElementById('diag-loading-stage').classList.add('diag-hidden');
+    document.getElementById('diag-result-stage').classList.remove('diag-hidden');
+    document.getElementById('diag-result-preview').src = diagPhotoUrl;
+  }, 1400);
+}
+
+function resetDiagnosis(){
+  diagPhotoUrl = '';
+  document.getElementById('diag-file').value = '';
+  document.getElementById('diag-upload-stage').classList.remove('diag-hidden');
+  document.getElementById('diag-preview-stage').classList.add('diag-hidden');
+  document.getElementById('diag-loading-stage').classList.add('diag-hidden');
+  document.getElementById('diag-result-stage').classList.add('diag-hidden');
+}
+
 function showTab(i, el){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
