@@ -426,6 +426,22 @@ html.oauth-pending #oauthLoadingOverlay{display:flex;}
 .sim-confirm:hover{opacity:0.88;}
 .sim-confirm:disabled{opacity:0.4;cursor:not-allowed;}
 
+/* ── Staff handoff card ── */
+.handoff-card{margin-top:10px;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px;}
+.handoff-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;}
+.handoff-lead{font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:12px;}
+.handoff-summary{background:var(--bg2);border-radius:7px;padding:10px 11px;margin-bottom:12px;}
+.handoff-summary-title{font-size:10px;color:var(--gold);letter-spacing:.1em;margin-bottom:6px;}
+.handoff-summary-row{font-size:11px;color:var(--text2);line-height:1.6;}
+.handoff-field{margin-top:9px;}
+.handoff-label{display:block;font-size:10px;color:var(--muted);margin-bottom:4px;}
+.handoff-input{width:100%;box-sizing:border-box;background:var(--white);border:1px solid var(--border);border-radius:6px;color:var(--text);font:inherit;font-size:12px;padding:8px 10px;outline:none;}
+.handoff-input:focus{border-color:var(--gold);}
+.handoff-error{display:none;color:#b04040;font-size:10px;margin-top:8px;}
+.handoff-submit{width:100%;margin-top:12px;background:var(--text);border:0;border-radius:7px;color:var(--white);font:inherit;font-size:12px;padding:9px;cursor:pointer;}
+.handoff-submit:hover{background:#333;}
+.handoff-note{font-size:10px;color:var(--muted);line-height:1.5;margin-top:8px;}
+
 /* ── Material Info Card ── */
 .mat-card{
   margin-top:10px;background:#111;border:1px solid #222;
@@ -1647,6 +1663,17 @@ function tapChip(text) {
     handoffToStaff('現在の相談内容');
     return;
   }
+  if (text === '相談内容を続ける') {
+    addAgentMessage('このまま相談を続けられます。次に確認したいことを入力してください。');
+    document.getElementById('userInput')?.focus();
+    return;
+  }
+  if (text === '別の部屋を相談する') {
+    addUserMessage(text);
+    history.push({ role:'user', content: text });
+    callAgent();
+    return;
+  }
   if (text === '素材を探す' || text === '素材提案' || text === '別の素材を見る') {
     addUserMessage(text);
     showMaterial('composite');
@@ -1660,6 +1687,15 @@ function tapChip(text) {
   if (text === '施工後イメージ') {
     addUserMessage(text);
     generateWithFiles(window._beforeFile, null);
+    return;
+  }
+  if (text === '画像で確認する') {
+    if (window._beforeFile || window._beforeURL) {
+      startGenerationFromPhoto(text);
+    } else {
+      addUserMessage(text);
+      showUploadCard('施工後イメージを確認するため、現状写真を選んでください');
+    }
     return;
   }
   if (text === '提案書を作成') {
@@ -1843,7 +1879,7 @@ function showIdealImageCard(beforeFile, beforeURL, prompt) {
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
           <div class="upload-card-text">理想の画像を追加</div>
         </div>
-        <div class="upload-card" style="flex:1;border-color:var(--border);" onclick="generateWithFiles(null, null)">
+          <div class="upload-card" style="flex:1;border-color:var(--border);" onclick="startGenerationFromPhoto('診断せず施工後イメージを作る')">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
           <div class="upload-card-text" style="color:var(--muted);">診断せず生成する</div>
         </div>
@@ -1883,7 +1919,7 @@ function startPhotoDiagnosis() {
         <div style="display:flex;gap:7px;margin-top:10px;">
           <button class="chip" type="button" onclick="startCatalogFromDiagnosis()">素材を探す</button>
           <button class="chip" type="button" onclick="startEstimateFromDiagnosis()">概算を見る</button>
-          <button class="chip" type="button" onclick="generateWithFiles(null, null)">施工後イメージ</button>
+          <button class="chip" type="button" onclick="startGenerationFromPhoto()">施工後イメージ</button>
         </div>
         <button type="button" onclick="handoffToStaff('画像診断後')" style="width:100%;margin-top:8px;padding:8px;border:1px solid var(--border);border-radius:7px;background:transparent;color:var(--muted);font:inherit;font-size:11px;cursor:pointer;">この診断結果で担当者に相談する</button>
         <div style="font-size:10px;color:var(--muted);margin-top:8px;">※ AIによる参考判定です。現地確認で結果が変わる場合があります。</div>
@@ -1903,9 +1939,75 @@ function startEstimateFromDiagnosis() {
   showSimulator();
 }
 
+function startGenerationFromPhoto(label = '施工後イメージ') {
+  addUserMessage(label);
+  generateWithFiles(window._beforeFile, null);
+}
+
+function getHandoffSummary(context) {
+  const rows = [`相談の起点：${context}`];
+  const material = MATERIALS[window._selectedMaterialKey];
+  if (material) rows.push(`選択素材：${material.name}`);
+  if (simState.items.size) {
+    const estimate = calcCost();
+    const items = [...simState.items]
+      .map(k => COST_DATA.items.find(item => item.key === k)?.label)
+      .filter(Boolean).join('・');
+    rows.push(`概算：${COST_DATA.sizes[simState.sizeIdx].label}・${items}・${COST_DATA.grades[simState.gradeIdx].label}で${fmtMoney(estimate.lo)}〜${fmtMoney(estimate.hi)}`);
+  }
+  if (window._beforeURL) rows.push('現状写真：アップロード済み');
+  if (window._lastAfterSrc) rows.push('施工後イメージ：作成済み');
+  return rows;
+}
+
 function handoffToStaff(context) {
+  removeSuggestions();
   addUserMessage('担当者に相談する');
-  addAgentMessage(`デモでは、現在の相談内容（${context}）と診断結果・選択内容が担当者へ共有される想定です。`, null, null, ['相談内容を続ける', '別の部屋を相談する']);
+  document.getElementById('handoff-msg')?.remove();
+  const rows = getHandoffSummary(context);
+  const div = document.createElement('div');
+  div.className = 'msg agent';
+  div.id = 'handoff-msg';
+  div.innerHTML = `<div class="avatar agent">${getAgentIconHTML()}</div>
+    <div class="bubble agent">
+      <div class="handoff-card">
+        <div class="handoff-title">担当者に相談する</div>
+        <div class="handoff-lead">現在の相談内容を確認して、担当者からの連絡を希望する場合は入力してください。</div>
+        <div class="handoff-summary">
+          <div class="handoff-summary-title">共有予定の内容（デモ）</div>
+          ${rows.map(row => `<div class="handoff-summary-row">・${escapeHTML(row)}</div>`).join('')}
+        </div>
+        <div class="handoff-field">
+          <label class="handoff-label" for="handoff-name">お名前</label>
+          <input class="handoff-input" id="handoff-name" type="text" placeholder="例：山田 太郎" autocomplete="name">
+        </div>
+        <div class="handoff-field">
+          <label class="handoff-label" for="handoff-contact">連絡先（メールまたは電話番号）</label>
+          <input class="handoff-input" id="handoff-contact" type="text" placeholder="例：taro@example.com" autocomplete="email">
+        </div>
+        <div class="handoff-error" id="handoff-error">お名前と連絡先を入力してください。</div>
+        <button class="handoff-submit" type="button" onclick="submitHandoff()">この内容で相談を申し込む</button>
+        <div class="handoff-note">※ モックでは受付完了までを確認します。実際の担当者への送信はまだ行いません。</div>
+      </div>
+    </div>`;
+  document.getElementById('chat').appendChild(div);
+  scrollBottom();
+  document.getElementById('handoff-name')?.focus();
+}
+
+function submitHandoff() {
+  const name = document.getElementById('handoff-name')?.value.trim() || '';
+  const contact = document.getElementById('handoff-contact')?.value.trim() || '';
+  const error = document.getElementById('handoff-error');
+  if (!name || !contact) {
+    if (error) error.style.display = 'block';
+    document.getElementById(!name ? 'handoff-name' : 'handoff-contact')?.focus();
+    return;
+  }
+  const card = document.getElementById('handoff-msg');
+  if (card) card.remove();
+  addUserMessage('相談を申し込みました');
+  addAgentMessage(`ありがとうございます、${name}さん。担当者への相談を受け付けました。${contact}へ連絡する想定です。`, null, null, ['相談内容を続ける', '別の部屋を相談する']);
 }
 
 function startProposalFlow() {
@@ -2150,6 +2252,7 @@ function stars(n, max=5) {
 function showMaterial(key) {
   const m = MATERIALS[key];
   if (!m) { addAgentMessage('素材情報が見つかりませんでした。'); return; }
+  window._selectedMaterialKey = key;
 
   const chat = document.getElementById('chat');
   const div = document.createElement('div');
@@ -2601,15 +2704,8 @@ function simConfirm() {
     addAgentMessage('施工箇所を1つ以上選択してください。');
     return;
   }
-  const { lo, hi } = calcCost();
-  const size = COST_DATA.sizes[simState.sizeIdx].label;
-  const items = [...simState.items].map(k => COST_DATA.items.find(i=>i.key===k)?.label).join('・');
-  const grade = COST_DATA.grades[simState.gradeIdx].label;
-  const text = `概算シミュレーション結果：${size}・${items}・${grade}グレードで${fmtMoney(lo)}〜${fmtMoney(hi)}程度です。この内容で進めたいと思います。`;
   document.getElementById('sim-msg')?.remove();
-  addUserMessage(text);
-  history.push({ role:'user', content: text });
-  callAgent();
+  handoffToStaff('概算シミュレーション');
 }
 
 // ── Usage ──

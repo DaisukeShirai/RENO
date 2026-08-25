@@ -9,10 +9,11 @@
 メインの変更対象は、GitHub Pagesで公開している`index.html`です。
 
 ```text
-https://iflag-hps.github.io/RENO/
+GitHub Pages: https://iflag-hps.github.io/RENO/
+Custom domain: https://reno.taskra.jp/
 ```
 
-GitHub Pagesのプロジェクトサイト配下で公開するため、画面内の素材・ページ参照はプロジェクト相対URLを使用します。
+`CNAME`を維持しているため、カスタムドメインを主な公開URLとして利用できます。画面内の素材・ページ参照は、どちらのURLでも動く相対URLを使用します。
 
 `index.html`は、認証・チャット・画像生成など一部の実処理を含むアプリモックです。現時点では完成した本番機能ではなく、業務フローとUIを確認するためのデモとして扱います。
 
