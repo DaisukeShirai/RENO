@@ -1602,6 +1602,10 @@ function tapChip(text) {
     generateWithFiles(window._beforeFile, null);
     return;
   }
+  if (text === '担当者に相談') {
+    handoffToStaff('現在の相談内容');
+    return;
+  }
   addUserMessage(text);
   history.push({ role:'user', content: text });
   callAgent();
@@ -1778,10 +1782,11 @@ function showIdealImageCard(beforeFile, beforeURL, prompt) {
         </div>
         <div class="upload-card" style="flex:1;border-color:var(--border);" onclick="generateWithFiles(null, null)">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-          <div class="upload-card-text" style="color:var(--muted);">なしで生成する</div>
+          <div class="upload-card-text" style="color:var(--muted);">診断せず生成する</div>
         </div>
       </div>
       <input type="file" id="idealInput" accept="image/*" style="display:none" onchange="handleIdealPhoto(event)">
+      <button type="button" onclick="handoffToStaff('写真確認後')" style="width:100%;margin-top:10px;padding:8px;border:1px solid var(--border);border-radius:7px;background:transparent;color:var(--muted);font:inherit;font-size:11px;cursor:pointer;">この時点で担当者に相談する</button>
     </div>`;
   chat.appendChild(div);
   scrollBottom();
@@ -1817,6 +1822,7 @@ function startPhotoDiagnosis() {
           <button class="chip" type="button" onclick="showDiagnosisNextStep('概算見積もり')">概算を見る</button>
           <button class="chip" type="button" onclick="generateWithFiles(null, null)">施工後イメージ</button>
         </div>
+        <button type="button" onclick="handoffToStaff('画像診断後')" style="width:100%;margin-top:8px;padding:8px;border:1px solid var(--border);border-radius:7px;background:transparent;color:var(--muted);font:inherit;font-size:11px;cursor:pointer;">この診断結果で担当者に相談する</button>
         <div style="font-size:10px;color:var(--muted);margin-top:8px;">※ AIによる参考判定です。現地確認で結果が変わる場合があります。</div>
       </div>`;
     chat.appendChild(div);
@@ -1827,6 +1833,11 @@ function startPhotoDiagnosis() {
 function showDiagnosisNextStep(nextStep) {
   addUserMessage(nextStep + 'を確認する');
   addAgentMessage(nextStep + 'の準備を進めます。詳細な条件を確認しながらご提案します。');
+}
+
+function handoffToStaff(context) {
+  addUserMessage('担当者に相談する');
+  addAgentMessage(`現在の相談内容（${context}）を担当者へ引き継ぎます。診断結果や選択内容も一緒に共有されます。`, null, null, ['相談内容を続ける', '別の部屋を相談する']);
 }
 
 async function handleIdealPhoto(event) {
@@ -2114,7 +2125,7 @@ function showMaterial(key) {
       </div>
     </div>`;
   chat.appendChild(div);
-  renderSuggestions(['画像で確認する', '概算を見る', '別の素材を見る', '提案書を作成']);
+  renderSuggestions(['画像で確認する', '概算を見る', '別の素材を見る', '担当者に相談', '提案書を作成']);
   scrollBottom();
 }
 
@@ -2217,7 +2228,7 @@ function showDayNight(daySrc, nightSrc) {
     </div>`;
   chat.appendChild(div);
   scrollBottom();
-  renderSuggestions(['別の箇所も試す', '概算を見る', '提案書を作成']);
+  renderSuggestions(['別の箇所も試す', '概算を見る', '担当者に相談', '提案書を作成']);
 }
 
 function switchDN(mode, daySrc, nightSrc) {
