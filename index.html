@@ -10,14 +10,14 @@ if (location.hash.indexOf('access_token') !== -1 || new URLSearchParams(location
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>RENO</title>
-<link rel="manifest" href="/manifest.json">
+<link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#a07838">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="RENO">
-<link rel="apple-touch-icon" href="/assets/icons/icon-180.png">
-<link rel="icon" type="image/png" sizes="192x192" href="/assets/icons/icon-192.png">
+<link rel="apple-touch-icon" href="assets/icons/icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/icons/icon-192.png">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
@@ -704,11 +704,11 @@ html.oauth-pending #oauthLoadingOverlay{display:flex;}
     </div>
     <div class="menu-version">RENO AI Agent</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px 20px 4px;">
-      <a href="/pages/lp.html" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:5px;font-size:11px;color:var(--muted);letter-spacing:0.04em;text-decoration:none;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 6px;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--gold-light)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+      <a href="pages/lp.html" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:5px;font-size:11px;color:var(--muted);letter-spacing:0.04em;text-decoration:none;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 6px;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--gold-light)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10z"/></svg>
         サービス紹介
       </a>
-      <a href="/pages/agent.html" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:5px;font-size:11px;color:var(--muted);letter-spacing:0.04em;text-decoration:none;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 6px;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--gold-light)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+      <a href="pages/agent.html" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:5px;font-size:11px;color:var(--muted);letter-spacing:0.04em;text-decoration:none;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 6px;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--gold-light)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
         AIエージェント
       </a>
@@ -784,7 +784,7 @@ html.oauth-pending #oauthLoadingOverlay{display:flex;}
     <div class="qr-img-wrap">
       <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASIAAAEiCAIAAADS3EjhAAAFF0lEQVR4nO3dO44UMRRAURrNFggQ+18aImARRTqRBWOunqvmnLy6qj9XDvrJfl3X9QUofZ1+AHg+mUFOZpCTGeRkBjmZQU5mkJMZ5GQGOZlBTmaQkxnkZAY5mUFOZpCTGeRkBjmZQU5mkHvbufjH92//6zkO8fPX7w9fO/VpdM98x0+js/NpWM0gJzPIyQxyMoOczCAnM8jJDHIyg5zMILc1BbK28695Z2c6oZtsuONntfPMd3y/O6xmkJMZ5GQGOZlBTmaQkxnkZAY5mUFOZpALp0DW7jhRsX7lnZkJe3K8d8ffxprVDHIyg5zMICczyMkMcjKDnMwgJzPIyQxyY1MgvDc1nXDmnhzPYzWDnMwgJzPIyQxyMoOczCAnM8jJDHIyg5wpkH/Q7VGx88rdTiFmRP4XqxnkZAY5mUFOZpCTGeRkBjmZQU5mkJMZ5MamQO44YXDmM3cn0UzNiJz5Oe+wmkFOZpCTGeRkBjmZQU5mkJMZ5GQGOZlBLpwC6XbOmNLNW9zx2h3P+22sWc0gJzPIyQxyMoOczCAnM8jJDHIyg5zMIPe6rmv6GT6FM6cxnrfrxpmsZpCTGeRkBjmZQU5mkJMZ5GQGOZlBTmaQ29oL5Mw9Krpr1858R3d05ne0w2oGOZlBTmaQkxnkZAY5mUFOZpCTGeRkBrnwRJgpU9MYU/tqdPed2oOke0dTE0JWM8jJDHIyg5zMICczyMkMcjKDnMwgJzPIbU2B3PE8kZ3Jhp1ru7mHbnbhjnuQnPlUVjPIyQxyMoOczCAnM8jJDHIyg5zMICczyL2u6/rwxd1UxNR9n3cyy9TuF2uf7b5WM8jJDHIyg5zMICczyMkMcjKDnMwgJzPIhSfCdDMTO688NQdw5vTJHedaum/QiTBwYzKDnMwgJzPIyQxyMoOczCAnM8jJDHLhiTBnzhCcOefR3fdMU8889R1ZzSAnM8jJDHIyg5zMICczyMkMcjKDnMwgtzUFcub5KWeegbJ25vk4O7pv4Y6zR1YzyMkMcjKDnMwgJzPIyQxyMoOczCAnM8i9ruuKXvrM/+OnTma547WdqUmdqRkgqxnkZAY5mUFOZpCTGeRkBjmZQU5mkJMZ5LamQKZmF9aet8vI1G4fZ87xrJ15Po7VDHIyg5zMICczyMkMcjKDnMwgJzPIyQxy4V4gz9NNY3y2PTnWzvycd96v1QxyMoOczCAnM8jJDHIyg5zMICczyMkMcm87F99xr4i19T/9Z+6rsTP30D3V1ATJmaxmkJMZ5GQGOZlBTmaQkxnkZAY5mUFOZpDbmgJZO/Of/qm5h7VukuOOJ9E8j9UMcjKDnMwgJzPIyQxyMoOczCAnM8jJDHLhFMja1N4YO6bmPLpJjjN3N3keqxnkZAY5mUFOZpCTGeRkBjmZQU5mkJMZ5MamQO5oZ5JjSvfMZ06QnHkSjdUMcjKDnMwgJzPIyQxyMoOczCAnM8jJDHKmQP7BmfuXdHMP3czE1M4oa919rWaQkxnkZAY5mUFOZpCTGeRkBjmZQU5mkBubApnalWHH1O4X6/ueORVx5hk3U/MlVjPIyQxyMoOczCAnM8jJDHIyg5zMICczyL2u6/rwxWeegbJj6syXM2cXusmV572jNasZ5GQGOZlBTmaQkxnkZAY5mUFOZpCTGeS2pkCAv2E1g5zMICczyMkMcjKDnMwgJzPIyQxyMoOczCAnM8jJDHIyg5zMICczyMkMcjKDnMwgJzPI/QH9x6aAYpdPhwAAAABJRU5ErkJggg==" alt="QR Code">
     </div>
-    <div class="qr-url">reno.taskra.jp</div>
+    <div class="qr-url">iflag-hps.github.io/RENO</div>
     <div class="qr-divider"></div>
     <div class="qr-pwa-title">ホーム画面に追加（PWAとして使う）</div>
     <div class="qr-pwa-desc">アプリのようにフルスクリーンで快適に利用できます。</div>
@@ -793,14 +793,14 @@ html.oauth-pending #oauthLoadingOverlay{display:flex;}
       <div class="qr-tab" onclick="switchQrTab('android',this)">🤖 Android（Chrome）</div>
     </div>
     <div id="qrStepsIos" class="qr-steps">
-      1. <b>Safari</b> で reno.taskra.jp を開く<br>
+      1. <b>Safari</b> で iflag-hps.github.io/RENO を開く<br>
       2. 画面下の<b>共有ボタン</b>（口に↑のアイコン）をタップ<br>
       3. メニューから「<b>ホーム画面に追加</b>」を選択<br>
       4. 右上の「<b>追加</b>」をタップで完了
       <div class="qr-steps-note">※ Chromeアプリでは追加できません。必ずSafariで開いてください。</div>
     </div>
     <div id="qrStepsAndroid" class="qr-steps" style="display:none;">
-      1. <b>Chrome</b> で reno.taskra.jp を開く<br>
+      1. <b>Chrome</b> で iflag-hps.github.io/RENO を開く<br>
       2. 右上の<b>メニュー（⋮）</b>をタップ<br>
       3.「<b>アプリをインストール</b>」または「ホーム画面に追加」を選択<br>
       4.「<b>インストール</b>」をタップで完了
@@ -810,7 +810,7 @@ html.oauth-pending #oauthLoadingOverlay{display:flex;}
       <button class="qr-btn-close" onclick="closeQrModal()">閉じる</button>
     </div>
     <div style="text-align:center;padding:10px 0 0;">
-      <a href="/pages/lp.html" target="_blank" onclick="closeQrModal()" style="font-size:11px;color:var(--muted);text-decoration:none;border-bottom:1px solid var(--border);padding-bottom:1px;letter-spacing:0.04em;">サービスサイトを見る →</a>
+      <a href="pages/lp.html" target="_blank" onclick="closeQrModal()" style="font-size:11px;color:var(--muted);text-decoration:none;border-bottom:1px solid var(--border);padding-bottom:1px;letter-spacing:0.04em;">サービスサイトを見る →</a>
     </div>
   </div>
 </div>
@@ -914,7 +914,7 @@ html.oauth-pending #oauthLoadingOverlay{display:flex;}
       <div id="googleLoginStatus" style="min-height:14px;margin-top:4px;font-size:10px;color:var(--muted);text-align:center;"></div>
     </div>
 
-    <a href="https://reno.taskra.jp/pages/lp.html" target="_blank" style="display:block;margin-top:14px;font-size:11px;color:var(--muted);letter-spacing:0.06em;text-decoration:none;border-bottom:1px solid var(--border);padding-bottom:1px;">サービス紹介ページ →</a>
+    <a href="pages/lp.html" target="_blank" style="display:block;margin-top:14px;font-size:11px;color:var(--muted);letter-spacing:0.06em;text-decoration:none;border-bottom:1px solid var(--border);padding-bottom:1px;">サービス紹介ページ →</a>
   </div>
 </div>
 <div id="app">
@@ -1249,8 +1249,9 @@ function switchQrTab(tab, el) {
   document.getElementById('qrStepsAndroid').style.display = tab === 'android' ? 'block' : 'none';
 }
 async function copyQrUrl() {
-  try { await navigator.clipboard.writeText('https://reno.taskra.jp'); }
-  catch(e) { const ta = document.createElement('textarea'); ta.value='https://reno.taskra.jp'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }
+  const appUrl = `${location.origin}${location.pathname}`;
+  try { await navigator.clipboard.writeText(appUrl); }
+  catch(e) { const ta = document.createElement('textarea'); ta.value=appUrl; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }
   const btn = event.target;
   btn.textContent = 'コピーしました！';
   setTimeout(() => { btn.textContent = 'URLをコピー'; }, 2000);
@@ -2010,7 +2011,7 @@ async function getFallbackImage(prompt) {
     else if (p.includes('bedroom') || p.includes('寝室') || p.includes('子供')) file = 'after_bedroom.jpg';
     else if (p.includes('washitsu') || p.includes('和室'))                    file = 'after_washitsu.jpg';
     else if (p.includes('entrance') || p.includes('玄関'))                    file = 'after_entrance.jpg';
-    const res = await fetch(`/assets/samples/${file}`);
+    const res = await fetch(`assets/samples/${file}`);
     const blob = await res.blob();
     return URL.createObjectURL(blob);
   } catch(e) { return null; }
@@ -2662,13 +2663,13 @@ function closeUpgradeModal() {
 }
 
 const SAMPLE_IMAGES = [
-  { label: 'リビング',  src: '/assets/samples/living.jpg' },
-  { label: '和室',      src: '/assets/samples/washitsu.jpg' },
-  { label: '子供部屋',  src: '/assets/samples/bedroom.jpg' },
-  { label: 'キッチン',  src: '/assets/samples/kitchen.jpg' },
-  { label: '洗面所',    src: '/assets/samples/washroom.jpg' },
-  { label: '浴室',      src: '/assets/samples/bathroom.jpg' },
-  { label: '玄関',      src: '/assets/samples/entrance.jpg' },
+  { label: 'リビング',  src: 'assets/samples/living.jpg' },
+  { label: '和室',      src: 'assets/samples/washitsu.jpg' },
+  { label: '子供部屋',  src: 'assets/samples/bedroom.jpg' },
+  { label: 'キッチン',  src: 'assets/samples/kitchen.jpg' },
+  { label: '洗面所',    src: 'assets/samples/washroom.jpg' },
+  { label: '浴室',      src: 'assets/samples/bathroom.jpg' },
+  { label: '玄関',      src: 'assets/samples/entrance.jpg' },
 ];
 
 // ── Guest PIN Panel ──
