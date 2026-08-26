@@ -11,8 +11,14 @@ env:
   STACK_NAME: reno-mvp
 
 jobs:
+  localstack-test:
+    name: LocalStack test only
+    uses: ./.github/workflows/localstack-test.yml
+
   deploy:
     name: Backend deployment
+    needs: localstack-test
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: production
     steps:

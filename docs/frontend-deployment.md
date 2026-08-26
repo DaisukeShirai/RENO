@@ -59,6 +59,11 @@ APIの実装とURLは共通なので、CloudFront用ワークフローを停止�
 
 `OPENAI_MODEL`、`SES_FROM_EMAIL`、`SES_TO_EMAIL`は必要に応じてVariablesへ登録する。
 
+## 本番デプロイのブランチ制限
+
+本番リソースを更新するジョブは`main`ブランチからの実行に限定している。
+featureブランチから手動実行した場合は、LocalStackのスモークテストだけを実行し、本番デプロイジョブはスキップする。
+
 ## バックエンドだけを更新
 
 `Deploy backend only`を手動実行すると、Lambda / API Gateway / DynamoDB / S3 / Cognitoのバックエンドだけを更新する。

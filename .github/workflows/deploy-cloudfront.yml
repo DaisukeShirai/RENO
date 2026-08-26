@@ -10,8 +10,14 @@ env:
   AWS_REGION: ap-northeast-1
 
 jobs:
+  localstack-test:
+    name: LocalStack test only
+    uses: ./.github/workflows/localstack-test.yml
+
   deploy:
     name: Static frontend deployment
+    needs: localstack-test
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: production
     steps:
