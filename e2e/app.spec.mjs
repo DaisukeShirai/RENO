@@ -27,5 +27,28 @@ test.describe('RENOローカル相談フロー', () => {
 
     await expect(page.locator('#chat .msg.user')).toContainText('リビング', { timeout: 5_000 });
     await expect(page.locator('#chat .msg.agent').last()).toContainText('ご相談内容を確認しました', { timeout: 15_000 });
+    await expect(page.locator('#suggestions-row .chip')).toHaveCount(3);
+
+    const summary = await page.evaluate(() => getPdfConversationSummary([
+      { role: 'user', content: 'リビングを北欧風にしたいです' },
+      { role: 'user', content: '予算は100〜200万円で考えています' },
+    ]));
+    expect(summary.room).toBe('リビング');
+    expect(summary.style).toBe('北欧');
+    expect(summary.budget).toBe('100〜200万円');
+
+    const pdfState = await page.evaluate(async () => {
+      let pages = 1;
+      window.html2canvas = async () => ({ width: 794, height: 1123, toDataURL: () => 'data:image/jpeg;base64,local' });
+      window.jspdf = { jsPDF: class {
+        addImage() {}
+        addPage() { pages += 1; }
+        save() {}
+      } };
+      await generatePDF('', '', () => {});
+      return { imageBlock: document.getElementById('pdf-images-block').style.display, pages };
+    });
+    expect(pdfState.imageBlock).toBe('none');
+    expect(pdfState.pages).toBe(1);
   });
 });

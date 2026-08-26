@@ -896,7 +896,7 @@ html.oauth-pending #oauthLoadingOverlay{display:flex;}
       <div style="font-size:9px;color:#686868;letter-spacing:0.16em;text-transform:uppercase;margin-bottom:6px;">ご要望メモ</div>
       <div id="pdf-summary-text" style="font-size:12px;color:#b0aba8;line-height:1.75;background:#161616;border-radius:6px;padding:12px 16px;border-left:2px solid #a07838;"></div>
     </div>
-    <div style="padding:20px 52px 0;box-sizing:border-box;">
+    <div id="pdf-images-block" style="padding:20px 52px 0;box-sizing:border-box;">
       <div style="font-size:9px;color:#7a6a50;letter-spacing:0.22em;text-transform:uppercase;margin-bottom:10px;">BEFORE / AFTER</div>
       <div style="display:flex;gap:12px;">
         <div style="flex:1;">
@@ -1916,6 +1916,19 @@ function renderSuggestions(chips) {
 
 function tapChip(text) {
   playSound('chip');
+  // APIが候補タグを返さない場合にも使える基本操作。
+  if (text === '写真をアップロード') {
+    showUploadCard('現在の状態を確認するため、部屋の写真を選択してください');
+    return;
+  }
+  if (text === '概算を見る') {
+    showSimulator();
+    return;
+  }
+  if (text === '相談を続ける') {
+    document.getElementById('userInput')?.focus();
+    return;
+  }
   if (text === '📷 写真を撮る・選ぶ') {
     showUploadCard('リフォームしたいお部屋の写真を選んでください');
     return;
@@ -2854,15 +2867,46 @@ async function fetchConversationSummary() {
 }
 
 // ── PDF Generation ──
+// PDF用の会話要約。ローカルAPIの応答形式に依存せず、確定した会話内容を反映する。
+function getPdfConversationSummary(messages) {
+  const userText = messages
+    .filter(message => message.role === 'user')
+    .map(message => String(message.content || '').trim())
+    .filter(Boolean);
+  const text = userText.join(' / ');
+  const find = values => values.find(value => text.includes(value)) || '';
+  const budgetMatch = text.match(/(?:予算|費用|金額)[^。\n]{0,12}(50万円以下|50(?:〜|～|-|~)100万円|100(?:〜|～|-|~)200万円|200万円以上)/)
+    || text.match(/(50万円以下|50(?:〜|～|-|~)100万円|100(?:〜|～|-|~)200万円|200万円以上)/);
+  const room = find(['リビング', 'キッチン', '洗面所', '洗面室', '浴室', 'バスルーム', '玄関', '寝室', '和室', 'トイレ']);
+  const style = find(['モダン', 'ナチュラル', '北欧', 'インダストリアル', '和風', 'シンプル']);
+  const parts = find(['壁', '床', '収納', '照明', 'キッチン', '浴室', '洗面', '間取り']);
+  return {
+    room: room || '未指定',
+    parts: parts || '未指定',
+    style: style || '未指定',
+    budget: budgetMatch?.[1] || '未指定',
+    notes: text || '会話メモなし',
+    summary: text ? `会話で確認したご要望：${text}` : '会話内容の要約はありません。'
+  };
+}
+
 async function generatePDF(afterSrc, beforeSrc, onComplete = null) {
   const overlay = document.getElementById('pdfOverlay');
   overlay.style.display = 'flex';
 
   try {
     // 1. 会話の要約（チャットモック時はローカルで作成）
-    const info = MOCK_CHAT_MODE
-      ? getMockConversationSummary(history)
-      : await fetchConversationSummary();
+    const info = getPdfConversationSummary(history);
+    // 会話で予算を明言していなくても、概算シミュレーターの結果を予算欄へ反映する。
+    if (simState.items.size) {
+      const estimate = calcCost();
+      info.budget = `${fmtMoney(estimate.lo)}〜${fmtMoney(estimate.hi)}`;
+      info.summary += ` 概算結果：${info.budget}`;
+    }
+    const selectedMaterial = MATERIALS[window._selectedMaterialKey];
+    if (selectedMaterial && info.parts === '未指定') {
+      info.parts = selectedMaterial.name;
+    }
 
     // 2. Fill PDF template
     const tmpl = document.getElementById('pdfTemplate');
@@ -2896,14 +2940,20 @@ async function generatePDF(afterSrc, beforeSrc, onComplete = null) {
 
     // Images
     const toBase64 = async (src) => {
+      if (!src) return '';
       if (src.startsWith('data:')) return src;
       const res = await fetch(src);
       const blob = await res.blob();
       return new Promise(r => { const rd = new FileReader(); rd.onload = () => r(rd.result); rd.readAsDataURL(blob); });
     };
     const [afterB64, beforeB64] = await Promise.all([toBase64(afterSrc), toBase64(beforeSrc)]);
-    document.getElementById('pdf-before-img').src = beforeB64;
-    document.getElementById('pdf-after-img').src = afterB64;
+    const beforeImage = document.getElementById('pdf-before-img');
+    const afterImage = document.getElementById('pdf-after-img');
+    beforeImage.parentElement.style.display = beforeB64 ? 'block' : 'none';
+    afterImage.parentElement.style.display = afterB64 ? 'block' : 'none';
+    beforeImage.src = beforeB64;
+    afterImage.src = afterB64;
+    document.getElementById('pdf-images-block').style.display = beforeB64 || afterB64 ? 'block' : 'none';
 
     // Notes
     if (info.notes) {
@@ -2931,8 +2981,9 @@ async function generatePDF(afterSrc, beforeSrc, onComplete = null) {
     const W = 210, H = 297;
     const imgData = canvas.toDataURL('image/jpeg', 0.95);
     const canvasH = (canvas.height / canvas.width) * W;
-    if (canvasH <= H) {
-      doc.addImage(imgData, 'JPEG', 0, 0, W, canvasH);
+    // テンプレートの丸め誤差でA4を1pxだけ超える場合、空の2ページ目を作らない。
+    if (canvasH <= H + 1) {
+      doc.addImage(imgData, 'JPEG', 0, 0, W, Math.min(canvasH, H));
     } else {
       // Multi-page
       let srcY = 0;
@@ -3122,7 +3173,7 @@ let finalHandoffStarted = false;
 function showFinalConfirmation() {
   document.getElementById('final-confirm-msg')?.remove();
   const rows = getHandoffSummary('最終確認');
-  const hasImages = Boolean(window._lastAfterSrc && window._lastBeforeSrc);
+  const hasPdf = true;
   const estimate = simState.items.size ? calcCost() : null;
   const div = document.createElement('div');
   div.className = 'msg agent';
@@ -3144,12 +3195,12 @@ function showFinalConfirmation() {
             </div>
           </div>
         </div>` : ''}
-        <div class="handoff-lead">内容を確定すると、${hasImages ? '提案書PDFを保存した後に' : ''}担当者への相談受付へ進みます。</div>
+        <div class="handoff-lead">内容を確定すると、提案書PDFを保存した後に担当者への相談受付へ進みます。</div>
         <div class="handoff-summary">
           <div class="handoff-summary-title">確定する内容</div>
           ${rows.map(row => `<div class="handoff-summary-row">・${escapeHTML(row)}</div>`).join('')}
         </div>
-        <button id="final-confirm-submit" class="handoff-submit" type="button" onclick="window.completeFinalConsultation()">${hasImages ? '内容を確定してPDFを保存' : '内容を確定して相談受付へ進む'}</button>
+        <button id="final-confirm-submit" class="handoff-submit" type="button" onclick="window.completeFinalConsultation()">${hasPdf ? '内容を確定してPDFを保存' : '内容を確定して相談受付へ進む'}</button>
         <button class="sim-reset" type="button" onclick="reselectEstimate()">概算条件を選び直す</button>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:7px;">
           <button class="sim-reset" type="button" style="margin-top:0;" onclick="returnToEarlierStep('material')">素材を探す</button>
@@ -3182,7 +3233,7 @@ function completeFinalConsultation() {
     addUserMessage('相談内容を確定しました');
     const after = window._lastAfterSrc;
     const before = window._lastBeforeSrc;
-    if (after && before) {
+    if (true) {
       generatePDF(after, before, () => {
         clearDraftCache();
         handoffToStaff('最終確定済み');
@@ -3936,7 +3987,7 @@ async function callAgent() {
     const sugMatch   = raw.match(/\[SUGGESTIONS:\s*(.+?)\]/);
     const suggestions = sugMatch
       ? sugMatch[1].split(',').map(s => s.trim()).filter(Boolean)
-      : null;
+      : ['写真をアップロード', '概算を見る', '相談を続ける'];
 
     let display = raw
       .replace(/\[GENERATE_IMAGE:[\s\S]+?\]/, '')
