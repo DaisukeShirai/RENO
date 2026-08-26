@@ -18,7 +18,8 @@ os.environ.setdefault("AWS_ACCESS_KEY_ID", "test")
 os.environ.setdefault("AWS_SECRET_ACCESS_KEY", "test")
 os.environ.setdefault("TABLE_NAME", TABLE_NAME)
 os.environ.setdefault("ASSET_BUCKET", BUCKET_NAME)
-os.environ.setdefault("TOKEN_SECRET", "localstack-test-secret-0123456789abcdef")
+# CI環境に同名の秘密があっても、発行と検証で同じテスト用秘密を使う。
+os.environ["TOKEN_SECRET"] = "localstack-test-secret-0123456789abcdef"
 os.environ.setdefault("AWS_ENDPOINT_URL", ENDPOINT)
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
