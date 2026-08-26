@@ -44,3 +44,15 @@ frontend:
 ```
 
 APIの実装とURLは共通なので、CloudFront用ワークフローを停止してAmplifyの自動デプロイを有効にするだけで移行できる。
+
+## 全機能を一度にデプロイ
+
+バックエンドとフロントエンドを同時に更新して動作確認する場合は、
+`Deploy full MVP`を手動実行する。Lambdaを先にデプロイし、CloudFormationの出力からAPI URLを自動取得してCloudFrontへ反映する。
+
+このワークフローには、既存のAWS Secretsに加えて次のSecretsが必要になる。
+
+- `OPENAI_API_KEY`
+- `TOKEN_SECRET`
+
+`OPENAI_MODEL`、`SES_FROM_EMAIL`、`SES_TO_EMAIL`は必要に応じてVariablesへ登録する。

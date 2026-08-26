@@ -1,0 +1,116 @@
+name: Deploy full MVP
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  AWS_REGION: ap-northeast-1
+  STACK_NAME: reno-mvp
+
+jobs:
+  deploy:
+    name: Deploy backend and frontend
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Set up AWS SAM CLI
+        uses: aws-actions/setup-sam@v2
+
+      - name: Build backend
+        run: sam build --template-file backend/template.yaml
+
+      - name: Deploy backend resources
+        # OpenAIキーとトークン秘密鍵はLambdaにだけ渡し、フロントへ出力しない。
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          TOKEN_SECRET: ${{ secrets.TOKEN_SECRET }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-5-mini' }}
+          SES_FROM_EMAIL: ${{ vars.SES_FROM_EMAIL || '' }}
+          SES_TO_EMAIL: ${{ vars.SES_TO_EMAIL || '' }}
+        run: |
+          test -n "$OPENAI_API_KEY"
+          test -n "$TOKEN_SECRET"
+          sam deploy \
+            --template-file .aws-sam/build/template.yaml \
+            --stack-name "$STACK_NAME" \
+            --region "$AWS_REGION" \
+            --resolve-s3 \
+            --capabilities CAPABILITY_IAM \
+            --no-confirm-changeset \
+            --no-fail-on-empty-changeset \
+            --parameter-overrides \
+              OpenAIApiKey="$OPENAI_API_KEY" \
+              OpenAIModel="$OPENAI_MODEL" \
+              SesFromEmail="$SES_FROM_EMAIL" \
+              SesToEmail="$SES_TO_EMAIL" \
+              TokenSecret="$TOKEN_SECRET"
+
+      - name: Get deployed API URL
+        run: |
+          API_URL=$(aws cloudformation describe-stacks \
+            --stack-name "$STACK_NAME" \
+            --query "Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue" \
+            --output text)
+          test -n "$API_URL"
+          echo "RENO_API_URL=$API_URL" >> "$GITHUB_ENV"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Generate frontend configuration
+        # API URLとSupabaseの公開設定だけを静的ファイルへ出力する。
+        env:
+          RENO_MOCK_CHAT: "false"
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+        run: node scripts/generate-config.mjs
+
+      - name: Prepare static files
+        # 静的配信に必要なファイルだけをS3へ配置する。
+        run: |
+          rm -rf dist
+          mkdir -p dist
+          cp index.html dist/index.html
+          cp -R assets dist/assets
+          cp -R pages dist/pages
+
+      - name: Upload frontend to S3
+        env:
+          FRONTEND_BUCKET: ${{ vars.FRONTEND_BUCKET }}
+        run: |
+          test -n "$FRONTEND_BUCKET"
+          aws s3 sync dist/ "s3://$FRONTEND_BUCKET" --delete \
+            --cache-control "public,max-age=31536000,immutable" \
+            --exclude "index.html" \
+            --exclude "assets/reno-config.js"
+          aws s3 cp dist/index.html "s3://$FRONTEND_BUCKET/index.html" \
+            --cache-control "no-cache,no-store,must-revalidate" \
+            --content-type "text/html; charset=utf-8"
+          aws s3 cp dist/assets/reno-config.js "s3://$FRONTEND_BUCKET/assets/reno-config.js" \
+            --cache-control "no-cache,no-store,must-revalidate" \
+            --content-type "application/javascript; charset=utf-8"
+
+      - name: Invalidate CloudFront cache
+        # API URLや画面の変更をすぐ確認できるようにキャッシュを無効化する。
+        env:
+          CLOUDFRONT_DISTRIBUTION_ID: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}
+        run: |
+          test -n "$CLOUDFRONT_DISTRIBUTION_ID"
+          aws cloudfront create-invalidation \
+            --distribution-id "$CLOUDFRONT_DISTRIBUTION_ID" \
+            --paths "/index.html" "/assets/reno-config.js" "/pages/*"
