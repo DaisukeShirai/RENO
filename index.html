@@ -1710,7 +1710,9 @@ function restoreChatState() {
     if (Number.isInteger(next.sizeIdx) && COST_DATA.sizes[next.sizeIdx]) simState.sizeIdx = next.sizeIdx;
     if (Number.isInteger(next.gradeIdx) && COST_DATA.grades[next.gradeIdx]) simState.gradeIdx = next.gradeIdx;
     if (Array.isArray(next.items)) {
-      simState.items = new Set(next.items.filter(key => COST_DATA.items.some(item => item.key === key)));
+      const restoredItems = next.items.filter(key => COST_DATA.items.some(item => item.key === key));
+      // 空の保存値は旧バージョンの状態や初期化直後の状態なので、既定候補に戻す。
+      simState.items = new Set(restoredItems.length ? restoredItems : DEFAULT_SIM_ITEMS);
     }
     if (state.selectedMaterialKey) window._selectedMaterialKey = state.selectedMaterialKey;
     if (state.pendingUploadPrompt) window._pendingUploadPrompt = state.pendingUploadPrompt;
@@ -2982,6 +2984,7 @@ const COST_DATA = {
 };
 
 let simState = { sizeIdx:1, items:new Set(['floor','wall']), gradeIdx:1 };
+const DEFAULT_SIM_ITEMS = ['floor', 'wall'];
 
 function calcCost() {
   const m2 = COST_DATA.sizes[simState.sizeIdx].m2;
@@ -3104,7 +3107,7 @@ function refreshSim() {
   showSimulator();
 }
 function simResetChoices() {
-  simState = { sizeIdx: 1, items: new Set(), gradeIdx: 1 };
+  simState = { sizeIdx: 1, items: new Set(DEFAULT_SIM_ITEMS), gradeIdx: 1 };
   persistChatState('simulator');
   refreshSim();
 }
