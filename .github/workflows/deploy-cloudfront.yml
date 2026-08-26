@@ -40,14 +40,12 @@ jobs:
           test -n "$RENO_API_URL"
           node scripts/generate-config.mjs
 
-      - name: Prepare static files
-        # バックエンドやテスト資材を除き、静的配信に必要なファイルだけを成果物にする。
-        run: |
-          rm -rf dist
-          mkdir -p dist
-          cp index.html dist/index.html
-          cp -R assets dist/assets
-          cp -R pages dist/pages
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build React frontend
+        # 現行index.htmlと同一仕様のReact版をCloudFront配信用にビルドする。
+        run: npm run build:react
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4

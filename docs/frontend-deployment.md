@@ -3,7 +3,7 @@
 ## 一時公開：S3 + CloudFront
 
 `.github/workflows/deploy-cloudfront.yml`をGitHub Actionsから手動実行する。
-フロントエンドだけをS3へ同期し、CloudFrontのキャッシュを無効化する。LambdaやDynamoDBのリソースは変更しない。
+現行`index.html`と同一仕様のReact版をViteでビルドし、S3へ同期してCloudFrontのキャッシュを無効化する。LambdaやDynamoDBのリソースは変更しない。
 
 RENO専用の配信基盤は`infra/frontend-cloudfront.yaml`で作成する。既存のS3バケットやCloudFrontディストリビューションは使用しない。
 
