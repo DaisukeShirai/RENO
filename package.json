@@ -1,0 +1,6 @@
+{
+  "private": true,
+  "scripts": {
+    "build:config": "node scripts/generate-config.mjs"
+  }
+}

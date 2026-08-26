@@ -21,7 +21,7 @@ Parameters:
   OpenAIApiKey:
     Type: String
     NoEcho: true
-    MinLength: 20
+    Default: ''
   OpenAIModel:
     Type: String
     Default: gpt-5-mini
@@ -43,7 +43,7 @@ Resources:
       StageName: v1
       Cors:
         AllowOrigin: "'*'"
-        AllowHeaders: "'*'"
+        AllowHeaders: "'Content-Type,Authorization'"
         AllowMethods: "POST,OPTIONS"
 
   RenoFunction:

@@ -1017,8 +1017,11 @@ html.oauth-pending #oauthLoadingOverlay{display:flex;}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 // ── Config ──
-const SUPABASE_URL  = 'https://sfhtvtcmgueystyuhzvd.supabase.co';
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmaHR2dGNtZ3VleXN0eXVoenZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3Nzg0MDYsImV4cCI6MjA5MDM1NDQwNn0.qsON2xYdDf22LtU-jGd96Ubaif0xzzswC9KnzWndKNw';
+const SUPABASE_URL  = window.RENO_CONFIG?.supabaseUrl || '';
+const SUPABASE_ANON = window.RENO_CONFIG?.supabaseAnonKey || '';
+if (!SUPABASE_URL || !SUPABASE_ANON) {
+  console.warn('RENO: Supabase設定がありません。npm run build:configを実行してください。');
+}
 const supabaseAuth  = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 const EDGE_URL      = window.RENO_CONFIG?.apiUrl || `${SUPABASE_URL}/functions/v1/reno-agent`;
 const EDGE_HEADERS  = { 'Authorization': `Bearer ${SUPABASE_ANON}`, 'apikey': SUPABASE_ANON };
