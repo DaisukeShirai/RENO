@@ -70,10 +70,49 @@ jobs:
       - name: Build SAM application
         run: sam build --template-file backend/template.yaml
 
+      - name: Node.jsをセットアップ
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: E2E依存関係をインストール
+        run: npm ci
+
+      - name: Chromiumをインストール
+        run: npx playwright install --with-deps chromium
+
+      - name: ローカルAPIを起動
+        run: |
+          docker run -d --name reno-api \
+            -p 3000:3000 \
+            --add-host host.docker.internal:host-gateway \
+            -e AWS_ENDPOINT_URL=http://host.docker.internal:4566 \
+            -e AWS_DEFAULT_REGION=ap-northeast-1 \
+            -e PORT=3000 \
+            -e LOCAL_PIN=5678 \
+            -v "$GITHUB_WORKSPACE:/workspace" \
+            -w /workspace \
+            python:3.12-slim \
+            sh -lc 'pip install -q boto3 && python backend/local_server.py'
+          for i in {1..30}; do curl -sf http://127.0.0.1:3000/health >/dev/null && break; sleep 2; done
+
+      - name: E2Eテストを実行
+        env:
+          RENO_API_URL: http://127.0.0.1:3000/agent
+          RENO_MOCK_CHAT: "false"
+          E2E_PIN: "5678"
+        run: |
+          npm run build:config
+          npm run test:e2e
+
+      - name: E2E失敗時のログを表示
+        if: failure()
+        run: docker logs reno-api || true
+
   deploy:
     name: Deploy to AWS
     needs: test
-    if: github.event_name == 'workflow_dispatch' && inputs.deploy_aws == true
+    if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' && inputs.deploy_aws == true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
