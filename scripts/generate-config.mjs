@@ -7,8 +7,8 @@ for (const line of (await readFile('.env', 'utf8')).split(/\r?\n/)) {
 }
 
 const config = `// .envから生成。秘密情報をこのファイルへ出力しない。\nwindow.RENO_CONFIG = ${JSON.stringify({
-  apiUrl: env.RENO_API_URL || '',
-  mockChat: env.RENO_MOCK_CHAT !== 'false',
+  apiUrl: process.env.RENO_API_URL ?? env.RENO_API_URL ?? '',
+  mockChat: (process.env.RENO_MOCK_CHAT ?? env.RENO_MOCK_CHAT) !== 'false',
   supabaseUrl: env.SUPABASE_URL || '',
   supabaseAnonKey: env.SUPABASE_ANON_KEY || ''
 }, null, 2)};\n`;

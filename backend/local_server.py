@@ -44,6 +44,12 @@ def ensure_resources():
 
 
 class Handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path == "/health":
+            self._write(handler.response(200, {"ok": True}))
+        else:
+            self._write(handler.response(404, {"error": "not found"}))
+
     def do_OPTIONS(self):
         self._write(handler.response(204, {}))
 
@@ -52,7 +58,12 @@ class Handler(BaseHTTPRequestHandler):
             self._write(handler.response(404, {"error": "not found"}))
             return
         length = int(self.headers.get("Content-Length", "0"))
-        body = self.rfile.read(length).decode("utf-8")
+        raw_body = self.rfile.read(length)
+        try:
+            body = raw_body.decode("utf-8")
+        except UnicodeDecodeError:
+            self._write(handler.response(400, {"error": "request must be UTF-8 JSON"}))
+            return
         result = handler.lambda_handler({"body": body, "httpMethod": "POST"}, None)
         self._write(result)
 
