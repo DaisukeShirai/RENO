@@ -11,6 +11,10 @@ TABLE = boto3.resource("dynamodb", endpoint_url=AWS_ENDPOINT_URL).Table(os.envir
 S3 = boto3.client("s3", endpoint_url=AWS_ENDPOINT_URL)
 SES = boto3.client("ses", endpoint_url=AWS_ENDPOINT_URL)
 USAGE_LIMIT = 10
+MAX_INPUT_MESSAGES = 20
+MAX_MESSAGE_CHARS = 4000
+MAX_SYSTEM_CHARS = 8000
+MAX_OUTPUT_TOKENS = 500
 
 
 def response(status, body):
@@ -67,8 +71,8 @@ def chat(body, user):
     if current["count"] >= current["limit"]: return {"error": "usage limit reached", "usage": current}
     api_key = os.environ.get("OPENAI_API_KEY")
     if api_key:
-        input_messages = ([{"role": "system", "content": body.get("system", "")}] + [{"role": m.get("role", "user"), "content": str(m.get("content", ""))} for m in messages if m.get("role") in ("user", "assistant")])
-        request = Request("https://api.openai.com/v1/responses", data=json.dumps({"model": os.environ.get("OPENAI_MODEL", "gpt-5-mini"), "input": input_messages, "store": False}).encode(), headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, method="POST")
+        input_messages = ([{"role": "system", "content": str(body.get("system", ""))[:MAX_SYSTEM_CHARS]}] + [{"role": m.get("role", "user"), "content": str(m.get("content", ""))[:MAX_MESSAGE_CHARS]} for m in messages[-MAX_INPUT_MESSAGES:] if isinstance(m, dict) and m.get("role") in ("user", "assistant")])
+        request = Request("https://api.openai.com/v1/responses", data=json.dumps({"model": os.environ.get("OPENAI_MODEL", "gpt-5-mini"), "input": input_messages, "max_output_tokens": MAX_OUTPUT_TOKENS, "store": False}).encode(), headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, method="POST")
         try:
             with urlopen(request, timeout=25) as result: payload = json.loads(result.read())
         except (HTTPError, URLError, TimeoutError) as exc:

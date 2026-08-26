@@ -3,7 +3,8 @@
   "scripts": {
     "build:config": "node scripts/generate-config.mjs",
     "serve:frontend": "node scripts/static-server.mjs",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:workflows": "node scripts/validate-workflows.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.52.0"
