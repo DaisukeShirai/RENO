@@ -10,7 +10,6 @@
 ```mermaid
 flowchart LR
     U[利用者のブラウザ]
-    DNS[Route 53<br/>reno.taskra.jp]
     HOST[Amplify Hosting<br/>静的フロントエンド / CloudFront]
     AUTH[Amazon Cognito<br/>ログイン・本人確認]
     API[Amazon API Gateway<br/>REST / HTTP API]
@@ -28,9 +27,8 @@ flowchart LR
     QUEUE[Amazon SQS<br/>非同期処理キュー]
     NOTIFY[Amazon SES / EventBridge<br/>担当者通知・業務連携]
     AI[Amazon Bedrock または<br/>外部AI画像生成API]
-    OBS[CloudWatch / X-Ray<br/>ログ・監視]
 
-    U --> DNS --> HOST
+    U --> HOST
     HOST --> AUTH
     HOST -->|認証トークン付きリクエスト| API
     API --> CHAT
@@ -50,11 +48,6 @@ flowchart LR
     JOB --> S3
     JOB --> DB
 
-    CHAT -.-> OBS
-    DIAG -.-> OBS
-    EST -.-> OBS
-    HANDOFF -.-> OBS
-    JOB -.-> OBS
 ```
 
 ## 主な責務
@@ -70,7 +63,6 @@ flowchart LR
 | 非同期処理 | SQS + Lambda | 画像生成やPDF生成の待ち時間を画面から分離 |
 | AI | Bedrock / 外部AI API | 会話応答、画像診断、イメージ生成 |
 | 通知 | SES / EventBridge | 担当者へのメール通知や将来のCRM連携 |
-| 運用 | CloudWatch / X-Ray | エラー、実行時間、コストの監視 |
 
 ## モックからの対応関係
 
