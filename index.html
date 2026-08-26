@@ -1641,17 +1641,45 @@ function persistChatHistory() {
 
 function persistChatState(activeView = '') {
   try {
+    const chat = document.getElementById('chat');
+    const chatSnapshot = chat
+      ? chat.innerHTML
+          .replace(/\s(?:src|href)="data:[^"]*"/gi, '')
+          .replace(/<div class="msg agent" id="typing">[\s\S]*?<\/div>\s*<\/div>/g, '')
+      : '';
     localStorage.setItem(chatStateKey(), JSON.stringify({
       activeView,
+      chatSnapshot: chatSnapshot.length <= 900000 ? chatSnapshot : '',
+      draftText: document.getElementById('userInput')?.value || '',
       simState: {
         sizeIdx: simState.sizeIdx,
         items: [...simState.items],
         gradeIdx: simState.gradeIdx,
       },
       selectedMaterialKey: window._selectedMaterialKey || '',
+      pendingUploadPrompt: window._pendingUploadPrompt || '',
       savedAt: Date.now(),
     }));
   } catch (e) {}
+}
+
+function persistCurrentChatState() {
+  const activeView = document.getElementById('final-confirm-msg')
+    ? 'final-confirm'
+    : document.getElementById('sim-msg')
+      ? 'simulator'
+      : document.getElementById('upload-msg')
+        ? 'upload'
+        : document.getElementById('ideal-msg')
+          ? 'ideal-image'
+          : document.getElementById('daynight-msg')
+            ? 'daynight'
+            : document.querySelector('.mat-card')
+              ? 'material'
+              : document.querySelector('.quick-form')
+                ? 'quick-form'
+                : '';
+  persistChatState(activeView);
 }
 
 function restoreChatState() {
@@ -1665,7 +1693,13 @@ function restoreChatState() {
       simState.items = new Set(next.items.filter(key => COST_DATA.items.some(item => item.key === key)));
     }
     if (state.selectedMaterialKey) window._selectedMaterialKey = state.selectedMaterialKey;
-    return { activeView: state.activeView || '' };
+    if (state.pendingUploadPrompt) window._pendingUploadPrompt = state.pendingUploadPrompt;
+    return {
+      activeView: state.activeView || '',
+      chatSnapshot: state.chatSnapshot || '',
+      draftText: state.draftText || '',
+      pendingUploadPrompt: state.pendingUploadPrompt || '',
+    };
   } catch (e) {
     return { activeView: '' };
   }
@@ -1678,7 +1712,7 @@ function clearDraftCache() {
   } catch (e) {}
 }
 
-function restoreCachedChat(cached) {
+function restoreCachedChat(cached, skipInteractive = false) {
   cached.forEach(message => {
     if (!message || !message.role || !message.content) return;
     if (message.role === 'user') {
@@ -1697,12 +1731,23 @@ function restoreCachedChat(cached) {
       .replace(/\[QUICK_FORM:[\s\S]+?\]|\[SUGGESTIONS:.+?\]/g, '')
       .trim();
     if (display) addAgentMessage(display);
-    if (genMatch) showUploadCard(genMatch[1].trim());
-    else if (simMatch) showSimulator();
-    else if (matMatch) showMaterial(matMatch[1].trim());
-    else if (qfMatch) showQuickForm(qfMatch[1].trim());
-    if (sugMatch) renderSuggestions(sugMatch[1].split(',').map(s => s.trim()).filter(Boolean));
+    if (!skipInteractive) {
+      if (genMatch) showUploadCard(genMatch[1].trim());
+      else if (simMatch) showSimulator();
+      else if (matMatch) showMaterial(matMatch[1].trim());
+      else if (qfMatch) showQuickForm(qfMatch[1].trim());
+      if (sugMatch) renderSuggestions(sugMatch[1].split(',').map(s => s.trim()).filter(Boolean));
+    }
   });
+}
+
+function restoreInteractiveSuggestions() {
+  const row = document.getElementById('suggestions-row');
+  if (!row) return;
+  const labels = [...row.querySelectorAll('.chip')]
+    .map(button => button.textContent.trim())
+    .filter(Boolean);
+  if (labels.length) renderSuggestions(labels);
 }
 
 function initChat() {
@@ -1713,10 +1758,32 @@ function initChat() {
     const cached = JSON.parse(localStorage.getItem(chatCacheKey()) || '[]');
     if (Array.isArray(cached) && cached.length) {
       history = cached;
-      restoreCachedChat(cached);
+      const canRestoreSnapshot = savedState.chatSnapshot
+        && !savedState.chatSnapshot.includes('quick-form')
+        && !savedState.chatSnapshot.includes('id="typing"');
+      if (canRestoreSnapshot) {
+        document.getElementById('chat').innerHTML = savedState.chatSnapshot;
+        restoreInteractiveSuggestions();
+      } else {
+        restoreCachedChat(cached, ['final-confirm', 'material'].includes(savedState.activeView));
+      }
       if (savedState.activeView === 'final-confirm') {
-        document.getElementById('sim-msg')?.remove();
-        showFinalConfirmation();
+        finalizationState = 'review';
+        if (!document.getElementById('final-confirm-msg')) {
+          document.getElementById('sim-msg')?.remove();
+          showFinalConfirmation();
+        }
+      } else if (savedState.activeView === 'simulator' && !document.getElementById('sim-msg')) {
+        showSimulator();
+      } else if (savedState.activeView === 'material' && window._selectedMaterialKey && !document.querySelector('.mat-card')) {
+        showMaterial(window._selectedMaterialKey);
+      } else if (savedState.activeView === 'upload' && !document.getElementById('upload-msg')) {
+        showUploadCard(savedState.pendingUploadPrompt || window._pendingUploadPrompt || '');
+      }
+      const input = document.getElementById('userInput');
+      if (input && savedState.draftText) {
+        input.value = savedState.draftText;
+        autoResize(input);
       }
       return;
     }
@@ -1727,6 +1794,9 @@ function initChat() {
     ['リビング', 'キッチン', '浴室・洗面所', '寝室', '玄関']
   );
 }
+
+window.addEventListener('beforeunload', persistCurrentChatState);
+window.addEventListener('pagehide', persistCurrentChatState);
 
 function autoResize(el) {
   el.style.height = 'auto';
@@ -1997,6 +2067,7 @@ function showUploadCard(prompt) {
   const div = document.createElement('div');
   div.className = 'msg agent'; div.id = 'upload-msg';
   window._pendingUploadPrompt = prompt;
+  persistChatState('upload');
   const thumbs = SAMPLE_IMAGES.map((s,i) =>
     '<div class="sample-thumb" onclick="useSampleImage(' + i + ')">' +
     '<img src="' + s.src + '" alt="' + s.label + '">' +
@@ -2466,7 +2537,7 @@ function showMaterial(key) {
   const m = MATERIALS[key];
     if (!m) { addAgentMessage('素材情報が見つかりませんでした。', null, null, ['素材を探す', '概算を見る', '担当者に相談']); return; }
   window._selectedMaterialKey = key;
-  persistChatState();
+  persistChatState('material');
 
   const chat = document.getElementById('chat');
   const div = document.createElement('div');
