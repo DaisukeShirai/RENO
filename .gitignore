@@ -8,3 +8,6 @@ __pycache__/
 *.pyc
 test-results/
 playwright-report/
+dist/
+react/generated/
+react/public/legacy-bootstrap.js

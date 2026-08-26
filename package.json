@@ -2,11 +2,20 @@
   "private": true,
   "scripts": {
     "build:config": "node scripts/generate-config.mjs",
+    "build:react": "node scripts/build-react.mjs",
     "serve:frontend": "node scripts/static-server.mjs",
-    "test:e2e": "playwright test",
+    "serve:react": "node scripts/static-server.mjs dist",
+    "serve:legacy": "node scripts/static-server.mjs . 4174",
+    "test:e2e": "npm run build:react && playwright test",
     "test:workflows": "node scripts/validate-workflows.mjs"
   },
+  "dependencies": {
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  },
   "devDependencies": {
-    "@playwright/test": "^1.52.0"
+    "@playwright/test": "^1.52.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^6.1.0"
   }
 }

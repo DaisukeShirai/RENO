@@ -86,14 +86,12 @@ jobs:
           SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
         run: node scripts/generate-config.mjs
 
-      - name: Prepare static files
-        # 静的配信に必要なファイルだけをS3へ配置する。
-        run: |
-          rm -rf dist
-          mkdir -p dist
-          cp index.html dist/index.html
-          cp -R assets dist/assets
-          cp -R pages dist/pages
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build React frontend
+        # 現行index.htmlと同一仕様のReact版をCloudFront配信用にビルドする。
+        run: npm run build:react
 
       - name: Upload frontend to S3
         env:

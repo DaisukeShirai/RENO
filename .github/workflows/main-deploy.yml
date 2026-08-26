@@ -101,6 +101,7 @@ jobs:
           RENO_API_URL: http://127.0.0.1:3000/agent
           RENO_MOCK_CHAT: "false"
           E2E_PIN: "5678"
+          E2E_USE_REAL_API: "true"
         run: |
           npm run build:config
           npm run test:e2e
