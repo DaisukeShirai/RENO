@@ -6,6 +6,7 @@ import unittest
 from urllib.request import urlopen
 
 import boto3
+from botocore.exceptions import ClientError
 
 
 ENDPOINT = os.environ.get("AWS_ENDPOINT_URL", "http://127.0.0.1:4566")
@@ -38,14 +39,19 @@ class LocalStackHandlerTest(unittest.TestCase):
 
         cls.dynamodb = boto3.resource("dynamodb", endpoint_url=ENDPOINT, region_name="ap-northeast-1")
         cls.s3 = boto3.client("s3", endpoint_url=ENDPOINT, region_name="ap-northeast-1")
-        cls.dynamodb.create_table(
-            TableName=TABLE_NAME,
-            KeySchema=[{"AttributeName": "pk", "KeyType": "HASH"}, {"AttributeName": "sk", "KeyType": "RANGE"}],
-            AttributeDefinitions=[{"AttributeName": "pk", "AttributeType": "S"}, {"AttributeName": "sk", "AttributeType": "S"}],
-            BillingMode="PAY_PER_REQUEST",
-        )
+        # ローカルで繰り返し実行しても、既存のテスト用リソースを再利用する。
+        if TABLE_NAME not in cls.dynamodb.meta.client.list_tables().get("TableNames", []):
+            cls.dynamodb.create_table(
+                TableName=TABLE_NAME,
+                KeySchema=[{"AttributeName": "pk", "KeyType": "HASH"}, {"AttributeName": "sk", "KeyType": "RANGE"}],
+                AttributeDefinitions=[{"AttributeName": "pk", "AttributeType": "S"}, {"AttributeName": "sk", "AttributeType": "S"}],
+                BillingMode="PAY_PER_REQUEST",
+            )
         cls.dynamodb.Table(TABLE_NAME).wait_until_exists()
-        cls.s3.create_bucket(Bucket=BUCKET_NAME, CreateBucketConfiguration={"LocationConstraint": "ap-northeast-1"})
+        try:
+            cls.s3.head_bucket(Bucket=BUCKET_NAME)
+        except ClientError:
+            cls.s3.create_bucket(Bucket=BUCKET_NAME, CreateBucketConfiguration={"LocationConstraint": "ap-northeast-1"})
 
         import handler
 
