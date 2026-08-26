@@ -146,6 +146,4 @@ jobs:
           --parameter-overrides
           OpenAIApiKey="${{ secrets.OPENAI_API_KEY }}"
           OpenAIModel="${{ vars.OPENAI_MODEL || 'gpt-5-mini' }}"
-          SesFromEmail="${{ vars.SES_FROM_EMAIL || '' }}"
-          SesToEmail="${{ vars.SES_TO_EMAIL || '' }}"
           TokenSecret="${{ secrets.TOKEN_SECRET }}"

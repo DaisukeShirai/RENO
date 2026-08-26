@@ -52,6 +52,14 @@ jobs:
         run: |
           test -n "$OPENAI_API_KEY"
           test -n "$TOKEN_SECRET"
+          PARAM_OVERRIDES=(
+            "OpenAIApiKey=$OPENAI_API_KEY"
+            "OpenAIModel=$OPENAI_MODEL"
+            "TokenSecret=$TOKEN_SECRET"
+          )
+          # SES未使用時は空のパラメータを渡さず、テンプレートの既定値を使う。
+          if [ -n "$SES_FROM_EMAIL" ]; then PARAM_OVERRIDES+=("SesFromEmail=$SES_FROM_EMAIL"); fi
+          if [ -n "$SES_TO_EMAIL" ]; then PARAM_OVERRIDES+=("SesToEmail=$SES_TO_EMAIL"); fi
           sam deploy \
             --template-file .aws-sam/build/template.yaml \
             --stack-name "$STACK_NAME" \
@@ -60,12 +68,7 @@ jobs:
             --capabilities CAPABILITY_IAM \
             --no-confirm-changeset \
             --no-fail-on-empty-changeset \
-            --parameter-overrides \
-              OpenAIApiKey="$OPENAI_API_KEY" \
-              OpenAIModel="$OPENAI_MODEL" \
-              SesFromEmail="$SES_FROM_EMAIL" \
-              SesToEmail="$SES_TO_EMAIL" \
-              TokenSecret="$TOKEN_SECRET"
+            --parameter-overrides "${PARAM_OVERRIDES[@]}"
 
       - name: Show backend API URL
         # CloudFrontの更新は行わず、接続確認用にAPI URLだけ表示する。
