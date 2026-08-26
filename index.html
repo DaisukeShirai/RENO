@@ -2881,6 +2881,11 @@ function showFinalConfirmation() {
         </div>
         <button id="final-confirm-submit" class="handoff-submit" type="button" onclick="window.completeFinalConsultation()">${hasImages ? '内容を確定してPDFを保存' : '内容を確定して相談受付へ進む'}</button>
         <button class="sim-reset" type="button" onclick="reselectEstimate()">概算条件を選び直す</button>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:7px;">
+          <button class="sim-reset" type="button" style="margin-top:0;" onclick="returnToEarlierStep('material')">素材を探す</button>
+          <button class="sim-reset" type="button" style="margin-top:0;" onclick="returnToEarlierStep('image')">施工後イメージ</button>
+        </div>
+        <button class="sim-reset" type="button" onclick="returnToEarlierStep('chat')">相談内容を続ける</button>
         <div class="handoff-note">※ 確定後の担当者相談は、この1回のみ表示されます。</div>
       </div>
     </div>`;
@@ -2927,6 +2932,26 @@ function reselectEstimate() {
   finalizationState = 'draft';
   document.getElementById('final-confirm-msg')?.remove();
   showSimulator();
+}
+
+function returnToEarlierStep(step) {
+  if (finalizationState === 'confirmed' || finalHandoffStarted) return;
+  finalizationState = 'draft';
+  document.getElementById('final-confirm-msg')?.remove();
+  if (step === 'material') {
+    addUserMessage('素材を探す');
+    showMaterial('composite');
+  } else if (step === 'image') {
+    addUserMessage('施工後イメージ');
+    if (window._beforeFile || window._beforeURL) {
+      generateWithFiles(window._beforeFile, null);
+    } else {
+      showUploadCard('施工後イメージを作成するため、現状写真を選んでください');
+    }
+  } else {
+    addAgentMessage('このまま相談を続けられます。確認したいことを入力してください。');
+    document.getElementById('userInput')?.focus();
+  }
 }
 
 function simConfirm() {
