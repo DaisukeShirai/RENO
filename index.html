@@ -10,14 +10,14 @@ if (location.hash.indexOf('access_token') !== -1 || new URLSearchParams(location
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>RENO</title>
-<link rel="manifest" href="/manifest.json">
+<link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#a07838">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="RENO">
-<link rel="apple-touch-icon" href="/icons/icon-180.png">
-<link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" href="assets/icons/icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/icons/icon-192.png">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
@@ -56,16 +56,19 @@ html.oauth-pending #oauthLoadingOverlay{display:flex;}
 .pin-divider{height:1px;background:linear-gradient(to right,transparent,var(--border),transparent);margin:28px 0;}
 .pin-label{font-size:11px;color:var(--muted);letter-spacing:0.16em;text-transform:uppercase;margin-bottom:20px;}
 .pin-dots{display:flex;justify-content:center;gap:12px;margin-bottom:28px;}
-.pin-dot{width:44px;height:52px;background:var(--white);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:300;color:var(--text);letter-spacing:0;transition:border-color 0.15s;box-shadow:0 2px 8px rgba(0,0,0,0.04);}
+.pin-dot{width:44px;height:52px;background:var(--white);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:300;color:var(--text);letter-spacing:0;transition:border-color 0.15s,box-shadow 0.15s,background 0.15s;box-shadow:0 2px 8px rgba(0,0,0,0.04);}
 .pin-dot.filled{border-color:var(--gold);color:var(--gold);}
 .pin-dot.error{border-color:var(--red);color:var(--red);animation:shake 0.3s ease;}
 .pin-dot.loading{border-color:var(--gold);color:var(--gold);animation:pulse 0.6s ease infinite;}
+.pin-caret{display:block;width:2px;height:25px;background:var(--gold);animation:pinCaret 0.9s step-end infinite;}
+@keyframes pinCaret{0%,45%{opacity:1;}46%,100%{opacity:0;}}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
 @keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-4px);}75%{transform:translateX(4px);}}
 .pin-numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
 .pin-key{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:18px;font-weight:300;color:var(--text);cursor:pointer;transition:all 0.12s;font-family:inherit;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.04);}
 .pin-key:hover{background:var(--gold-bg);border-color:rgba(160,120,56,0.3);}
 .pin-key:active{transform:scale(0.95);}
+.pin-key:focus-visible{outline:2px solid var(--gold);outline-offset:2px;background:var(--gold-bg);}
 .pin-key.del{font-size:14px;color:var(--muted);}
 .pin-key.empty{pointer-events:none;background:transparent;border-color:transparent;box-shadow:none;}
 
@@ -421,6 +424,30 @@ html.oauth-pending #oauthLoadingOverlay{display:flex;}
   text-transform:uppercase;transition:opacity 0.15s;
 }
 .sim-confirm:hover{opacity:0.88;}
+.sim-confirm:disabled{opacity:0.4;cursor:not-allowed;}
+
+/* ── Staff handoff card ── */
+.handoff-card{margin-top:10px;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px;}
+.handoff-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;}
+.handoff-lead{font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:12px;}
+.handoff-estimate{background:linear-gradient(135deg,var(--gold-bg),#fffdf8);border:1.5px solid var(--gold);border-radius:10px;padding:12px;margin:0 0 12px;box-shadow:0 4px 14px rgba(160,120,56,0.12);}
+.handoff-estimate-title{font-size:10px;color:var(--gold);font-weight:600;letter-spacing:.12em;margin-bottom:8px;}
+.handoff-estimate-grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:8px;}
+.handoff-estimate-metric{background:var(--white);border-radius:7px;padding:10px 9px;min-width:0;}
+.handoff-estimate-label{font-size:10px;color:var(--muted);margin-bottom:4px;}
+.handoff-estimate-value{font-size:21px;line-height:1.2;font-weight:600;color:var(--text);white-space:nowrap;}
+.handoff-estimate-value.duration{font-size:18px;color:var(--gold);}
+.handoff-summary{background:var(--bg2);border-radius:7px;padding:10px 11px;margin-bottom:12px;}
+.handoff-summary-title{font-size:10px;color:var(--gold);letter-spacing:.1em;margin-bottom:6px;}
+.handoff-summary-row{font-size:11px;color:var(--text2);line-height:1.6;}
+.handoff-field{margin-top:9px;}
+.handoff-label{display:block;font-size:10px;color:var(--muted);margin-bottom:4px;}
+.handoff-input{width:100%;box-sizing:border-box;background:var(--white);border:1px solid var(--border);border-radius:6px;color:var(--text);font:inherit;font-size:12px;padding:8px 10px;outline:none;}
+.handoff-input:focus{border-color:var(--gold);}
+.handoff-error{display:none;color:#b04040;font-size:10px;margin-top:8px;}
+.handoff-submit{width:100%;margin-top:12px;background:var(--text);border:0;border-radius:7px;color:var(--white);font:inherit;font-size:12px;padding:9px;cursor:pointer;}
+.handoff-submit:hover{background:#333;}
+.handoff-note{font-size:10px;color:var(--muted);line-height:1.5;margin-top:8px;}
 
 /* ── Material Info Card ── */
 .mat-card{
@@ -536,8 +563,8 @@ html.oauth-pending #oauthLoadingOverlay{display:flex;}
 .mat-card{margin-top:10px;background:var(--bg);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
 .mat-header{padding:12px 14px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
 .mat-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
-.mat-name{font-size:14px;color:var(--text);font-weight:500;letter-spacing:0.02em;}
-.mat-category{font-size:10px;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase;margin-top:2px;}
+.mat-name{font-family:'Cormorant Garamond','Yu Mincho','Hiragino Mincho ProN',serif;font-size:17px;color:#e5bd55;font-weight:600;letter-spacing:0.04em;text-shadow:0 0 10px rgba(229,189,85,0.18);}
+.mat-category{font-size:10px;color:#d8d0c5;letter-spacing:0.12em;text-transform:uppercase;margin-top:2px;}
 .mat-ratings{display:grid;grid-template-columns:1fr 1fr;gap:0;border-bottom:1px solid var(--border);}
 .mat-rating{padding:10px 14px;border-right:1px solid var(--border);}
 .mat-rating:nth-child(even){border-right:none;}
@@ -575,12 +602,25 @@ html.oauth-pending #oauthLoadingOverlay{display:flex;}
 .sim-grades{display:flex;gap:5px;}
 .sim-grade{flex:1;background:var(--white);border:1px solid var(--border);border-radius:5px;padding:7px 6px;font-size:11px;color:var(--muted);cursor:pointer;font-family:inherit;text-align:center;transition:all 0.15s;}
 .sim-grade.active{border-color:var(--gold);color:var(--gold);background:var(--gold-bg);}
-.sim-result{background:var(--gold-bg);border:1px solid rgba(160,120,56,0.2);border-radius:8px;padding:12px 14px;margin-top:4px;}
-.sim-result-label{font-size:10px;color:var(--gold);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px;}
-.sim-result-price{font-size:22px;font-weight:300;color:var(--text);letter-spacing:0.02em;}
-.sim-result-note{font-size:10px;color:var(--muted);margin-top:4px;letter-spacing:0.02em;}
+.sim-result{background:var(--gold-bg);border:1px solid rgba(160,120,56,0.2);border-radius:8px;padding:14px;margin-top:8px;}
+.sim-result-label{font-size:10px;color:var(--gold);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;font-weight:600;}
+.sim-result-highlights{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:8px;}
+.sim-metric{background:var(--white);border:1px solid rgba(160,120,56,0.18);border-radius:8px;padding:11px 10px;min-width:0;}
+.sim-metric.duration{background:rgba(255,255,255,0.55);}
+.sim-metric-label{font-size:10px;color:var(--muted);letter-spacing:0.08em;margin-bottom:4px;}
+.sim-result-price,.sim-duration-value{font-size:24px;font-weight:600;color:var(--text);letter-spacing:0.01em;line-height:1.2;white-space:nowrap;}
+.sim-duration-value{font-size:20px;color:var(--gold);}
+.sim-result-note{font-size:10px;color:var(--muted);margin-top:6px;letter-spacing:0.02em;}
+.sim-result-subinfo{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px;}
+.sim-result-subinfo > div{background:var(--bg2);border-radius:7px;padding:8px;text-align:center;}
+.sim-result-subinfo > div:last-child{background:var(--white);}
+.sim-result-subinfo-label{font-size:10px;color:var(--muted);}
+.sim-result-subinfo-value{font-size:12px;color:var(--gold);font-weight:500;margin-top:3px;}
+.sim-result-footnote{font-size:10px;color:var(--muted);line-height:1.5;margin-top:8px;}
 .sim-confirm{width:100%;margin-top:10px;background:var(--text);border:none;border-radius:7px;color:var(--white);font-size:12px;font-weight:500;padding:10px;cursor:pointer;font-family:inherit;letter-spacing:0.06em;text-transform:uppercase;transition:background 0.15s;}
 .sim-confirm:hover{background:#333;}
+.sim-reset{width:100%;margin-top:7px;background:transparent;border:1px solid var(--border);border-radius:7px;color:var(--muted);font-size:11px;padding:8px;cursor:pointer;font-family:inherit;transition:all 0.15s;}
+.sim-reset:hover{border-color:var(--gold);color:var(--gold);}
 
 #app{display:none;flex:1;flex-direction:column;height:100vh;height:100dvh;overflow:hidden;}
 /* PC対応：1024px以上でセンタリング（iPadは全幅のまま） */
@@ -700,11 +740,11 @@ html.oauth-pending #oauthLoadingOverlay{display:flex;}
     </div>
     <div class="menu-version">RENO AI Agent</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px 20px 4px;">
-      <a href="/lp.html" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:5px;font-size:11px;color:var(--muted);letter-spacing:0.04em;text-decoration:none;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 6px;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--gold-light)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+      <a href="pages/lp.html" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:5px;font-size:11px;color:var(--muted);letter-spacing:0.04em;text-decoration:none;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 6px;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--gold-light)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10z"/></svg>
         サービス紹介
       </a>
-      <a href="/agent.html" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:5px;font-size:11px;color:var(--muted);letter-spacing:0.04em;text-decoration:none;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 6px;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--gold-light)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+      <a href="pages/agent.html" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:5px;font-size:11px;color:var(--muted);letter-spacing:0.04em;text-decoration:none;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 6px;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--gold-light)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
         AIエージェント
       </a>
@@ -780,7 +820,7 @@ html.oauth-pending #oauthLoadingOverlay{display:flex;}
     <div class="qr-img-wrap">
       <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASIAAAEiCAIAAADS3EjhAAAFF0lEQVR4nO3dO44UMRRAURrNFggQ+18aImARRTqRBWOunqvmnLy6qj9XDvrJfl3X9QUofZ1+AHg+mUFOZpCTGeRkBjmZQU5mkJMZ5GQGOZlBTmaQkxnkZAY5mUFOZpCTGeRkBjmZQU5mkHvbufjH92//6zkO8fPX7w9fO/VpdM98x0+js/NpWM0gJzPIyQxyMoOczCAnM8jJDHIyg5zMILc1BbK28695Z2c6oZtsuONntfPMd3y/O6xmkJMZ5GQGOZlBTmaQkxnkZAY5mUFOZpALp0DW7jhRsX7lnZkJe3K8d8ffxprVDHIyg5zMICczyMkMcjKDnMwgJzPIyQxyY1MgvDc1nXDmnhzPYzWDnMwgJzPIyQxyMoOczCAnM8jJDHIyg5wpkH/Q7VGx88rdTiFmRP4XqxnkZAY5mUFOZpCTGeRkBjmZQU5mkJMZ5MamQO44YXDmM3cn0UzNiJz5Oe+wmkFOZpCTGeRkBjmZQU5mkJMZ5GQGOZlBLpwC6XbOmNLNW9zx2h3P+22sWc0gJzPIyQxyMoOczCAnM8jJDHIyg5zMIPe6rmv6GT6FM6cxnrfrxpmsZpCTGeRkBjmZQU5mkJMZ5GQGOZlBTmaQ29oL5Mw9Krpr1858R3d05ne0w2oGOZlBTmaQkxnkZAY5mUFOZpCTGeRkBrnwRJgpU9MYU/tqdPed2oOke0dTE0JWM8jJDHIyg5zMICczyMkMcjKDnMwgJzPIbU2B3PE8kZ3Jhp1ru7mHbnbhjnuQnPlUVjPIyQxyMoOczCAnM8jJDHIyg5zMICczyL2u6/rwxd1UxNR9n3cyy9TuF2uf7b5WM8jJDHIyg5zMICczyMkMcjKDnMwgJzPIhSfCdDMTO688NQdw5vTJHedaum/QiTBwYzKDnMwgJzPIyQxyMoOczCAnM8jJDHLhiTBnzhCcOefR3fdMU8889R1ZzSAnM8jJDHIyg5zMICczyMkMcjKDnMwgtzUFcub5KWeegbJ25vk4O7pv4Y6zR1YzyMkMcjKDnMwgJzPIyQxyMoOczCAnM8i9ruuKXvrM/+OnTma547WdqUmdqRkgqxnkZAY5mUFOZpCTGeRkBjmZQU5mkJMZ5LamQKZmF9aet8vI1G4fZ87xrJ15Po7VDHIyg5zMICczyMkMcjKDnMwgJzPIyQxy4V4gz9NNY3y2PTnWzvycd96v1QxyMoOczCAnM8jJDHIyg5zMICczyMkMcm87F99xr4i19T/9Z+6rsTP30D3V1ATJmaxmkJMZ5GQGOZlBTmaQkxnkZAY5mUFOZpDbmgJZO/Of/qm5h7VukuOOJ9E8j9UMcjKDnMwgJzPIyQxyMoOczCAnM8jJDHLhFMja1N4YO6bmPLpJjjN3N3keqxnkZAY5mUFOZpCTGeRkBjmZQU5mkJMZ5MamQO5oZ5JjSvfMZ06QnHkSjdUMcjKDnMwgJzPIyQxyMoOczCAnM8jJDHKmQP7BmfuXdHMP3czE1M4oa919rWaQkxnkZAY5mUFOZpCTGeRkBjmZQU5mkBubApnalWHH1O4X6/ueORVx5hk3U/MlVjPIyQxyMoOczCAnM8jJDHIyg5zMICczyL2u6/rwxWeegbJj6syXM2cXusmV572jNasZ5GQGOZlBTmaQkxnkZAY5mUFOZpCTGeS2pkCAv2E1g5zMICczyMkMcjKDnMwgJzPIyQxyMoOczCAnM8jJDHIyg5zMICczyMkMcjKDnMwgJzPI/QH9x6aAYpdPhwAAAABJRU5ErkJggg==" alt="QR Code">
     </div>
-    <div class="qr-url">reno.taskra.jp</div>
+    <div class="qr-url">iflag-hps.github.io/RENO</div>
     <div class="qr-divider"></div>
     <div class="qr-pwa-title">ホーム画面に追加（PWAとして使う）</div>
     <div class="qr-pwa-desc">アプリのようにフルスクリーンで快適に利用できます。</div>
@@ -789,14 +829,14 @@ html.oauth-pending #oauthLoadingOverlay{display:flex;}
       <div class="qr-tab" onclick="switchQrTab('android',this)">🤖 Android（Chrome）</div>
     </div>
     <div id="qrStepsIos" class="qr-steps">
-      1. <b>Safari</b> で reno.taskra.jp を開く<br>
+      1. <b>Safari</b> で iflag-hps.github.io/RENO を開く<br>
       2. 画面下の<b>共有ボタン</b>（口に↑のアイコン）をタップ<br>
       3. メニューから「<b>ホーム画面に追加</b>」を選択<br>
       4. 右上の「<b>追加</b>」をタップで完了
       <div class="qr-steps-note">※ Chromeアプリでは追加できません。必ずSafariで開いてください。</div>
     </div>
     <div id="qrStepsAndroid" class="qr-steps" style="display:none;">
-      1. <b>Chrome</b> で reno.taskra.jp を開く<br>
+      1. <b>Chrome</b> で iflag-hps.github.io/RENO を開く<br>
       2. 右上の<b>メニュー（⋮）</b>をタップ<br>
       3.「<b>アプリをインストール</b>」または「ホーム画面に追加」を選択<br>
       4.「<b>インストール</b>」をタップで完了
@@ -806,7 +846,7 @@ html.oauth-pending #oauthLoadingOverlay{display:flex;}
       <button class="qr-btn-close" onclick="closeQrModal()">閉じる</button>
     </div>
     <div style="text-align:center;padding:10px 0 0;">
-      <a href="/lp.html" target="_blank" onclick="closeQrModal()" style="font-size:11px;color:var(--muted);text-decoration:none;border-bottom:1px solid var(--border);padding-bottom:1px;letter-spacing:0.04em;">サービスサイトを見る →</a>
+      <a href="pages/lp.html" target="_blank" onclick="closeQrModal()" style="font-size:11px;color:var(--muted);text-decoration:none;border-bottom:1px solid var(--border);padding-bottom:1px;letter-spacing:0.04em;">サービスサイトを見る →</a>
     </div>
   </div>
 </div>
@@ -910,7 +950,7 @@ html.oauth-pending #oauthLoadingOverlay{display:flex;}
       <div id="googleLoginStatus" style="min-height:14px;margin-top:4px;font-size:10px;color:var(--muted);text-align:center;"></div>
     </div>
 
-    <a href="https://reno.taskra.jp/lp.html" target="_blank" style="display:block;margin-top:14px;font-size:11px;color:var(--muted);letter-spacing:0.06em;text-decoration:none;border-bottom:1px solid var(--border);padding-bottom:1px;">サービス紹介ページ →</a>
+    <a href="pages/lp.html" target="_blank" style="display:block;margin-top:14px;font-size:11px;color:var(--muted);letter-spacing:0.06em;text-decoration:none;border-bottom:1px solid var(--border);padding-bottom:1px;">サービス紹介ページ →</a>
   </div>
 </div>
 <div id="app">
@@ -918,7 +958,7 @@ html.oauth-pending #oauthLoadingOverlay{display:flex;}
     <div style="display:flex;align-items:center;gap:7px;">
       <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAA4ADgDASIAAhEBAxEB/8QAHAAAAgIDAQEAAAAAAAAAAAAAAAYDBAUHCAIB/8QAOBAAAQQBAwICBQsDBQAAAAAAAQIDBAUGABESByETMQgUQVGyCRUiJDIzQ2Fxc5KBlNIXIzVyhP/EABgBAAMBAQAAAAAAAAAAAAAAAAECAwAE/8QAJxEAAgIABAUEAwAAAAAAAAAAAAECEQMSITFRYXGx8BMykfFBgaH/2gAMAwEAAhEDEQA/AMf6bXpvZNlOd3OEYRcP0eKVL64UmVXuFt+yeQeLhLg+kloKBSEpI5bEnfcAcYv2kh91bjkh51ajupS3FKJPvJJ1VtJJesJbi1FS1vOKUo+ZJUSTprwybFqcDyq4dp6q1mx5ddGYVaxfWENIc9ZLnFJIAJ8NHf8ALSSeRWFK2Kqpj3f/AHHP5HUKpjqR945/I6fsfu7/ADAyBR9OcYtjGCS/6rjyVhsKJCeR59t9jt79jr7eSLOijeNlPSasjQSdjJZrpVbt+j7TnAH9Qr9NT9WnlrXqhsulmu1T3D38Vf8AM6jbtJMZ1LrMl5p1J3Stt1SVA/kQdNMjEKrK4cibhkiW5LjtKfk47YFK5iGkjdbjDiAEyUJAJUAlDiQCeCgCoISnuQ7Ee/fVYyUthWqO5/Qa9O3KMTz2mwXPLmRf4lbvohRpti6XH6x5Z4tkOq+kpoq2SpKieO4UCNiCa4cr5a2LOG42opcQ+2pKh5ghQIOjWaMX57202T+6v4jpmpnuXSbMfysqnt/SXpLnvfX5Pf8AFX8R0+dP8bm5Z04zOLEUww21Oqn5MyW6Go8VlPrfJ11Z+ykbjyBJJASCSAUxWlG3xXdDQ3+exj6h0K6U5eCAQbKq7Eb79pesFj2Y3WISC9S2surWRspMZ0pQse0LR9lYPtCgQfdpmPUapxKG/j2P1UW6oJCkG0kXMch22UjfipIB5RUI5KLfAhwElS1EniKqenrebrD2AGTbrUR4mPSFJNlGJO30QNhJaBP3iACB9tCPPU8yVua0fHot+Hn5Gq6y7k13YIlU9ZnmPoRj1xEsUxJrNaPCZYlBBdYlMJ/DCwhzdsfRSts8dkrCRjOqTUVV9CuIEduHEv69i3TFZHFDDjnJL7aB7Eh5t3iPYkgezRkbjNHjcTD4EhFvZPWAnWLkBXitesBBaZjNKHZwpC3OSk7pK3OKSQnc0up0pEa2rqNtxD3zBXM1brjagpKn0lbj+xHmA664nf28NLD3Kufx97cgy2fmovQ3Np8Xv+Mj4ho1ThvfX437qPiGjXUyJenyPr0n91fxHTRRyT/pHmYP2TZ1G4/T1zbSParWxaTW3AULQ+4lST5ghZBGmCnsmG+l+WRlvtokPWFWttlSgFuJT61yKR5kDknf3ch79Jibftd0NHc3N0u6JYbmOJ4XY2asx9ctZktiaKuuLrJQ2h0o9XV4Z5q3QnkNzsOXltrVOGBFZ1joWYi3kIjZFHbZW5ul0JTKSkE+RCtvPy776oUfWXNMXgVcGpyawr4lW649BaZWAmOtYUFqRuOxUFq3/wCx1RwW436l45PnSUpBuosiRJfUEpH1hClrUfIDzJP665Vh4sc7m7Tuv7y4UWcoPKorX6NmzcrRkbGRX1DXRovUKI6+uwfR2W5GBUFzIbIHFDwH3pG5A3cbCd1lOkS+Nux7afz0+zCmyly1rJFZFlsTVyY0pjIIAUhXMlKgfH/P+u+x7ak6mYMn5kRlcdFRUPrX4dlSRbSK6G3j+PGQ24o+Csnfwx3bVuBujiQcOWHhuk1r5XTgCSlJW1sa8hPb2EXv+Mj4ho1XqA5Lt4DLSSt1yQ0hCU+aiVgAaNdjIHfPp8/J95jjHUW9z7p1RSMjxG5fXPlV9Y34kqsfWeTo8IfSW0VEqSpAPHkUkDYE8MSMUv4rqmnqK0ZdQdlIcgupUD7iCnRo0qYaIVY5db/8PY/2bn+OvCsbuz2+ZrE/+Nz/AB0aNGzERxS59lHP/snP8de4+E5DLdS1Gx6zedUdkoaguqUT+QCdGjWsx3f8n78nnl191GpOoPUmkfx3GKZ9E+HWWLfCTYvoPJrdo90NJUAolQBVxAA2JINGjS2E/9k=" alt="RENO.ai" style="width:22px;height:23px;flex-shrink:0;">
       <span class="h-logo">RENO</span>
-      <span class="h-badge">AI Agent</span>
+      <span class="h-badge">AI Agent · Demo</span>
     </div>
     <div class="h-right" style="position:relative;">
       <div class="h-usage" id="usageBadge"></div>
@@ -1022,6 +1062,9 @@ const SYSTEM_PROMPT = `あなたはRENOのAIリフォームコンサルタント
 - 返答は2〜3文と短く
 - 一度に聞く質問は1つ
 - 親しみやすい言葉を使う`;
+
+// チャット相談は画面確認用のローカルモック。実APIへ切り替える場合はfalseにする。
+const MOCK_CHAT_MODE = true;
 
 
 // ── 安全なlocalStorageラッパー ──
@@ -1245,8 +1288,9 @@ function switchQrTab(tab, el) {
   document.getElementById('qrStepsAndroid').style.display = tab === 'android' ? 'block' : 'none';
 }
 async function copyQrUrl() {
-  try { await navigator.clipboard.writeText('https://reno.taskra.jp'); }
-  catch(e) { const ta = document.createElement('textarea'); ta.value='https://reno.taskra.jp'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }
+  const appUrl = `${location.origin}${location.pathname}`;
+  try { await navigator.clipboard.writeText(appUrl); }
+  catch(e) { const ta = document.createElement('textarea'); ta.value=appUrl; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }
   const btn = event.target;
   btn.textContent = 'コピーしました！';
   setTimeout(() => { btn.textContent = 'URLをコピー'; }, 2000);
@@ -1289,13 +1333,51 @@ let sessionRole = '';
 let sessionEmail = '';
 let sessionLabel = '';
 let sessionAvatar = '';
+const AUTH_CACHE_KEY = 'reno_auth_session_v1';
+const AUTH_CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
 // ページ読み込み時に必ずpinCheckingをリセット
-window.addEventListener('load', () => {
+window.addEventListener('load', async () => {
   pinChecking = false; pinValue = ''; renderDots();
-  handleGoogleRedirect();
-  initLoginView();
+  // URL PINを最優先し、それ以外はGoogleセッション→保存済みセッションの順に復元
+  const urlPin = (new URLSearchParams(location.search).get('pin') || '').replace(/\D/g, '');
+  if (urlPin.length === 4) {
+    initLoginView();
+    return;
+  }
+  const googleHandled = await handleGoogleRedirect();
+  if (!googleHandled && !restoreCachedSession()) initLoginView();
 });
+
+function saveAuthSession(data) {
+  try {
+    localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify({
+      token: data.token,
+      role: data.role || '',
+      email: data.email || '',
+      label: data.label || '',
+      savedAt: Date.now()
+    }));
+  } catch (e) {}
+}
+
+function restoreCachedSession() {
+  try {
+    const cached = JSON.parse(localStorage.getItem(AUTH_CACHE_KEY) || 'null');
+    if (!cached?.token || !cached.savedAt || Date.now() - cached.savedAt > AUTH_CACHE_MAX_AGE) {
+      localStorage.removeItem(AUTH_CACHE_KEY);
+      return false;
+    }
+    applySession(cached);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function clearAuthSession() {
+  try { localStorage.removeItem(AUTH_CACHE_KEY); } catch (e) {}
+}
 
 function initLoginView() {
   const params = new URLSearchParams(location.search);
@@ -1348,7 +1430,11 @@ function pinDel() {
 function renderDots(state = 'normal') {
   for (let i = 0; i < 4; i++) {
     const d = document.getElementById('d' + i);
-    d.textContent = pinValue.length > i ? '●' : '';
+    if (state === 'normal' && pinValue.length === i) {
+      d.innerHTML = '<span class="pin-caret" aria-hidden="true"></span>';
+    } else {
+      d.textContent = pinValue.length > i ? '●' : '';
+    }
     d.className = 'pin-dot'
       + (pinValue.length > i ? ' filled' : '')
       + (state === 'error' ? ' error' : '')
@@ -1356,11 +1442,44 @@ function renderDots(state = 'normal') {
   }
 }
 
+// ── DOM出力ヘルパー ──
+// 会話・AI応答・保存データは必ず文字列として表示し、HTMLとして解釈させない。
+function escapeHTML(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function safeImageSrc(value) {
+  const src = String(value ?? '').trim();
+  if (!src) return '';
+  if (/^data:image\/(?:png|jpe?g|webp|gif);base64,/i.test(src)) return src;
+  try {
+    const url = new URL(src, location.href);
+    if (url.protocol === 'https:' || url.protocol === 'http:' || url.protocol === 'blob:') return url.href;
+  } catch (e) {}
+  return '';
+}
+
+function escapeJSString(value) {
+  return String(value ?? '')
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'")
+    .replace(/\r/g, '\\r')
+    .replace(/\n/g, '\\n')
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029');
+}
+
 function applySession(data) {
   sessionToken = data.token;
   sessionRole  = data.role || '';
   sessionEmail = data.email || '';
   sessionLabel = data.label || '';
+  saveAuthSession(data);
   pinValue = '';
   renderDots();
   document.getElementById('pinScreen').style.display = 'none';
@@ -1375,7 +1494,7 @@ function applySession(data) {
     document.getElementById('userMenuEmail').textContent = sessionEmail || '';
   }
   if (!chatStarted) initChat();
-  if (location.search) { try { history.replaceState(null, '', location.pathname); } catch (e) {} }
+  if (location.search) { try { window.history.replaceState(null, '', location.pathname); } catch (e) {} }
 }
 
 function toggleUserMenu() {
@@ -1393,6 +1512,7 @@ document.addEventListener('click', (e) => {
 
 async function switchGoogleAccount() {
   document.getElementById('userMenu').style.display = 'none';
+  clearAuthSession();
   await supabaseAuth.auth.signOut().catch(() => {});
   loginWithGoogle(true);
 }
@@ -1446,7 +1566,7 @@ async function handleGoogleRedirect() {
     const { data: { session } } = await supabaseAuth.auth.getSession();
     if (!session) {
       document.documentElement.classList.remove('oauth-pending');
-      return;
+      return false;
     }
     sessionAvatar = session.user?.user_metadata?.avatar_url || session.user?.user_metadata?.picture || '';
     if (statusEl) statusEl.textContent = 'ログイン中...';
@@ -1458,12 +1578,15 @@ async function handleGoogleRedirect() {
     const data = await res.json();
     if (res.ok && data.token) {
       applySession(data);
+      return true;
     } else {
       if (statusEl) statusEl.textContent = data.error || 'ログインに失敗しました';
       await supabaseAuth.auth.signOut().catch(() => {});
+      return false;
     }
   } catch (e) {
     if (statusEl) statusEl.textContent = 'ログインに失敗しました。';
+    return false;
   } finally {
     document.documentElement.classList.remove('oauth-pending');
   }
@@ -1476,6 +1599,7 @@ function lockApp() {
   sessionEmail = '';
   sessionLabel = '';
   sessionAvatar = '';
+  clearAuthSession();
   pinChecking = false;
   renderDots();
   document.getElementById('pinScreen').style.display = 'flex';
@@ -1487,23 +1611,192 @@ function lockApp() {
   const userMenu = document.getElementById('userMenu');
   if (userMenu) userMenu.style.display = 'none';
   // URLに?pinが残っているとリロード時に再度ゲスト扱いになるので消しておく
-  if (location.search) { try { history.replaceState(null, '', location.pathname); } catch (e) {} }
+  if (location.search) { try { window.history.replaceState(null, '', location.pathname); } catch (e) {} }
   supabaseAuth.auth.signOut().catch(() => {});
 }
 
 // ── Chat ──
 let history = [];
 let chatStarted = false;
+const CHAT_CACHE_PREFIX = 'reno_chat_history_v1:';
+const CHAT_STATE_SUFFIX = ':state';
+
+function chatCacheKey() {
+  return CHAT_CACHE_PREFIX + (sessionEmail || 'guest');
+}
+
+function chatStateKey() {
+  return chatCacheKey() + CHAT_STATE_SUFFIX;
+}
+
+function persistChatHistory() {
+  try {
+    const compact = history.slice(-120).map(message => ({
+      role: message.role,
+      content: String(message.content || '').slice(0, 4000)
+    }));
+    localStorage.setItem(chatCacheKey(), JSON.stringify(compact));
+  } catch (e) {}
+}
+
+function persistChatState(activeView = '') {
+  try {
+    const chat = document.getElementById('chat');
+    const chatSnapshot = chat
+      ? chat.innerHTML
+          .replace(/\s(?:src|href)="data:[^"]*"/gi, '')
+          .replace(/<div class="msg agent" id="typing">[\s\S]*?<\/div>\s*<\/div>/g, '')
+      : '';
+    localStorage.setItem(chatStateKey(), JSON.stringify({
+      activeView,
+      chatSnapshot: chatSnapshot.length <= 900000 ? chatSnapshot : '',
+      draftText: document.getElementById('userInput')?.value || '',
+      simState: {
+        sizeIdx: simState.sizeIdx,
+        items: [...simState.items],
+        gradeIdx: simState.gradeIdx,
+      },
+      selectedMaterialKey: window._selectedMaterialKey || '',
+      pendingUploadPrompt: window._pendingUploadPrompt || '',
+      savedAt: Date.now(),
+    }));
+  } catch (e) {}
+}
+
+function persistCurrentChatState() {
+  const activeView = document.getElementById('final-confirm-msg')
+    ? 'final-confirm'
+    : document.getElementById('sim-msg')
+      ? 'simulator'
+      : document.getElementById('upload-msg')
+        ? 'upload'
+        : document.getElementById('ideal-msg')
+          ? 'ideal-image'
+          : document.getElementById('daynight-msg')
+            ? 'daynight'
+            : document.querySelector('.mat-card')
+              ? 'material'
+              : document.querySelector('.quick-form')
+                ? 'quick-form'
+                : '';
+  persistChatState(activeView);
+}
+
+function restoreChatState() {
+  try {
+    const state = JSON.parse(localStorage.getItem(chatStateKey()) || 'null');
+    if (!state || !state.simState) return { activeView: '' };
+    const next = state.simState;
+    if (Number.isInteger(next.sizeIdx) && COST_DATA.sizes[next.sizeIdx]) simState.sizeIdx = next.sizeIdx;
+    if (Number.isInteger(next.gradeIdx) && COST_DATA.grades[next.gradeIdx]) simState.gradeIdx = next.gradeIdx;
+    if (Array.isArray(next.items)) {
+      simState.items = new Set(next.items.filter(key => COST_DATA.items.some(item => item.key === key)));
+    }
+    if (state.selectedMaterialKey) window._selectedMaterialKey = state.selectedMaterialKey;
+    if (state.pendingUploadPrompt) window._pendingUploadPrompt = state.pendingUploadPrompt;
+    return {
+      activeView: state.activeView || '',
+      chatSnapshot: state.chatSnapshot || '',
+      draftText: state.draftText || '',
+      pendingUploadPrompt: state.pendingUploadPrompt || '',
+    };
+  } catch (e) {
+    return { activeView: '' };
+  }
+}
+
+function clearDraftCache() {
+  try {
+    localStorage.removeItem(chatCacheKey());
+    localStorage.removeItem(chatStateKey());
+  } catch (e) {}
+}
+
+function restoreCachedChat(cached, skipInteractive = false) {
+  cached.forEach(message => {
+    if (!message || !message.role || !message.content) return;
+    if (message.role === 'user') {
+      addUserMessage(message.content);
+      return;
+    }
+    const raw = String(message.content);
+    const genMatch = raw.match(/\[GENERATE_IMAGE:\s*([\s\S]+?)\]/);
+    const simMatch = raw.match(/\[SHOW_SIMULATOR\]/);
+    const matMatch = raw.match(/\[SHOW_MATERIAL:\s*(\w+)\]/);
+    const qfMatch = raw.match(/\[QUICK_FORM:\s*([\s\S]+?)\]/);
+    const sugMatch = raw.match(/\[SUGGESTIONS:\s*(.+?)\]/);
+    const display = raw
+      .replace(/\[GENERATE_IMAGE:[\s\S]+?\]/g, '')
+      .replace(/\[SHOW_SIMULATOR\]|\[SHOW_MATERIAL:\s*\w+\]|\[SHOW_CASES:[^\]]*\]/g, '')
+      .replace(/\[QUICK_FORM:[\s\S]+?\]|\[SUGGESTIONS:.+?\]/g, '')
+      .trim();
+    if (display) addAgentMessage(display);
+    if (!skipInteractive) {
+      if (genMatch) showUploadCard(genMatch[1].trim());
+      else if (simMatch) showSimulator();
+      else if (matMatch) showMaterial(matMatch[1].trim());
+      else if (qfMatch) showQuickForm(qfMatch[1].trim());
+      if (sugMatch) renderSuggestions(sugMatch[1].split(',').map(s => s.trim()).filter(Boolean));
+    }
+  });
+}
+
+function restoreInteractiveSuggestions() {
+  const row = document.getElementById('suggestions-row');
+  if (!row) return;
+  const labels = [...row.querySelectorAll('.chip')]
+    .map(button => button.textContent.trim())
+    .filter(Boolean);
+  if (labels.length) renderSuggestions(labels);
+}
 
 function initChat() {
   chatStarted = true;
   fetchUsage();
+  const savedState = restoreChatState();
+  try {
+    const cached = JSON.parse(localStorage.getItem(chatCacheKey()) || '[]');
+    if (Array.isArray(cached) && cached.length) {
+      history = cached;
+      const canRestoreSnapshot = savedState.chatSnapshot
+        && !savedState.chatSnapshot.includes('quick-form')
+        && !savedState.chatSnapshot.includes('id="typing"');
+      if (canRestoreSnapshot) {
+        document.getElementById('chat').innerHTML = savedState.chatSnapshot;
+        restoreInteractiveSuggestions();
+      } else {
+        restoreCachedChat(cached, ['final-confirm', 'material'].includes(savedState.activeView));
+      }
+      if (savedState.activeView === 'final-confirm') {
+        finalizationState = 'review';
+        if (!document.getElementById('final-confirm-msg')) {
+          document.getElementById('sim-msg')?.remove();
+          showFinalConfirmation();
+        }
+      } else if (savedState.activeView === 'simulator' && !document.getElementById('sim-msg')) {
+        showSimulator();
+      } else if (savedState.activeView === 'material' && window._selectedMaterialKey && !document.querySelector('.mat-card')) {
+        showMaterial(window._selectedMaterialKey);
+      } else if (savedState.activeView === 'upload' && !document.getElementById('upload-msg')) {
+        showUploadCard(savedState.pendingUploadPrompt || window._pendingUploadPrompt || '');
+      }
+      const input = document.getElementById('userInput');
+      if (input && savedState.draftText) {
+        input.value = savedState.draftText;
+        autoResize(input);
+      }
+      return;
+    }
+  } catch (e) {}
   addAgentMessage(
     'こんにちは！RENOへようこそ。\nどのお部屋をリフォームしたいとお考えですか？',
     null, null,
     ['リビング', 'キッチン', '浴室・洗面所', '寝室', '玄関']
   );
 }
+
+window.addEventListener('beforeunload', persistCurrentChatState);
+window.addEventListener('pagehide', persistCurrentChatState);
 
 function autoResize(el) {
   el.style.height = 'auto';
@@ -1573,11 +1866,15 @@ function removeSuggestions() {
 
 function renderSuggestions(chips) {
   removeSuggestions();
-  if (!chips || chips.length === 0) return;
+  // 担当者相談とPDF保存は最終確定時だけ表示する
+  const available = (chips || []).filter(label =>
+    label !== '担当者に相談' && label !== '提案書を作成'
+  );
+  if (available.length === 0) return;
   const chat = document.getElementById('chat');
   const div = document.createElement('div');
   div.className = 'suggestions'; div.id = 'suggestions-row';
-  chips.forEach(label => {
+  available.forEach(label => {
     const btn = document.createElement('button');
     btn.className = 'chip';
     btn.textContent = label;
@@ -1598,8 +1895,80 @@ function tapChip(text) {
     return;
   }
   if (text === 'もう一度試す') {
+    if (window._beforeFile || window._beforeURL) {
+      addUserMessage(text);
+      generateWithFiles(window._beforeFile, null);
+    } else {
+      addUserMessage(text);
+      showUploadCard('施工後イメージを作成するため、現状写真を選んでください');
+    }
+    return;
+  }
+  if (text === 'もう一度送る') {
+    const lastUser = [...history].reverse().find(message => message.role === 'user');
+    if (lastUser) callAgent();
+    else addAgentMessage('先に相談内容を入力してください。');
+    return;
+  }
+  if (text === '担当者に相談') {
+    addAgentMessage('担当者への相談は、概算と提案内容を確認してから最後に一度だけ申し込めます。', null, null,
+      ['概算を見る', '相談内容を続ける']);
+    return;
+  }
+  if (text === '相談内容を続ける') {
+    addAgentMessage('このまま相談を続けられます。次に確認したいことを入力してください。');
+    document.getElementById('userInput')?.focus();
+    return;
+  }
+  if (text === '別の部屋を相談する') {
     addUserMessage(text);
-    generateWithFiles(window._beforeFile, null);
+    history.push({ role:'user', content: text });
+    callAgent();
+    return;
+  }
+  if (text === '素材を探す' || text === '素材提案' || text === '別の素材を見る') {
+    addUserMessage(text);
+    showMaterial('composite');
+    return;
+  }
+  if (text === '概算を見る' || text === '概算見積もり') {
+    addUserMessage(text);
+    showSimulator();
+    return;
+  }
+  if (text === '施工後イメージ') {
+    if (window._beforeFile || window._beforeURL) {
+      addUserMessage(text);
+      generateWithFiles(window._beforeFile, null);
+    } else {
+      addUserMessage(text);
+      showUploadCard('施工後イメージを作成するため、現状写真を選んでください');
+    }
+    return;
+  }
+  if (text === '昼/夜を見る') {
+    if (window._lastAfterSrc && window._lastBeforeSrc) {
+      addUserMessage(text);
+      generateNight(null, window._lastAfterSrc, window._lastBeforeSrc);
+    } else {
+      addAgentMessage('昼夜の比較には、先に施工後イメージを作成してください。', null, null,
+        ['施工後イメージ', '概算を見る', '担当者に相談']);
+    }
+    return;
+  }
+  if (text === '画像で確認する') {
+    if (window._beforeFile || window._beforeURL) {
+      startGenerationFromPhoto(text);
+    } else {
+      addUserMessage(text);
+      showUploadCard('施工後イメージを確認するため、現状写真を選んでください');
+    }
+    return;
+  }
+  if (text === '提案書を作成') {
+    addUserMessage(text);
+    addAgentMessage('提案書のPDFは、概算と内容を最終確定した後に一度だけ作成できます。', null, null,
+      ['概算を見る', '相談内容を続ける']);
     return;
   }
   addUserMessage(text);
@@ -1608,9 +1977,11 @@ function tapChip(text) {
 }
 
 function addAgentMessage(text, afterSrc = null, beforeSrc = null, suggestions = null) {
+  const safeAfterSrc = safeImageSrc(afterSrc);
+  const safeBeforeSrc = safeImageSrc(beforeSrc);
   // 感情判定してアイコン切替
   let emotion = 'normal';
-  if (afterSrc && beforeSrc) {
+  if (safeAfterSrc && safeBeforeSrc) {
     emotion = 'happy';      // 画像生成完了 → 笑顔
     playSound('complete');
   } else {
@@ -1631,32 +2002,28 @@ function addAgentMessage(text, afterSrc = null, beforeSrc = null, suggestions = 
     ? `<div class="avatar agent">${iconHTML}</div>`
     : `<div class="avatar agent" style="visibility:hidden;flex-shrink:0;"></div>`;
   let inner = `${avatarHTML}<div class="bubble agent">`;
-  inner += text.replace(/\n/g, '<br>');
-  if (afterSrc && beforeSrc) {
+  inner += escapeHTML(text).replace(/\n/g, '<br>');
+  if (safeAfterSrc && safeBeforeSrc) {
     inner += `<div class="compare-pair">
-      <div class="ci"><span class="ci-tag before">Before</span><img src="${beforeSrc}" alt="before"></div>
-      <div class="ci"><span class="ci-tag after">After</span><img src="${afterSrc}" alt="after"></div>
+      <div class="ci"><span class="ci-tag before">Before</span><img src="${escapeHTML(safeBeforeSrc)}" alt="before"></div>
+      <div class="ci"><span class="ci-tag after">After</span><img src="${escapeHTML(safeAfterSrc)}" alt="after"></div>
     </div>`;
     inner += `<div class="share-bar">
-      <button class="share-btn line" onclick="shareViaLine('${afterSrc}')">
+      <button class="share-btn line" onclick="shareViaLine('${escapeHTML(escapeJSString(safeAfterSrc))}')">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
         LINEで送る
       </button>
-      <button class="share-btn copy" onclick="shareNative('${afterSrc}')">
+      <button class="share-btn copy" onclick="shareNative('${escapeHTML(escapeJSString(safeAfterSrc))}')">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
         共有
       </button>
-      <a class="share-btn dl" href="${afterSrc}" download="reno-ai.png">
+      <a class="share-btn dl" href="${escapeHTML(safeAfterSrc)}" download="reno-ai.png">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         保存
       </a>
-      <button class="share-btn night" onclick="generateNight(this,'${afterSrc}','${beforeSrc}')">
+      <button class="share-btn night" onclick="generateNight(this,'${escapeHTML(escapeJSString(safeAfterSrc))}','${escapeHTML(escapeJSString(safeBeforeSrc))}')">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
         昼/夜
-      </button>
-      <button class="share-btn pdf" onclick="generatePDF('${afterSrc}','${beforeSrc}')">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-        提案書PDF
       </button>
     </div>`;
   }
@@ -1671,7 +2038,7 @@ function addUserMessage(text) {
   const chat = document.getElementById('chat');
   const div = document.createElement('div');
   div.className = 'msg user';
-  div.innerHTML = `<div class="avatar user">${userIcon}</div><div class="bubble user">${text.replace(/\n/g,'<br>')}</div>`;
+  div.innerHTML = `<div class="avatar user">${userIcon}</div><div class="bubble user">${escapeHTML(text).replace(/\n/g,'<br>')}</div>`;
   chat.appendChild(div);
   scrollBottom();
 }
@@ -1699,9 +2066,10 @@ function showUploadCard(prompt) {
   const chat = document.getElementById('chat');
   const div = document.createElement('div');
   div.className = 'msg agent'; div.id = 'upload-msg';
-  const safePrompt = prompt.replace(/'/g,"\'").replace(/"/g,'&quot;');
+  window._pendingUploadPrompt = prompt;
+  persistChatState('upload');
   const thumbs = SAMPLE_IMAGES.map((s,i) =>
-    '<div class="sample-thumb" onclick="useSampleImage(' + i + ',\'' + safePrompt + '\')">' +
+    '<div class="sample-thumb" onclick="useSampleImage(' + i + ')">' +
     '<img src="' + s.src + '" alt="' + s.label + '">' +
     '<div class="sample-thumb-label">' + s.label + '</div></div>'
   ).join('');
@@ -1715,13 +2083,13 @@ function showUploadCard(prompt) {
         '<span class="sample-picker-label">または サンプル画像で試す</span>' +
         '<div class="sample-grid">' + thumbs + '</div>' +
       '</div>' +
-      '<input type="file" id="photoInput" accept="image/*" style="display:none" onchange="handlePhoto(event,\'' + safePrompt + '\')">' +
+      '<input type="file" id="photoInput" accept="image/*" style="display:none" onchange="handlePhoto(event)">' +
     '</div>';
   chat.appendChild(div);
   scrollBottom();
 }
 
-async function useSampleImage(idx, prompt) {
+async function useSampleImage(idx, prompt = window._pendingUploadPrompt || '') {
   const sample = SAMPLE_IMAGES[idx];
   const beforeURL = sample.src;
   const card = document.getElementById('upload-msg');
@@ -1745,7 +2113,7 @@ async function useSampleImage(idx, prompt) {
   // 理想イメージカードを表示（handlePhotoと同じフロー）
   showIdealImageCard(window._beforeFile, beforeURL, prompt);
 }
-async function handlePhoto(event, prompt) {
+async function handlePhoto(event, prompt = window._pendingUploadPrompt || '') {
   const file = event.target.files[0];
   if (!file) return;
   const beforeURL = URL.createObjectURL(file);
@@ -1766,15 +2134,19 @@ function showIdealImageCard(beforeFile, beforeURL, prompt) {
   div.innerHTML = `
     <div class="avatar agent">${getAgentIconHTML()}</div>
     <div class="bubble agent">
-      <div style="font-size:13px;margin-bottom:10px;">理想のイメージ画像はありますか？<br><span style="font-size:11px;color:var(--muted);">カタログや参考写真があれば、より近いイメージで生成できます。</span></div>
+      <div style="font-size:13px;margin-bottom:10px;">この写真をどう使いますか？<br><span style="font-size:11px;color:var(--muted);">状態を診断してから素材を探すことも、すぐに施工後イメージを作ることもできます。</span></div>
       <div style="display:flex;gap:8px;">
+        <div class="upload-card" style="flex:1;border-color:var(--gold);background:var(--gold-bg);" onclick="startPhotoDiagnosis()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l2.5 2.5"/><path d="M8 3.5 6.5 2M16 3.5 17.5 2"/></svg>
+          <div class="upload-card-text">状態を診断する</div>
+        </div>
         <div class="upload-card" style="flex:1;" onclick="document.getElementById('idealInput').click()">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
           <div class="upload-card-text">理想の画像を追加</div>
         </div>
-        <div class="upload-card" style="flex:1;border-color:var(--border);" onclick="generateWithFiles(null, null)">
+          <div class="upload-card" style="flex:1;border-color:var(--border);" onclick="startGenerationFromPhoto('診断せず施工後イメージを作る')">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-          <div class="upload-card-text" style="color:var(--muted);">なしで生成する</div>
+          <div class="upload-card-text" style="color:var(--muted);">診断せず生成する</div>
         </div>
       </div>
       <input type="file" id="idealInput" accept="image/*" style="display:none" onchange="handleIdealPhoto(event)">
@@ -1786,6 +2158,132 @@ function showIdealImageCard(beforeFile, beforeURL, prompt) {
   window._beforeFile = beforeFile;
   window._beforeURL = beforeURL;
   window._genPrompt = prompt;
+}
+
+function startPhotoDiagnosis() {
+  const card = document.getElementById('ideal-msg');
+  if (card) card.remove();
+  addUserMessage('🔎 この写真の状態を診断する');
+  addTyping();
+  window.setTimeout(() => {
+    removeTyping();
+    const beforeURL = window._beforeURL || '';
+    const chat = document.getElementById('chat');
+    const div = document.createElement('div');
+    div.className = 'msg agent';
+    div.innerHTML = `
+      <div class="avatar agent">${getAgentIconHTML()}</div>
+      <div class="bubble agent" style="max-width:88%;">
+        <div style="font-size:13px;font-weight:600;margin-bottom:9px;">状態診断結果（デモ）</div>
+        ${beforeURL ? `<img src="${beforeURL}" alt="診断した写真" style="width:100%;height:130px;object-fit:cover;border-radius:8px;margin-bottom:10px;">` : ''}
+        <div style="padding:9px 0;border-bottom:1px solid var(--border);"><strong>壁紙（クロス）</strong><br><span style="font-size:11px;color:var(--muted);">継ぎ目の浮き・黄ばみが見られます</span><span style="float:right;color:var(--gold);font-size:11px;">経年劣化 中</span></div>
+        <div style="padding:9px 0;border-bottom:1px solid var(--border);"><strong>床材</strong><br><span style="font-size:11px;color:var(--muted);">複合フローリング（推定）・細かな擦り傷</span><span style="float:right;color:var(--green);font-size:11px;">軽度</span></div>
+        <div style="padding:9px 0;"><strong>建具（ドア枠）</strong><br><span style="font-size:11px;color:var(--muted);">日焼けによる色あせが目立ちます</span><span style="float:right;color:#c05040;font-size:11px;">劣化 大</span></div>
+        <div style="font-size:11px;color:var(--muted);line-height:1.6;background:var(--bg);padding:9px 10px;border-radius:7px;">💡 壁紙の張替えと建具の再塗装を優先すると、費用対効果が高そうです。</div>
+        <div style="display:flex;gap:7px;margin-top:10px;">
+          <button class="chip" type="button" onclick="startCatalogFromDiagnosis()">素材を探す</button>
+          <button class="chip" type="button" onclick="startEstimateFromDiagnosis()">概算を見る</button>
+          <button class="chip" type="button" onclick="startGenerationFromPhoto()">施工後イメージ</button>
+        </div>
+        <div style="font-size:10px;color:var(--muted);margin-top:8px;">※ AIによる参考判定です。現地確認で結果が変わる場合があります。</div>
+      </div>`;
+    chat.appendChild(div);
+    scrollBottom();
+  }, 1100);
+}
+
+function startCatalogFromDiagnosis() {
+  addUserMessage('素材を探す');
+  showMaterial('composite');
+}
+
+function startEstimateFromDiagnosis() {
+  addUserMessage('概算を見る');
+  showSimulator();
+}
+
+function startGenerationFromPhoto(label = '施工後イメージ') {
+  addUserMessage(label);
+  generateWithFiles(window._beforeFile, null);
+}
+
+function getHandoffSummary(context) {
+  const rows = [`相談の起点：${context}`];
+  const material = MATERIALS[window._selectedMaterialKey];
+  if (material) rows.push(`選択素材：${material.name}`);
+  if (simState.items.size) {
+    const estimate = calcCost();
+    const items = [...simState.items]
+      .map(k => COST_DATA.items.find(item => item.key === k)?.label)
+      .filter(Boolean).join('・');
+    rows.push(`概算：${COST_DATA.sizes[simState.sizeIdx].label}・${items}・${COST_DATA.grades[simState.gradeIdx].label}で${fmtMoney(estimate.lo)}〜${fmtMoney(estimate.hi)}`);
+  }
+  if (window._beforeURL) rows.push('現状写真：アップロード済み');
+  if (window._lastAfterSrc) rows.push('施工後イメージ：作成済み');
+  return rows;
+}
+
+function handoffToStaff(context) {
+  if (finalizationState !== 'confirmed' || finalHandoffStarted) {
+    addAgentMessage('担当者への相談受付は、内容を最終確定した後に進められます。', null, null,
+      ['概算を見る', '相談内容を続ける']);
+    return;
+  }
+  finalHandoffStarted = true;
+  removeSuggestions();
+  addUserMessage('担当者に相談する');
+  document.getElementById('handoff-msg')?.remove();
+  const rows = getHandoffSummary(context);
+  const div = document.createElement('div');
+  div.className = 'msg agent';
+  div.id = 'handoff-msg';
+  div.innerHTML = `<div class="avatar agent">${getAgentIconHTML()}</div>
+    <div class="bubble agent">
+      <div class="handoff-card">
+        <div class="handoff-title">担当者に相談する</div>
+        <div class="handoff-lead">現在の相談内容を確認して、担当者からの連絡を希望する場合は入力してください。</div>
+        <div class="handoff-summary">
+          <div class="handoff-summary-title">共有予定の内容（デモ）</div>
+          ${rows.map(row => `<div class="handoff-summary-row">・${escapeHTML(row)}</div>`).join('')}
+        </div>
+        <div class="handoff-field">
+          <label class="handoff-label" for="handoff-name">お名前</label>
+          <input class="handoff-input" id="handoff-name" type="text" placeholder="例：山田 太郎" autocomplete="name">
+        </div>
+        <div class="handoff-field">
+          <label class="handoff-label" for="handoff-contact">連絡先（メールまたは電話番号）</label>
+          <input class="handoff-input" id="handoff-contact" type="text" placeholder="例：taro@example.com" autocomplete="email">
+        </div>
+        <div class="handoff-error" id="handoff-error">お名前と連絡先を入力してください。</div>
+        <button class="handoff-submit" type="button" onclick="submitHandoff()">この内容で相談を申し込む</button>
+        <div class="handoff-note">※ モックでは受付完了までを確認します。実際の担当者への送信はまだ行いません。</div>
+      </div>
+    </div>`;
+  document.getElementById('chat').appendChild(div);
+  scrollBottom();
+  document.getElementById('handoff-name')?.focus();
+}
+
+function submitHandoff() {
+  const name = document.getElementById('handoff-name')?.value.trim() || '';
+  const contact = document.getElementById('handoff-contact')?.value.trim() || '';
+  const error = document.getElementById('handoff-error');
+  if (!name || !contact) {
+    if (error) error.style.display = 'block';
+    document.getElementById(!name ? 'handoff-name' : 'handoff-contact')?.focus();
+    return;
+  }
+  const card = document.getElementById('handoff-msg');
+  if (card) card.remove();
+  addUserMessage('相談を申し込みました');
+  addAgentMessage(`ありがとうございます、${name}さん。担当者への相談を受け付けました。${contact}へ連絡する想定です。`, null, null, ['相談内容を続ける', '別の部屋を相談する']);
+  clearDraftCache();
+  finalizationState = 'completed';
+}
+
+function startProposalFlow() {
+  addAgentMessage('提案書のPDFは、概算と内容を最終確定した後に一度だけ作成できます。', null, null,
+    ['概算を見る', '相談内容を続ける']);
 }
 
 async function handleIdealPhoto(event) {
@@ -1802,13 +2300,25 @@ async function generateWithFiles(beforeFile, idealFile) {
   const card = document.getElementById('ideal-msg');
   if (card) card.remove();
 
-  const bf = beforeFile || window._beforeFile;
+  let bf = beforeFile || window._beforeFile;
   const prompt = window._genPrompt || '';
   const beforeURL = window._beforeURL || '';
 
   addTyping();
 
   try {
+    // サンプル画像の変換に失敗しても、保持しているURLから再構成して処理を継続する
+    if (!bf && beforeURL) {
+      const source = await fetch(beforeURL);
+      const blob = await source.blob();
+      bf = new File([blob], 'before.jpg', { type: blob.type || 'image/jpeg' });
+    }
+    if (!bf) {
+      removeTyping();
+      showUploadCard('施工後イメージを作成するため、現状写真を選んでください');
+      return;
+    }
+
     const form = new FormData();
     form.append('token', sessionToken);
 
@@ -1829,7 +2339,8 @@ async function generateWithFiles(beforeFile, idealFile) {
     if (res.status === 429 && data.error === 'limit_exceeded' && !DEMO_BYPASS_LIMIT) {
       removeTyping();
       showUpgradeModal();
-      addAgentMessage('今月の生成回数に達しました。プランのアップグレードをご検討ください。');
+      addAgentMessage('今月の生成回数に達しました。プランのアップグレードをご検討ください。', null, null,
+        ['概算を見る', '担当者に相談', '相談内容を続ける']);
       return;
     }
 
@@ -1838,6 +2349,9 @@ async function generateWithFiles(beforeFile, idealFile) {
     const img = data.data?.[0];
     const src = img?.url || (img?.b64_json ? `data:image/png;base64,${img.b64_json}` : null);
     if (!src) throw new Error('画像の取得に失敗しました');
+
+    window._lastAfterSrc = src;
+    window._lastBeforeSrc = beforeURL;
 
     if (data._usage) updateUsageAfterGen(data._usage);
 
@@ -1849,7 +2363,7 @@ async function generateWithFiles(beforeFile, idealFile) {
       ['別の箇所も試す', 'スタイルを変えてみる', '昼/夜を見る', '概算を見る', '提案書を作成']
     );
     history.push({ role:'assistant', content: msg });
-    autoSaveSession(src);
+    persistChatHistory();
 
   } catch(e) {
     removeTyping();
@@ -1858,13 +2372,16 @@ async function generateWithFiles(beforeFile, idealFile) {
     const timeoutMsg = '画像生成に時間がかかりすぎたため中断しました。混雑している可能性があります。参考イメージをご覧いただくか、少し時間をおいてもう一度お試しください。';
     const headline = e.isTimeout ? timeoutMsg : '現在AIイメージ生成をご利用いただけません。参考イメージをご覧ください。';
     if (fallbackSrc) {
+      // 参考画像も後続の昼夜比較・提案書作成へ引き継げるようにする
+      window._lastAfterSrc = fallbackSrc;
+      window._lastBeforeSrc = beforeURL;
       addAgentMessage(
         headline,
         fallbackSrc, beforeURL,
         ['もう一度試す', '別の箇所も試す', 'スタイルを変えてみる', '概算を見る', '提案書を作成']
       );
     } else {
-      addAgentMessage(e.isTimeout ? timeoutMsg : '現在AIイメージ生成をご利用いただけません。しばらく経ってから再度お試しください。');
+      addAgentMessage(e.isTimeout ? timeoutMsg : '現在AIイメージ生成をご利用いただけません。参考イメージを確認するか、別の方法で相談を続けられます。', null, null, ['もう一度試す', '概算を見る', '担当者に相談', '相談内容を続ける']);
     }
   }
 }
@@ -1880,7 +2397,7 @@ async function getFallbackImage(prompt) {
     else if (p.includes('bedroom') || p.includes('寝室') || p.includes('子供')) file = 'after_bedroom.jpg';
     else if (p.includes('washitsu') || p.includes('和室'))                    file = 'after_washitsu.jpg';
     else if (p.includes('entrance') || p.includes('玄関'))                    file = 'after_entrance.jpg';
-    const res = await fetch(`/samples/${file}`);
+    const res = await fetch(`assets/samples/${file}`);
     const blob = await res.blob();
     return URL.createObjectURL(blob);
   } catch(e) { return null; }
@@ -2018,7 +2535,9 @@ function stars(n, max=5) {
 
 function showMaterial(key) {
   const m = MATERIALS[key];
-  if (!m) { addAgentMessage('素材情報が見つかりませんでした。'); return; }
+    if (!m) { addAgentMessage('素材情報が見つかりませんでした。', null, null, ['素材を探す', '概算を見る', '担当者に相談']); return; }
+  window._selectedMaterialKey = key;
+  persistChatState('material');
 
   const chat = document.getElementById('chat');
   const div = document.createElement('div');
@@ -2073,14 +2592,16 @@ function showMaterial(key) {
       </div>
     </div>`;
   chat.appendChild(div);
-  renderSuggestions(['画像で確認する', '概算を見る', '別の素材を見る', '提案書を作成']);
+  renderSuggestions(['画像で確認する', '概算を見る', '別の素材を見る', '担当者に相談', '提案書を作成']);
   scrollBottom();
 }
 
 // ── Day / Night Preview ──
 async function generateNight(btn, afterSrc, beforeSrc) {
-  btn.disabled = true;
-  btn.style.opacity = '0.4';
+  // チップから起動した場合はボタン要素がないため、UI制御用の代替オブジェクトを使う
+  const trigger = btn || { disabled: false, style: {} };
+  trigger.disabled = true;
+  trigger.style.opacity = '0.4';
 
   // Show loading card
   const chat = document.getElementById('chat');
@@ -2132,14 +2653,22 @@ async function generateNight(btn, afterSrc, beforeSrc) {
     document.getElementById('dn-card')?.remove();
     addAgentMessage(e.isTimeout
       ? '夜間イメージの生成に時間がかかりすぎたため中断しました。少し時間をおいてもう一度お試しください。'
-      : '現在夜間イメージ生成をご利用いただけません。しばらく経ってから再度お試しください。');
+      : '現在夜間イメージ生成をご利用いただけません。昼のイメージや別の相談へ進めます。', null, null,
+      ['概算を見る', '担当者に相談', '相談内容を続ける']);
   } finally {
-    btn.disabled = false;
-    btn.style.opacity = '';
+    trigger.disabled = false;
+    trigger.style.opacity = '';
   }
 }
 
 function showDayNight(daySrc, nightSrc) {
+  const safeDaySrc = safeImageSrc(daySrc);
+  const safeNightSrc = safeImageSrc(nightSrc);
+  if (!safeDaySrc || !safeNightSrc) {
+    addAgentMessage('昼夜イメージの画像を表示できませんでした。別の方法で相談を続けられます。', null, null,
+      ['概算を見る', '担当者に相談', '相談内容を続ける']);
+    return;
+  }
   const chat = document.getElementById('chat');
   const div = document.createElement('div');
   div.className = 'msg agent'; div.id = 'daynight-msg';
@@ -2149,17 +2678,17 @@ function showDayNight(daySrc, nightSrc) {
       昼と夜のイメージを生成しました！照明の雰囲気の違いをご確認ください。
       <div class="daynight-wrap">
         <div class="daynight-tabs">
-          <button class="dn-tab active" id="dn-day-tab" onclick="switchDN('day','${daySrc}','${nightSrc}')">
+          <button class="dn-tab active" id="dn-day-tab" onclick="switchDN('day','${escapeHTML(escapeJSString(safeDaySrc))}','${escapeHTML(escapeJSString(safeNightSrc))}')">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
             昼間
           </button>
-          <button class="dn-tab" id="dn-night-tab" onclick="switchDN('night','${daySrc}','${nightSrc}')">
+          <button class="dn-tab" id="dn-night-tab" onclick="switchDN('night','${escapeHTML(escapeJSString(safeDaySrc))}','${escapeHTML(escapeJSString(safeNightSrc))}')">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
             夜間
           </button>
         </div>
         <div class="dn-img-wrap">
-          <img id="dn-img" src="${daySrc}" alt="day/night">
+          <img id="dn-img" src="${escapeHTML(safeDaySrc)}" alt="day/night">
           <span class="dn-label" id="dn-label" style="color:#c8a06e;">☀ 昼間</span>
         </div>
         <div class="share-bar" style="margin-top:8px;">
@@ -2167,7 +2696,7 @@ function showDayNight(daySrc, nightSrc) {
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
             共有
           </button>
-          <a class="share-btn dl" id="dn-dl" href="${daySrc}" download="reno-daynight.png">
+          <a class="share-btn dl" id="dn-dl" href="${escapeHTML(safeDaySrc)}" download="reno-daynight.png">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             保存
           </a>
@@ -2176,7 +2705,7 @@ function showDayNight(daySrc, nightSrc) {
     </div>`;
   chat.appendChild(div);
   scrollBottom();
-  renderSuggestions(['別の箇所も試す', '概算を見る', '提案書を作成']);
+  renderSuggestions(['別の箇所も試す', '概算を見る', '担当者に相談', '提案書を作成']);
 }
 
 function switchDN(mode, daySrc, nightSrc) {
@@ -2196,40 +2725,50 @@ function switchDN(mode, daySrc, nightSrc) {
   }
 }
 
+function getMockConversationSummary(messages) {
+  const text = messages.filter(message => message.role === 'user').map(message => String(message.content || '')).join('、');
+  const find = values => values.find(value => text.includes(value)) || '';
+  return {
+    room: find(['リビング', 'キッチン', '浴室', '洗面所', '寝室', '玄関', '和室']) || '未指定',
+    parts: find(['床材', '壁紙', 'キッチン設備', '照明', '収納']) || '未指定',
+    style: find(['モダン', 'ナチュラル', '和風', 'インダストリアル', '北欧風']) || '未指定',
+    budget: find(['50万円以下', '50〜100万円', '100〜200万円', '200万円以上']) || '未指定',
+    notes: text.slice(-160),
+    summary: text ? `会話内容をもとにしたデモ要約です。${text.slice(-120)}` : '会話内容のデモ要約です。',
+  };
+}
+
+async function fetchConversationSummary() {
+  const summaryRes = await fetch(EDGE_URL, {
+    method: 'POST',
+    headers: { ...EDGE_HEADERS, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      token: sessionToken, type: 'chat',
+      system: `会話履歴からリフォームの要望を抽出し、以下のJSON形式のみで返してください。前後の説明は不要です。
+{"room":"部屋名","parts":"変更箇所","style":"希望スタイル","budget":"予算","notes":"その他の要望・メモ","summary":"2〜3文の要望まとめ"}`,
+      messages: [...history, { role: 'user', content: 'この会話の要望をJSONにまとめてください' }]
+    })
+  });
+  const summaryData = await summaryRes.json();
+  const raw = summaryData.content?.[0]?.text || '{}';
+  try {
+    const match = raw.match(/\{[\s\S]+\}/);
+    return match ? JSON.parse(match[0]) : {};
+  } catch (e) {
+    return {};
+  }
+}
+
 // ── PDF Generation ──
-async function generatePDF(afterSrc, beforeSrc) {
+async function generatePDF(afterSrc, beforeSrc, onComplete = null) {
   const overlay = document.getElementById('pdfOverlay');
   overlay.style.display = 'flex';
 
   try {
-    // 1. Ask Claude to summarize the conversation
-    const summaryRes = await fetch(EDGE_URL, {
-      method: 'POST',
-      headers: { ...EDGE_HEADERS, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        token: sessionToken, type: 'chat',
-        system: `会話履歴からリフォームの要望を抽出し、以下のJSON形式のみで返してください。前後の説明は不要です。
-{
-  "room": "部屋名",
-  "parts": "変更箇所",
-  "style": "希望スタイル",
-  "budget": "予算",
-  "notes": "その他の要望・メモ",
-  "summary": "2〜3文の要望まとめ"
-}`,
-        messages: [
-          ...history,
-          { role: 'user', content: 'この会話の要望をJSONにまとめてください' }
-        ]
-      })
-    });
-    const summaryData = await summaryRes.json();
-    const raw = summaryData.content?.[0]?.text || '{}';
-    let info = {};
-    try {
-      const match = raw.match(/\{[\s\S]+\}/);
-      info = match ? JSON.parse(match[0]) : {};
-    } catch(e) { info = {}; }
+    // 1. 会話の要約（チャットモック時はローカルで作成）
+    const info = MOCK_CHAT_MODE
+      ? getMockConversationSummary(history)
+      : await fetchConversationSummary();
 
     // 2. Fill PDF template
     const tmpl = document.getElementById('pdfTemplate');
@@ -2249,8 +2788,8 @@ async function generatePDF(afterSrc, beforeSrc) {
     const table = document.getElementById('pdf-info-table');
     table.innerHTML = fields.map(([label, val]) => `
       <tr style="border-bottom:1px solid #1e1e1e;">
-        <td style="padding:9px 0;color:#686868;font-size:10px;letter-spacing:0.1em;width:120px;">${label}</td>
-        <td style="padding:9px 0;color:#c8a96e;font-size:12px;font-weight:500;">${val}</td>
+        <td style="padding:9px 0;color:#686868;font-size:10px;letter-spacing:0.1em;width:120px;">${escapeHTML(label)}</td>
+        <td style="padding:9px 0;color:#c8a96e;font-size:12px;font-weight:500;">${escapeHTML(val)}</td>
       </tr>`).join('');
 
     // Summary
@@ -2316,9 +2855,12 @@ async function generatePDF(afterSrc, beforeSrc) {
     }
 
     doc.save(`RENO-ai-提案書-${Date.now()}.pdf`);
+    if (typeof onComplete === 'function') onComplete();
 
   } catch(e) {
-    addAgentMessage('現在提案書の生成をご利用いただけません。しばらく経ってから再度お試しください。');
+    addAgentMessage('現在提案書の生成をご利用いただけません。相談内容を残したまま、別の方法で進められます。', null, null,
+      ['施工後イメージ', '概算を見る', '相談内容を続ける']);
+    finalizationState = 'draft';
   } finally {
     overlay.style.display = 'none';
     const tmpl = document.getElementById('pdfTemplate');
@@ -2382,6 +2924,7 @@ function updateSimResult() {
 
 function showSimulator() {
   const chat = document.getElementById('chat');
+  persistChatState('simulator');
   const div = document.createElement('div');
   div.className = 'msg agent'; div.id = 'sim-msg';
 
@@ -2423,12 +2966,27 @@ function showSimulator() {
           <div class="sim-label">グレード</div>
           <div class="sim-grades">${gradeBtns}</div>
         </div>
-        <div class="sim-result">
-          <div class="sim-result-label">概算費用</div>
-          <div class="sim-result-price" id="sim-price">${lo?fmtMoney(lo)+' 〜 '+fmtMoney(hi):'項目を選択してください'}</div>
-          <div class="sim-result-note">※ 相場の目安です。実際の費用は現地調査にてご確認ください。</div>
-        </div>
-        <button class="sim-confirm" onclick="simConfirm()">この内容で担当者に相談する</button>
+          <div class="sim-result">
+            <div class="sim-result-label">今回の概算</div>
+            <div class="sim-result-highlights">
+              <div class="sim-metric">
+                <div class="sim-metric-label">概算費用</div>
+                <div class="sim-result-price" id="sim-price">${lo?fmtMoney(lo)+' 〜 '+fmtMoney(hi):'項目を選択してください'}</div>
+              </div>
+              <div class="sim-metric duration">
+                <div class="sim-metric-label">概算工期</div>
+                <div class="sim-duration-value">2〜3週間</div>
+              </div>
+            </div>
+            <div class="sim-result-note">※ 相場の目安です。実際の費用は現地調査にてご確認ください。</div>
+            <div class="sim-result-subinfo">
+              <div><div class="sim-result-subinfo-label">補助金候補</div><div class="sim-result-subinfo-value">要件を確認</div></div>
+              <div><div class="sim-result-subinfo-label">確認方法</div><div class="sim-result-subinfo-value">現地調査</div></div>
+            </div>
+            <div class="sim-result-footnote">候補：住宅リフォーム補助制度、断熱改修支援など。地域・工事内容により対象が変わります。</div>
+          </div>
+        <button class="sim-confirm" onclick="simConfirm()" ${simState.items.size ? '' : 'disabled'}>この内容を確認する</button>
+        <button class="sim-reset" type="button" onclick="simResetChoices()">条件を選び直す</button>
       </div>
     </div>`;
   chat.appendChild(div);
@@ -2437,15 +2995,18 @@ function showSimulator() {
 
 function simSetSize(i) {
   simState.sizeIdx = i;
+  persistChatState('simulator');
   refreshSim();
 }
 function simToggleItem(key) {
   if (simState.items.has(key)) simState.items.delete(key);
   else simState.items.add(key);
+  persistChatState('simulator');
   refreshSim();
 }
 function simSetGrade(i) {
   simState.gradeIdx = i;
+  persistChatState('simulator');
   refreshSim();
 }
 function refreshSim() {
@@ -2454,16 +3015,128 @@ function refreshSim() {
   old.remove();
   showSimulator();
 }
+function simResetChoices() {
+  simState = { sizeIdx: 1, items: new Set(), gradeIdx: 1 };
+  persistChatState('simulator');
+  refreshSim();
+}
+let finalizationState = 'draft';
+let finalHandoffStarted = false;
+
+function showFinalConfirmation() {
+  document.getElementById('final-confirm-msg')?.remove();
+  const rows = getHandoffSummary('最終確認');
+  const hasImages = Boolean(window._lastAfterSrc && window._lastBeforeSrc);
+  const estimate = simState.items.size ? calcCost() : null;
+  const div = document.createElement('div');
+  div.className = 'msg agent';
+  div.id = 'final-confirm-msg';
+  div.innerHTML = `<div class="avatar agent">${getAgentIconHTML()}</div>
+    <div class="bubble agent">
+      <div class="handoff-card">
+        <div class="handoff-title">相談内容の最終確認</div>
+        ${estimate ? `<div class="handoff-estimate">
+          <div class="handoff-estimate-title">今回の概算</div>
+          <div class="handoff-estimate-grid">
+            <div class="handoff-estimate-metric">
+              <div class="handoff-estimate-label">概算費用</div>
+              <div class="handoff-estimate-value">${fmtMoney(estimate.lo)} 〜 ${fmtMoney(estimate.hi)}</div>
+            </div>
+            <div class="handoff-estimate-metric">
+              <div class="handoff-estimate-label">概算工期</div>
+              <div class="handoff-estimate-value duration">2〜3週間</div>
+            </div>
+          </div>
+        </div>` : ''}
+        <div class="handoff-lead">内容を確定すると、${hasImages ? '提案書PDFを保存した後に' : ''}担当者への相談受付へ進みます。</div>
+        <div class="handoff-summary">
+          <div class="handoff-summary-title">確定する内容</div>
+          ${rows.map(row => `<div class="handoff-summary-row">・${escapeHTML(row)}</div>`).join('')}
+        </div>
+        <button id="final-confirm-submit" class="handoff-submit" type="button" onclick="window.completeFinalConsultation()">${hasImages ? '内容を確定してPDFを保存' : '内容を確定して相談受付へ進む'}</button>
+        <button class="sim-reset" type="button" onclick="reselectEstimate()">概算条件を選び直す</button>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:7px;">
+          <button class="sim-reset" type="button" style="margin-top:0;" onclick="returnToEarlierStep('material')">素材を探す</button>
+          <button class="sim-reset" type="button" style="margin-top:0;" onclick="returnToEarlierStep('image')">施工後イメージ</button>
+        </div>
+        <button class="sim-reset" type="button" onclick="returnToEarlierStep('chat')">相談内容を続ける</button>
+        <div class="handoff-note">※ 確定後の担当者相談は、この1回のみ表示されます。</div>
+      </div>
+    </div>`;
+  document.getElementById('chat').appendChild(div);
+  persistChatState('final-confirm');
+  finalizationState = 'review';
+  scrollBottom();
+}
+
+function completeFinalConsultation() {
+  if (finalizationState !== 'review') {
+    addAgentMessage('この確認画面はすでに処理済みです。概算画面からもう一度確認できます。', null, null, ['概算を見る']);
+    return;
+  }
+  if (finalHandoffStarted) return;
+  try {
+    finalizationState = 'confirmed';
+    const submit = document.getElementById('final-confirm-submit');
+    if (submit) {
+      submit.disabled = true;
+      submit.textContent = window._lastAfterSrc && window._lastBeforeSrc ? 'PDFを保存しています…' : '受付フォームを準備しています…';
+    }
+    document.getElementById('final-confirm-msg')?.remove();
+    addUserMessage('相談内容を確定しました');
+    const after = window._lastAfterSrc;
+    const before = window._lastBeforeSrc;
+    if (after && before) {
+      generatePDF(after, before, () => {
+        clearDraftCache();
+        handoffToStaff('最終確定済み');
+      });
+    } else {
+      clearDraftCache();
+      handoffToStaff('最終確定済み');
+    }
+  } catch (e) {
+    finalizationState = 'review';
+    addAgentMessage('確定処理を開始できませんでした。もう一度お試しください。', null, null, ['概算を見る']);
+  }
+}
+window.completeFinalConsultation = completeFinalConsultation;
+
+function reselectEstimate() {
+  if (finalizationState === 'confirmed' || finalHandoffStarted) return;
+  finalizationState = 'draft';
+  document.getElementById('final-confirm-msg')?.remove();
+  showSimulator();
+}
+
+function returnToEarlierStep(step) {
+  if (finalizationState === 'confirmed' || finalHandoffStarted) return;
+  finalizationState = 'draft';
+  document.getElementById('final-confirm-msg')?.remove();
+  if (step === 'material') {
+    addUserMessage('素材を探す');
+    showMaterial('composite');
+  } else if (step === 'image') {
+    addUserMessage('施工後イメージ');
+    if (window._beforeFile || window._beforeURL) {
+      generateWithFiles(window._beforeFile, null);
+    } else {
+      showUploadCard('施工後イメージを作成するため、現状写真を選んでください');
+    }
+  } else {
+    addAgentMessage('このまま相談を続けられます。確認したいことを入力してください。');
+    document.getElementById('userInput')?.focus();
+  }
+}
+
 function simConfirm() {
-  const { lo, hi } = calcCost();
-  const size = COST_DATA.sizes[simState.sizeIdx].label;
-  const items = [...simState.items].map(k => COST_DATA.items.find(i=>i.key===k)?.label).join('・');
-  const grade = COST_DATA.grades[simState.gradeIdx].label;
-  const text = `概算シミュレーション結果：${size}・${items}・${grade}グレードで${fmtMoney(lo)}〜${fmtMoney(hi)}程度です。この内容で進めたいと思います。`;
+  if (simState.items.size === 0) {
+    addAgentMessage('施工箇所を1つ以上選択してください。');
+    return;
+  }
   document.getElementById('sim-msg')?.remove();
-  addUserMessage(text);
-  history.push({ role:'user', content: text });
-  callAgent();
+  persistChatState('final-confirm');
+  showFinalConfirmation();
 }
 
 // ── Usage ──
@@ -2517,13 +3190,13 @@ function closeUpgradeModal() {
 }
 
 const SAMPLE_IMAGES = [
-  { label: 'リビング',  src: '/samples/living.jpg' },
-  { label: '和室',      src: '/samples/washitsu.jpg' },
-  { label: '子供部屋',  src: '/samples/bedroom.jpg' },
-  { label: 'キッチン',  src: '/samples/kitchen.jpg' },
-  { label: '洗面所',    src: '/samples/washroom.jpg' },
-  { label: '浴室',      src: '/samples/bathroom.jpg' },
-  { label: '玄関',      src: '/samples/entrance.jpg' },
+  { label: 'リビング',  src: 'assets/samples/living.jpg' },
+  { label: '和室',      src: 'assets/samples/washitsu.jpg' },
+  { label: '子供部屋',  src: 'assets/samples/bedroom.jpg' },
+  { label: 'キッチン',  src: 'assets/samples/kitchen.jpg' },
+  { label: '洗面所',    src: 'assets/samples/washroom.jpg' },
+  { label: '浴室',      src: 'assets/samples/bathroom.jpg' },
+  { label: '玄関',      src: 'assets/samples/entrance.jpg' },
 ];
 
 // ── Guest PIN Panel ──
@@ -2594,13 +3267,14 @@ function showGpinResult(data) {
   const expires = new Date(data.expires_at).toLocaleDateString('ja-JP', { month:'long', day:'numeric' });
   const url = `${location.origin}${location.pathname}`;
   const fullUrl = `${url}?pin=${data.pin}`;
+  const encodedLabel = encodeURIComponent(String(data.label || '施主様'));
   document.getElementById('gpinResult').innerHTML = `
     <div class="gpin-result">
       <div class="gpin-result-label">✦ 発行完了</div>
-      <div class="gpin-result-pin">${data.pin}</div>
+      <div class="gpin-result-pin">${escapeHTML(data.pin)}</div>
       <div class="gpin-result-meta">
-        ${data.label}・${gpinDays}日間有効（${expires}まで）<br>
-        使用回数：${data.max_uses}回まで
+        ${escapeHTML(data.label || '施主様')}・${gpinDays}日間有効（${escapeHTML(expires)}まで）<br>
+        使用回数：${escapeHTML(data.max_uses)}回まで
       </div>
       <div id="gpinQrWrap" style="margin:0 auto 12px;width:160px;height:160px;background:var(--bg2);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;">QR生成中...</div>
       <div style="display:flex;align-items:center;gap:8px;font-size:10.5px;color:var(--muted);word-break:break-all;background:var(--bg2);border-radius:6px;padding:8px 10px;margin-bottom:12px;">
@@ -2613,7 +3287,7 @@ function showGpinResult(data) {
         <button class="gpin-copy-btn" onclick="copyGpinInfo('${data.pin}','${url}')">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="vertical-align:middle;margin-right:5px;"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>PINをコピー
         </button>
-        <button class="gpin-copy-btn gpin-share-btn" onclick="shareGpin('${data.pin}','${url}','${data.label}')">
+        <button class="gpin-copy-btn gpin-share-btn" onclick="shareGpin('${data.pin}','${url}',decodeURIComponent('${encodedLabel}'))">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="vertical-align:middle;margin-right:5px;"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>共有
         </button>
       </div>
@@ -2668,14 +3342,15 @@ async function loadGuestPins() {
       ${data.map(g => {
         const expired = new Date(g.expires_at) < now || !g.is_active;
         const expires = new Date(g.expires_at).toLocaleDateString('ja-JP', { month:'short', day:'numeric' });
+        const encodedId = encodeURIComponent(String(g.id || ''));
         return `<div class="gpin-list-item">
-          <div class="gpin-list-pin">${g.pin}</div>
+          <div class="gpin-list-pin">${escapeHTML(g.pin)}</div>
           <div class="gpin-list-info">
-            <div class="gpin-list-label">${g.label || '施主様'}</div>
-            <div class="gpin-list-meta">${expires}まで・${g.use_count}/${g.max_uses}回使用</div>
+            <div class="gpin-list-label">${escapeHTML(g.label || '施主様')}</div>
+            <div class="gpin-list-meta">${escapeHTML(expires)}まで・${escapeHTML(g.use_count)}/${escapeHTML(g.max_uses)}回使用</div>
             <span class="gpin-list-badge ${expired ? 'expired' : 'active'}">${expired ? '期限切れ' : '有効'}</span>
           </div>
-          <button class="gpin-list-del" onclick="deleteGuestPin('${g.id}')">
+          <button class="gpin-list-del" onclick="deleteGuestPin(decodeURIComponent('${encodedId}'))">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg>
           </button>
         </div>`;
@@ -2791,7 +3466,7 @@ async function submitCase() {
   btn.disabled = true; btn.textContent = '登録中...';
 
   try {
-    await fetch(EDGE_URL, {
+    const res = await fetch(EDGE_URL, {
       method: 'POST',
       headers: { ...EDGE_HEADERS, 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -2800,6 +3475,10 @@ async function submitCase() {
         description: desc, image_data: caseImgData,
       })
     });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || '登録に失敗しました');
+    }
     const msg = document.getElementById('caseMsg');
     msg.style.display = 'block';
     setTimeout(() => { msg.style.display = 'none'; }, 2000);
@@ -2826,23 +3505,26 @@ async function renderCasesList() {
       document.getElementById('casesBody').innerHTML = '<div style="color:#444;font-size:13px;text-align:center;padding:30px;">まだ事例がありません</div>';
       return;
     }
-    document.getElementById('casesBody').innerHTML = data.map(c => `
-      <div class="case-list-item">
-        ${c.image_data ? `<img class="case-list-img" src="${c.image_data}" alt="">` : `<div class="case-list-img" style="display:flex;align-items:center;justify-content:center;color:#2a2a2a;font-size:10px;">NO IMG</div>`}
+    document.getElementById('casesBody').innerHTML = data.map(c => {
+      const imageSrc = safeImageSrc(c.image_data);
+      const encodedId = encodeURIComponent(String(c.id || ''));
+      return `<div class="case-list-item">
+        ${imageSrc ? `<img class="case-list-img" src="${escapeHTML(imageSrc)}" alt="">` : `<div class="case-list-img" style="display:flex;align-items:center;justify-content:center;color:#2a2a2a;font-size:10px;">NO IMG</div>`}
         <div class="case-list-info">
-          <div class="case-list-title">${c.title || '—'}</div>
+          <div class="case-list-title">${escapeHTML(c.title || '—')}</div>
           <div class="case-list-tags">
-            ${c.room   ? `<span class="case-list-tag">${c.room}</span>` : ''}
-            ${c.style  ? `<span class="case-list-tag">${c.style}</span>` : ''}
-            ${c.budget_range ? `<span class="case-list-tag">${c.budget_range}</span>` : ''}
+            ${c.room   ? `<span class="case-list-tag">${escapeHTML(c.room)}</span>` : ''}
+            ${c.style  ? `<span class="case-list-tag">${escapeHTML(c.style)}</span>` : ''}
+            ${c.budget_range ? `<span class="case-list-tag">${escapeHTML(c.budget_range)}</span>` : ''}
           </div>
         </div>
-        <button class="case-list-del" onclick="deleteCase('${c.id}')">
+        <button class="case-list-del" onclick="deleteCase(decodeURIComponent('${encodedId}'))">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
         </button>
-      </div>`).join('');
+      </div>`;
+    }).join('');
   } catch(e) {
-    document.getElementById('casesBody').innerHTML = `<div style="color:#c07070;font-size:12px;text-align:center;padding:20px;">${e.message}</div>`;
+    document.getElementById('casesBody').innerHTML = `<div style="color:#c07070;font-size:12px;text-align:center;padding:20px;">${escapeHTML(e.message)}</div>`;
   }
 }
 
@@ -2881,18 +3563,20 @@ async function showCases(room, style) {
       div.innerHTML = `<div class="avatar agent">${getAgentIconHTML()}</div>
         <div class="bubble agent">まだ施工事例が登録されていません。<br>担当者に直接お問い合わせください。</div>`;
     } else {
-      const cards = data.map(c => `
-        <div class="case-chat-card">
-          ${c.image_data ? `<img class="case-chat-img" src="${c.image_data}" alt="">` : `<div class="case-chat-img" style="display:flex;align-items:center;justify-content:center;color:#333;font-size:10px;">NO IMAGE</div>`}
+      const cards = data.map(c => {
+        const imageSrc = safeImageSrc(c.image_data);
+        return `<div class="case-chat-card">
+          ${imageSrc ? `<img class="case-chat-img" src="${escapeHTML(imageSrc)}" alt="">` : `<div class="case-chat-img" style="display:flex;align-items:center;justify-content:center;color:#333;font-size:10px;">NO IMAGE</div>`}
           <div class="case-chat-body">
-            <div class="case-chat-title">${c.title || '施工事例'}</div>
-            <div class="case-chat-tag">${[c.room, c.style, c.budget_range].filter(Boolean).join(' · ')}</div>
+            <div class="case-chat-title">${escapeHTML(c.title || '施工事例')}</div>
+            <div class="case-chat-tag">${escapeHTML([c.room, c.style, c.budget_range].filter(Boolean).join(' · '))}</div>
           </div>
-        </div>`).join('');
+        </div>`;
+      }).join('');
 
       div.innerHTML = `<div class="avatar agent">${getAgentIconHTML()}</div>
         <div class="bubble agent">
-          ${room || style ? `${[room,style].filter(Boolean).join('・')}の施工事例です。` : '施工事例の一覧です。'}参考にしてみてください！
+          ${room || style ? `${escapeHTML([room,style].filter(Boolean).join('・'))}の施工事例です。` : '施工事例の一覧です。'}参考にしてみてください！
           <div class="case-cards">${cards}</div>
         </div>`;
     }
@@ -2901,28 +3585,18 @@ async function showCases(room, style) {
     scrollBottom();
   } catch(e) {
     document.getElementById('cases-loading')?.remove();
-    addAgentMessage('事例の読み込みに時間がかかっています。もう一度お試しください。');
+    addAgentMessage('事例の読み込みに時間がかかっています。別の方法で相談を続けられます。', null, null,
+      ['素材を探す', '概算を見る', '担当者に相談', '相談内容を続ける']);
   }
 }
 
 // ── Session History ──
 async function autoSaveSession(afterSrc) {
   try {
-    // Extract structured info from conversation
-    const res = await fetch(EDGE_URL, {
-      method: 'POST',
-      headers: { ...EDGE_HEADERS, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        token: sessionToken, type: 'chat',
-        system: `会話履歴からリフォームの要望を抽出し、以下のJSON形式のみで返してください。
-{"room":"部屋名","parts":"変更箇所","style":"希望スタイル","budget":"予算","summary":"1〜2文の要約"}`,
-        messages: [...history, { role:'user', content: '要望をJSONにまとめてください' }]
-      })
-    });
-    const data = await res.json();
-    const raw  = data.content?.[0]?.text || '{}';
-    let info = {};
-    try { const m = raw.match(/\{[\s\S]+\}/); info = m ? JSON.parse(m[0]) : {}; } catch(e) {}
+    // Extract structured info from conversation. Chat mock mode stays local.
+    const info = MOCK_CHAT_MODE
+      ? getMockConversationSummary(history)
+      : await fetchConversationSummary();
 
     // Store image URL (data URL → truncate for storage efficiency)
     const imgToStore = afterSrc.startsWith('data:')
@@ -2969,26 +3643,27 @@ async function openHistoryPanel() {
       const date = new Date(s.created_at).toLocaleDateString('ja-JP', {
         month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'
       });
-      const imgHtml = s.after_image_url
-        ? `<img class="session-img" src="${s.after_image_url}" alt="after">`
+      const imageSrc = safeImageSrc(s.after_image_url);
+      const imgHtml = imageSrc
+        ? `<img class="session-img" src="${escapeHTML(imageSrc)}" alt="after">`
         : `<div class="session-img-placeholder">NO IMAGE</div>`;
       return `<div class="session-card">
         ${imgHtml}
         <div class="session-body">
           <div class="session-date">${date}</div>
           <div class="session-tags">
-            ${s.room  ? `<span class="session-tag">${s.room}</span>` : ''}
-            ${s.parts ? `<span class="session-tag">${s.parts}</span>` : ''}
-            ${s.style ? `<span class="session-tag">${s.style}</span>` : ''}
-            ${s.budget? `<span class="session-tag">${s.budget}</span>` : ''}
+            ${s.room  ? `<span class="session-tag">${escapeHTML(s.room)}</span>` : ''}
+            ${s.parts ? `<span class="session-tag">${escapeHTML(s.parts)}</span>` : ''}
+            ${s.style ? `<span class="session-tag">${escapeHTML(s.style)}</span>` : ''}
+            ${s.budget? `<span class="session-tag">${escapeHTML(s.budget)}</span>` : ''}
           </div>
-          ${s.summary ? `<div class="session-summary">${s.summary}</div>` : ''}
+          ${s.summary ? `<div class="session-summary">${escapeHTML(s.summary)}</div>` : ''}
         </div>
       </div>`;
     }).join('');
 
   } catch(e) {
-    list.innerHTML = `<div class="history-empty">読み込みに失敗しました。<br>${e.message}</div>`;
+    list.innerHTML = `<div class="history-empty">読み込みに失敗しました。<br>${escapeHTML(e.message)}</div>`;
   }
 }
 
@@ -3005,9 +3680,16 @@ function showQuickForm(def) {
   // Parse: "部屋|opt1,opt2 :: 箇所|opt1,opt2"
   const sections = def.split('::').map(s => s.trim());
   const parsed = sections.map(sec => {
-    const [label, opts] = sec.split('|');
-    return { label: label.trim(), opts: opts.split(',').map(o => o.trim()) };
-  });
+    const [label = '', opts = ''] = sec.split('|');
+    return {
+      label: label.trim(),
+      opts: opts.split(',').map(o => o.trim()).filter(Boolean),
+    };
+  }).filter(sec => sec.label && sec.opts.length);
+  if (!parsed.length) {
+    addAgentMessage('選択フォームを表示できませんでした。文章でご希望を入力してください。');
+    return;
+  }
 
   const formId = 'qf-' + Date.now();
   const state = {}; // { sectionIndex: Set of selected }
@@ -3021,13 +3703,16 @@ function showQuickForm(def) {
   function render() {
     const sectionsHtml = parsed.map((sec, si) => `
       <div class="qf-section">
-        <div class="qf-label">${sec.label}</div>
+        <div class="qf-label">${escapeHTML(sec.label)}</div>
         <div class="qf-chips">
-          ${sec.opts.map(opt => `
+          ${sec.opts.map(opt => {
+            const encodedOpt = encodeURIComponent(opt);
+            return `
             <button class="qf-chip ${state[si].has(opt) ? 'selected' : ''}"
-              onclick="qfToggle('${formId}',${si},'${opt.replace(/'/g,"\\'")}')">
-              ${opt}
-            </button>`).join('')}
+              onclick="qfToggle('${formId}',${si},decodeURIComponent('${encodedOpt}'))">
+              ${escapeHTML(opt)}
+            </button>`;
+          }).join('')}
         </div>
       </div>`).join('');
 
@@ -3089,19 +3774,61 @@ async function sendMessage() {
   document.getElementById('userInput').focus();
 }
 
+async function getMockAgentResponse(messages) {
+  await new Promise(resolve => setTimeout(resolve, 550));
+  const userMessages = messages.filter(message => message.role === 'user').map(message => String(message.content || ''));
+  const latest = userMessages[userMessages.length - 1] || '';
+  const normalized = latest.toLowerCase();
+  const hasPhoto = Boolean(window._beforeFile || window._beforeURL);
+  const room = ['リビング', 'キッチン', '浴室', '洗面所', '寝室', '玄関', '和室'].find(value => latest.includes(value));
+
+  if (/事例|施工例|参考写真/.test(latest)) {
+    return '雰囲気の近い施工事例をご案内します。[SHOW_CASES: , ]';
+  }
+  if (/概算|いくら|費用|予算|工期|補助金/.test(latest)) {
+    return '条件を選びながら、費用の目安を確認できます。[SHOW_SIMULATOR]';
+  }
+  if (/素材.*(詳しく|詳細)|耐久|お手入れ|メンテナンス/.test(latest)) {
+    return '候補の素材について、特徴やお手入れのしやすさを確認できます。[SHOW_MATERIAL: composite]';
+  }
+
+  if (userMessages.length <= 1 && room) {
+    return `${room}ですね。どの部分を変えたいとお考えですか？\n[SUGGESTIONS: 床材, 壁紙, キッチン設備, 照明, 収納]`;
+  }
+  if (userMessages.length <= 1) {
+    return 'ありがとうございます。まず、リフォームしたいお部屋を教えてください。\n[SUGGESTIONS: リビング, キッチン, 浴室・洗面所, 寝室, 玄関]';
+  }
+  if (/日当たり|明る|光|照明/.test(normalized)) {
+    return '日当たりを活かして、明るく開放的な空間にしたいのですね☀️\n現状写真があれば、光の入り方を残したナチュラルなイメージを作成できます。\n[SUGGESTIONS: 📷 写真を撮る・選ぶ, 概算を見る, 担当者に相談]';
+  }
+  if (userMessages.length === 2) {
+    return 'ご希望の箇所が分かりました。どんな雰囲気にしたいですか？\n[SUGGESTIONS: モダン, ナチュラル, 和風, インダストリアル, 北欧風]';
+  }
+  if (!hasPhoto) {
+    const concern = latest.trim() ? `「${latest.trim()}」も大切なポイントですね。` : 'ご希望を整理しました。';
+    return `${concern}\n今のお部屋の写真があれば、雰囲気を保ちながら施工後イメージを作れます。写真を撮って送ってみてください。\n[SUGGESTIONS: 📷 写真を撮る・選ぶ]`;
+  }
+  return 'ご希望を反映した施工後イメージを作成できます。写真の準備ができたら、次のステップへ進みましょう。\n[SUGGESTIONS: 施工後イメージ, 概算を見る, 担当者に相談]';
+}
+
 async function callAgent() {
   document.getElementById('sendBtn').disabled = true;
+  persistChatHistory();
   addTyping();
   try {
-    const res  = await fetch(EDGE_URL, {
-      method: 'POST',
-      headers: { ...EDGE_HEADERS, 'Content-Type':'application/json' },
-      body: JSON.stringify({ token: sessionToken, type:'chat', system: SYSTEM_PROMPT, messages: history }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error?.message || 'APIエラー');
-
-    const raw = data.content?.[0]?.text || '';
+    let raw = '';
+    if (MOCK_CHAT_MODE) {
+      raw = await getMockAgentResponse(history);
+    } else {
+      const res  = await fetch(EDGE_URL, {
+        method: 'POST',
+        headers: { ...EDGE_HEADERS, 'Content-Type':'application/json' },
+        body: JSON.stringify({ token: sessionToken, type:'chat', system: SYSTEM_PROMPT, messages: history }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error?.message || 'APIエラー');
+      raw = data.content?.[0]?.text || '';
+    }
     removeTyping();
 
     // Parse tags
@@ -3158,8 +3885,10 @@ async function callAgent() {
 
   } catch(e) {
     removeTyping();
-    addAgentMessage('一時的にご利用いただけません。しばらく経ってから再度お試しください。');
+    addAgentMessage('一時的に応答を取得できませんでした。相談を続けるか、もう一度送信できます。', null, null,
+      ['もう一度送る', '担当者に相談', '相談内容を続ける']);
   }
+  persistChatHistory();
   document.getElementById('sendBtn').disabled = false;
 }
 
