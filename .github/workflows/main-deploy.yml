@@ -46,6 +46,12 @@ jobs:
           AWS_ENDPOINT_URL: http://127.0.0.1:4566
         run: python -m unittest discover -s backend/tests -p "test_*.py" -v
 
+      - name: Show LocalStack logs on failure
+        if: failure()
+        run: |
+          docker ps -a
+          docker logs localstack
+
       - name: Set up AWS SAM CLI
         uses: aws-actions/setup-sam@v2
 

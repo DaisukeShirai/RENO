@@ -25,7 +25,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 class LocalStackHandlerTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        deadline = time.time() + 60
+        deadline = time.time() + 180
         while time.time() < deadline:
             try:
                 with urlopen(ENDPOINT + "/_localstack/health", timeout=2) as response:
