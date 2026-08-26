@@ -556,8 +556,8 @@ html.oauth-pending #oauthLoadingOverlay{display:flex;}
 .mat-card{margin-top:10px;background:var(--bg);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
 .mat-header{padding:12px 14px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
 .mat-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
-.mat-name{font-size:14px;color:var(--text);font-weight:500;letter-spacing:0.02em;}
-.mat-category{font-size:10px;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase;margin-top:2px;}
+.mat-name{font-family:'Cormorant Garamond','Yu Mincho','Hiragino Mincho ProN',serif;font-size:17px;color:#e5bd55;font-weight:600;letter-spacing:0.04em;text-shadow:0 0 10px rgba(229,189,85,0.18);}
+.mat-category{font-size:10px;color:#d8d0c5;letter-spacing:0.12em;text-transform:uppercase;margin-top:2px;}
 .mat-ratings{display:grid;grid-template-columns:1fr 1fr;gap:0;border-bottom:1px solid var(--border);}
 .mat-rating{padding:10px 14px;border-right:1px solid var(--border);}
 .mat-rating:nth-child(even){border-right:none;}
@@ -601,6 +601,8 @@ html.oauth-pending #oauthLoadingOverlay{display:flex;}
 .sim-result-note{font-size:10px;color:var(--muted);margin-top:4px;letter-spacing:0.02em;}
 .sim-confirm{width:100%;margin-top:10px;background:var(--text);border:none;border-radius:7px;color:var(--white);font-size:12px;font-weight:500;padding:10px;cursor:pointer;font-family:inherit;letter-spacing:0.06em;text-transform:uppercase;transition:background 0.15s;}
 .sim-confirm:hover{background:#333;}
+.sim-reset{width:100%;margin-top:7px;background:transparent;border:1px solid var(--border);border-radius:7px;color:var(--muted);font-size:11px;padding:8px;cursor:pointer;font-family:inherit;transition:all 0.15s;}
+.sim-reset:hover{border-color:var(--gold);color:var(--gold);}
 
 #app{display:none;flex:1;flex-direction:column;height:100vh;height:100dvh;overflow:hidden;}
 /* PC対応：1024px以上でセンタリング（iPadは全幅のまま） */
@@ -938,7 +940,7 @@ html.oauth-pending #oauthLoadingOverlay{display:flex;}
     <div style="display:flex;align-items:center;gap:7px;">
       <img src="data:image/jpeg;base64,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" alt="RENO.ai" style="width:22px;height:23px;flex-shrink:0;">
       <span class="h-logo">RENO</span>
-      <span class="h-badge">AI Agent</span>
+      <span class="h-badge">AI Agent · Demo</span>
     </div>
     <div class="h-right" style="position:relative;">
       <div class="h-usage" id="usageBadge"></div>
@@ -1042,6 +1044,9 @@ const SYSTEM_PROMPT = `あなたはRENOのAIリフォームコンサルタント
 - 返答は2〜3文と短く
 - 一度に聞く質問は1つ
 - 親しみやすい言葉を使う`;
+
+// チャット相談は画面確認用のローカルモック。実APIへ切り替える場合はfalseにする。
+const MOCK_CHAT_MODE = true;
 
 
 // ── 安全なlocalStorageラッパー ──
@@ -1310,13 +1315,51 @@ let sessionRole = '';
 let sessionEmail = '';
 let sessionLabel = '';
 let sessionAvatar = '';
+const AUTH_CACHE_KEY = 'reno_auth_session_v1';
+const AUTH_CACHE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
 
 // ページ読み込み時に必ずpinCheckingをリセット
-window.addEventListener('load', () => {
+window.addEventListener('load', async () => {
   pinChecking = false; pinValue = ''; renderDots();
-  handleGoogleRedirect();
-  initLoginView();
+  // URL PINを最優先し、それ以外はGoogleセッション→保存済みセッションの順に復元
+  const urlPin = (new URLSearchParams(location.search).get('pin') || '').replace(/\D/g, '');
+  if (urlPin.length === 4) {
+    initLoginView();
+    return;
+  }
+  const googleHandled = await handleGoogleRedirect();
+  if (!googleHandled && !restoreCachedSession()) initLoginView();
 });
+
+function saveAuthSession(data) {
+  try {
+    localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify({
+      token: data.token,
+      role: data.role || '',
+      email: data.email || '',
+      label: data.label || '',
+      savedAt: Date.now()
+    }));
+  } catch (e) {}
+}
+
+function restoreCachedSession() {
+  try {
+    const cached = JSON.parse(localStorage.getItem(AUTH_CACHE_KEY) || 'null');
+    if (!cached?.token || !cached.savedAt || Date.now() - cached.savedAt > AUTH_CACHE_MAX_AGE) {
+      localStorage.removeItem(AUTH_CACHE_KEY);
+      return false;
+    }
+    applySession(cached);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function clearAuthSession() {
+  try { localStorage.removeItem(AUTH_CACHE_KEY); } catch (e) {}
+}
 
 function initLoginView() {
   const params = new URLSearchParams(location.search);
@@ -1418,6 +1461,7 @@ function applySession(data) {
   sessionRole  = data.role || '';
   sessionEmail = data.email || '';
   sessionLabel = data.label || '';
+  saveAuthSession(data);
   pinValue = '';
   renderDots();
   document.getElementById('pinScreen').style.display = 'none';
@@ -1432,7 +1476,7 @@ function applySession(data) {
     document.getElementById('userMenuEmail').textContent = sessionEmail || '';
   }
   if (!chatStarted) initChat();
-  if (location.search) { try { history.replaceState(null, '', location.pathname); } catch (e) {} }
+  if (location.search) { try { window.history.replaceState(null, '', location.pathname); } catch (e) {} }
 }
 
 function toggleUserMenu() {
@@ -1450,6 +1494,7 @@ document.addEventListener('click', (e) => {
 
 async function switchGoogleAccount() {
   document.getElementById('userMenu').style.display = 'none';
+  clearAuthSession();
   await supabaseAuth.auth.signOut().catch(() => {});
   loginWithGoogle(true);
 }
@@ -1503,7 +1548,7 @@ async function handleGoogleRedirect() {
     const { data: { session } } = await supabaseAuth.auth.getSession();
     if (!session) {
       document.documentElement.classList.remove('oauth-pending');
-      return;
+      return false;
     }
     sessionAvatar = session.user?.user_metadata?.avatar_url || session.user?.user_metadata?.picture || '';
     if (statusEl) statusEl.textContent = 'ログイン中...';
@@ -1515,12 +1560,15 @@ async function handleGoogleRedirect() {
     const data = await res.json();
     if (res.ok && data.token) {
       applySession(data);
+      return true;
     } else {
       if (statusEl) statusEl.textContent = data.error || 'ログインに失敗しました';
       await supabaseAuth.auth.signOut().catch(() => {});
+      return false;
     }
   } catch (e) {
     if (statusEl) statusEl.textContent = 'ログインに失敗しました。';
+    return false;
   } finally {
     document.documentElement.classList.remove('oauth-pending');
   }
@@ -1533,6 +1581,7 @@ function lockApp() {
   sessionEmail = '';
   sessionLabel = '';
   sessionAvatar = '';
+  clearAuthSession();
   pinChecking = false;
   renderDots();
   document.getElementById('pinScreen').style.display = 'flex';
@@ -1544,17 +1593,60 @@ function lockApp() {
   const userMenu = document.getElementById('userMenu');
   if (userMenu) userMenu.style.display = 'none';
   // URLに?pinが残っているとリロード時に再度ゲスト扱いになるので消しておく
-  if (location.search) { try { history.replaceState(null, '', location.pathname); } catch (e) {} }
+  if (location.search) { try { window.history.replaceState(null, '', location.pathname); } catch (e) {} }
   supabaseAuth.auth.signOut().catch(() => {});
 }
 
 // ── Chat ──
 let history = [];
 let chatStarted = false;
+const CHAT_CACHE_PREFIX = 'reno_chat_history_v1:';
+
+function chatCacheKey() {
+  return CHAT_CACHE_PREFIX + (sessionEmail || 'guest');
+}
+
+function persistChatHistory() {
+  try {
+    const compact = history.slice(-120).map(message => ({
+      role: message.role,
+      content: String(message.content || '').slice(0, 4000)
+    }));
+    localStorage.setItem(chatCacheKey(), JSON.stringify(compact));
+  } catch (e) {}
+}
+
+function clearDraftCache() {
+  try { localStorage.removeItem(chatCacheKey()); } catch (e) {}
+}
+
+function restoreCachedChat(cached) {
+  cached.forEach(message => {
+    if (!message || !message.role || !message.content) return;
+    if (message.role === 'user') {
+      addUserMessage(message.content);
+      return;
+    }
+    const display = String(message.content)
+      .replace(/\[GENERATE_IMAGE:[\s\S]+?\]/g, '')
+      .replace(/\[SHOW_SIMULATOR\]|\[SHOW_MATERIAL:\s*\w+\]|\[SHOW_CASES:[^\]]*\]/g, '')
+      .replace(/\[QUICK_FORM:[\s\S]+?\]|\[SUGGESTIONS:.+?\]/g, '')
+      .trim();
+    if (display) addAgentMessage(display);
+  });
+}
 
 function initChat() {
   chatStarted = true;
   fetchUsage();
+  try {
+    const cached = JSON.parse(localStorage.getItem(chatCacheKey()) || '[]');
+    if (Array.isArray(cached) && cached.length) {
+      history = cached;
+      restoreCachedChat(cached);
+      return;
+    }
+  } catch (e) {}
   addAgentMessage(
     'こんにちは！RENOへようこそ。\nどのお部屋をリフォームしたいとお考えですか？',
     null, null,
@@ -1630,11 +1722,15 @@ function removeSuggestions() {
 
 function renderSuggestions(chips) {
   removeSuggestions();
-  if (!chips || chips.length === 0) return;
+  // 担当者相談とPDF保存は最終確定時だけ表示する
+  const available = (chips || []).filter(label =>
+    label !== '担当者に相談' && label !== '提案書を作成'
+  );
+  if (available.length === 0) return;
   const chat = document.getElementById('chat');
   const div = document.createElement('div');
   div.className = 'suggestions'; div.id = 'suggestions-row';
-  chips.forEach(label => {
+  available.forEach(label => {
     const btn = document.createElement('button');
     btn.className = 'chip';
     btn.textContent = label;
@@ -1655,12 +1751,24 @@ function tapChip(text) {
     return;
   }
   if (text === 'もう一度試す') {
-    addUserMessage(text);
-    generateWithFiles(window._beforeFile, null);
+    if (window._beforeFile || window._beforeURL) {
+      addUserMessage(text);
+      generateWithFiles(window._beforeFile, null);
+    } else {
+      addUserMessage(text);
+      showUploadCard('施工後イメージを作成するため、現状写真を選んでください');
+    }
+    return;
+  }
+  if (text === 'もう一度送る') {
+    const lastUser = [...history].reverse().find(message => message.role === 'user');
+    if (lastUser) callAgent();
+    else addAgentMessage('先に相談内容を入力してください。');
     return;
   }
   if (text === '担当者に相談') {
-    handoffToStaff('現在の相談内容');
+    addAgentMessage('担当者への相談は、概算と提案内容を確認してから最後に一度だけ申し込めます。', null, null,
+      ['概算を見る', '相談内容を続ける']);
     return;
   }
   if (text === '相談内容を続ける') {
@@ -1685,8 +1793,23 @@ function tapChip(text) {
     return;
   }
   if (text === '施工後イメージ') {
-    addUserMessage(text);
-    generateWithFiles(window._beforeFile, null);
+    if (window._beforeFile || window._beforeURL) {
+      addUserMessage(text);
+      generateWithFiles(window._beforeFile, null);
+    } else {
+      addUserMessage(text);
+      showUploadCard('施工後イメージを作成するため、現状写真を選んでください');
+    }
+    return;
+  }
+  if (text === '昼/夜を見る') {
+    if (window._lastAfterSrc && window._lastBeforeSrc) {
+      addUserMessage(text);
+      generateNight(null, window._lastAfterSrc, window._lastBeforeSrc);
+    } else {
+      addAgentMessage('昼夜の比較には、先に施工後イメージを作成してください。', null, null,
+        ['施工後イメージ', '概算を見る', '担当者に相談']);
+    }
     return;
   }
   if (text === '画像で確認する') {
@@ -1700,7 +1823,8 @@ function tapChip(text) {
   }
   if (text === '提案書を作成') {
     addUserMessage(text);
-    startProposalFlow();
+    addAgentMessage('提案書のPDFは、概算と内容を最終確定した後に一度だけ作成できます。', null, null,
+      ['概算を見る', '相談内容を続ける']);
     return;
   }
   addUserMessage(text);
@@ -1756,10 +1880,6 @@ function addAgentMessage(text, afterSrc = null, beforeSrc = null, suggestions = 
       <button class="share-btn night" onclick="generateNight(this,'${escapeHTML(escapeJSString(safeAfterSrc))}','${escapeHTML(escapeJSString(safeBeforeSrc))}')">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
         昼/夜
-      </button>
-      <button class="share-btn pdf" onclick="generatePDF('${escapeHTML(escapeJSString(safeAfterSrc))}','${escapeHTML(escapeJSString(safeBeforeSrc))}')">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-        提案書PDF
       </button>
     </div>`;
   }
@@ -1885,7 +2005,6 @@ function showIdealImageCard(beforeFile, beforeURL, prompt) {
         </div>
       </div>
       <input type="file" id="idealInput" accept="image/*" style="display:none" onchange="handleIdealPhoto(event)">
-      <button type="button" onclick="handoffToStaff('写真確認後')" style="width:100%;margin-top:10px;padding:8px;border:1px solid var(--border);border-radius:7px;background:transparent;color:var(--muted);font:inherit;font-size:11px;cursor:pointer;">この時点で担当者に相談する</button>
     </div>`;
   chat.appendChild(div);
   scrollBottom();
@@ -1921,7 +2040,6 @@ function startPhotoDiagnosis() {
           <button class="chip" type="button" onclick="startEstimateFromDiagnosis()">概算を見る</button>
           <button class="chip" type="button" onclick="startGenerationFromPhoto()">施工後イメージ</button>
         </div>
-        <button type="button" onclick="handoffToStaff('画像診断後')" style="width:100%;margin-top:8px;padding:8px;border:1px solid var(--border);border-radius:7px;background:transparent;color:var(--muted);font:inherit;font-size:11px;cursor:pointer;">この診断結果で担当者に相談する</button>
         <div style="font-size:10px;color:var(--muted);margin-top:8px;">※ AIによる参考判定です。現地確認で結果が変わる場合があります。</div>
       </div>`;
     chat.appendChild(div);
@@ -1961,6 +2079,12 @@ function getHandoffSummary(context) {
 }
 
 function handoffToStaff(context) {
+  if (finalizationState !== 'confirmed' || finalHandoffStarted) {
+    addAgentMessage('担当者への相談受付は、内容を最終確定した後に進められます。', null, null,
+      ['概算を見る', '相談内容を続ける']);
+    return;
+  }
+  finalHandoffStarted = true;
   removeSuggestions();
   addUserMessage('担当者に相談する');
   document.getElementById('handoff-msg')?.remove();
@@ -2008,14 +2132,13 @@ function submitHandoff() {
   if (card) card.remove();
   addUserMessage('相談を申し込みました');
   addAgentMessage(`ありがとうございます、${name}さん。担当者への相談を受け付けました。${contact}へ連絡する想定です。`, null, null, ['相談内容を続ける', '別の部屋を相談する']);
+  clearDraftCache();
+  finalizationState = 'completed';
 }
 
 function startProposalFlow() {
-  if (window._lastAfterSrc && window._lastBeforeSrc) {
-    generatePDF(window._lastAfterSrc, window._lastBeforeSrc);
-    return;
-  }
-  addAgentMessage('現在の相談内容をもとに、提案書の下書きを準備します。施工後イメージを作成すると、ビフォーアフター画像も提案書に反映できます。', null, null, ['施工後イメージ', '担当者に相談']);
+  addAgentMessage('提案書のPDFは、概算と内容を最終確定した後に一度だけ作成できます。', null, null,
+    ['概算を見る', '相談内容を続ける']);
 }
 
 async function handleIdealPhoto(event) {
@@ -2032,13 +2155,25 @@ async function generateWithFiles(beforeFile, idealFile) {
   const card = document.getElementById('ideal-msg');
   if (card) card.remove();
 
-  const bf = beforeFile || window._beforeFile;
+  let bf = beforeFile || window._beforeFile;
   const prompt = window._genPrompt || '';
   const beforeURL = window._beforeURL || '';
 
   addTyping();
 
   try {
+    // サンプル画像の変換に失敗しても、保持しているURLから再構成して処理を継続する
+    if (!bf && beforeURL) {
+      const source = await fetch(beforeURL);
+      const blob = await source.blob();
+      bf = new File([blob], 'before.jpg', { type: blob.type || 'image/jpeg' });
+    }
+    if (!bf) {
+      removeTyping();
+      showUploadCard('施工後イメージを作成するため、現状写真を選んでください');
+      return;
+    }
+
     const form = new FormData();
     form.append('token', sessionToken);
 
@@ -2059,7 +2194,8 @@ async function generateWithFiles(beforeFile, idealFile) {
     if (res.status === 429 && data.error === 'limit_exceeded' && !DEMO_BYPASS_LIMIT) {
       removeTyping();
       showUpgradeModal();
-      addAgentMessage('今月の生成回数に達しました。プランのアップグレードをご検討ください。');
+      addAgentMessage('今月の生成回数に達しました。プランのアップグレードをご検討ください。', null, null,
+        ['概算を見る', '担当者に相談', '相談内容を続ける']);
       return;
     }
 
@@ -2082,7 +2218,7 @@ async function generateWithFiles(beforeFile, idealFile) {
       ['別の箇所も試す', 'スタイルを変えてみる', '昼/夜を見る', '概算を見る', '提案書を作成']
     );
     history.push({ role:'assistant', content: msg });
-    autoSaveSession(src);
+    persistChatHistory();
 
   } catch(e) {
     removeTyping();
@@ -2091,13 +2227,16 @@ async function generateWithFiles(beforeFile, idealFile) {
     const timeoutMsg = '画像生成に時間がかかりすぎたため中断しました。混雑している可能性があります。参考イメージをご覧いただくか、少し時間をおいてもう一度お試しください。';
     const headline = e.isTimeout ? timeoutMsg : '現在AIイメージ生成をご利用いただけません。参考イメージをご覧ください。';
     if (fallbackSrc) {
+      // 参考画像も後続の昼夜比較・提案書作成へ引き継げるようにする
+      window._lastAfterSrc = fallbackSrc;
+      window._lastBeforeSrc = beforeURL;
       addAgentMessage(
         headline,
         fallbackSrc, beforeURL,
         ['もう一度試す', '別の箇所も試す', 'スタイルを変えてみる', '概算を見る', '提案書を作成']
       );
     } else {
-      addAgentMessage(e.isTimeout ? timeoutMsg : '現在AIイメージ生成をご利用いただけません。しばらく経ってから再度お試しください。');
+      addAgentMessage(e.isTimeout ? timeoutMsg : '現在AIイメージ生成をご利用いただけません。参考イメージを確認するか、別の方法で相談を続けられます。', null, null, ['もう一度試す', '概算を見る', '担当者に相談', '相談内容を続ける']);
     }
   }
 }
@@ -2251,7 +2390,7 @@ function stars(n, max=5) {
 
 function showMaterial(key) {
   const m = MATERIALS[key];
-  if (!m) { addAgentMessage('素材情報が見つかりませんでした。'); return; }
+    if (!m) { addAgentMessage('素材情報が見つかりませんでした。', null, null, ['素材を探す', '概算を見る', '担当者に相談']); return; }
   window._selectedMaterialKey = key;
 
   const chat = document.getElementById('chat');
@@ -2313,8 +2452,10 @@ function showMaterial(key) {
 
 // ── Day / Night Preview ──
 async function generateNight(btn, afterSrc, beforeSrc) {
-  btn.disabled = true;
-  btn.style.opacity = '0.4';
+  // チップから起動した場合はボタン要素がないため、UI制御用の代替オブジェクトを使う
+  const trigger = btn || { disabled: false, style: {} };
+  trigger.disabled = true;
+  trigger.style.opacity = '0.4';
 
   // Show loading card
   const chat = document.getElementById('chat');
@@ -2366,10 +2507,11 @@ async function generateNight(btn, afterSrc, beforeSrc) {
     document.getElementById('dn-card')?.remove();
     addAgentMessage(e.isTimeout
       ? '夜間イメージの生成に時間がかかりすぎたため中断しました。少し時間をおいてもう一度お試しください。'
-      : '現在夜間イメージ生成をご利用いただけません。しばらく経ってから再度お試しください。');
+      : '現在夜間イメージ生成をご利用いただけません。昼のイメージや別の相談へ進めます。', null, null,
+      ['概算を見る', '担当者に相談', '相談内容を続ける']);
   } finally {
-    btn.disabled = false;
-    btn.style.opacity = '';
+    trigger.disabled = false;
+    trigger.style.opacity = '';
   }
 }
 
@@ -2377,7 +2519,8 @@ function showDayNight(daySrc, nightSrc) {
   const safeDaySrc = safeImageSrc(daySrc);
   const safeNightSrc = safeImageSrc(nightSrc);
   if (!safeDaySrc || !safeNightSrc) {
-    addAgentMessage('昼夜イメージの画像を表示できませんでした。');
+    addAgentMessage('昼夜イメージの画像を表示できませんでした。別の方法で相談を続けられます。', null, null,
+      ['概算を見る', '担当者に相談', '相談内容を続ける']);
     return;
   }
   const chat = document.getElementById('chat');
@@ -2436,40 +2579,50 @@ function switchDN(mode, daySrc, nightSrc) {
   }
 }
 
+function getMockConversationSummary(messages) {
+  const text = messages.filter(message => message.role === 'user').map(message => String(message.content || '')).join('、');
+  const find = values => values.find(value => text.includes(value)) || '';
+  return {
+    room: find(['リビング', 'キッチン', '浴室', '洗面所', '寝室', '玄関', '和室']) || '未指定',
+    parts: find(['床材', '壁紙', 'キッチン設備', '照明', '収納']) || '未指定',
+    style: find(['モダン', 'ナチュラル', '和風', 'インダストリアル', '北欧風']) || '未指定',
+    budget: find(['50万円以下', '50〜100万円', '100〜200万円', '200万円以上']) || '未指定',
+    notes: text.slice(-160),
+    summary: text ? `会話内容をもとにしたデモ要約です。${text.slice(-120)}` : '会話内容のデモ要約です。',
+  };
+}
+
+async function fetchConversationSummary() {
+  const summaryRes = await fetch(EDGE_URL, {
+    method: 'POST',
+    headers: { ...EDGE_HEADERS, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      token: sessionToken, type: 'chat',
+      system: `会話履歴からリフォームの要望を抽出し、以下のJSON形式のみで返してください。前後の説明は不要です。
+{"room":"部屋名","parts":"変更箇所","style":"希望スタイル","budget":"予算","notes":"その他の要望・メモ","summary":"2〜3文の要望まとめ"}`,
+      messages: [...history, { role: 'user', content: 'この会話の要望をJSONにまとめてください' }]
+    })
+  });
+  const summaryData = await summaryRes.json();
+  const raw = summaryData.content?.[0]?.text || '{}';
+  try {
+    const match = raw.match(/\{[\s\S]+\}/);
+    return match ? JSON.parse(match[0]) : {};
+  } catch (e) {
+    return {};
+  }
+}
+
 // ── PDF Generation ──
-async function generatePDF(afterSrc, beforeSrc) {
+async function generatePDF(afterSrc, beforeSrc, onComplete = null) {
   const overlay = document.getElementById('pdfOverlay');
   overlay.style.display = 'flex';
 
   try {
-    // 1. Ask Claude to summarize the conversation
-    const summaryRes = await fetch(EDGE_URL, {
-      method: 'POST',
-      headers: { ...EDGE_HEADERS, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        token: sessionToken, type: 'chat',
-        system: `会話履歴からリフォームの要望を抽出し、以下のJSON形式のみで返してください。前後の説明は不要です。
-{
-  "room": "部屋名",
-  "parts": "変更箇所",
-  "style": "希望スタイル",
-  "budget": "予算",
-  "notes": "その他の要望・メモ",
-  "summary": "2〜3文の要望まとめ"
-}`,
-        messages: [
-          ...history,
-          { role: 'user', content: 'この会話の要望をJSONにまとめてください' }
-        ]
-      })
-    });
-    const summaryData = await summaryRes.json();
-    const raw = summaryData.content?.[0]?.text || '{}';
-    let info = {};
-    try {
-      const match = raw.match(/\{[\s\S]+\}/);
-      info = match ? JSON.parse(match[0]) : {};
-    } catch(e) { info = {}; }
+    // 1. 会話の要約（チャットモック時はローカルで作成）
+    const info = MOCK_CHAT_MODE
+      ? getMockConversationSummary(history)
+      : await fetchConversationSummary();
 
     // 2. Fill PDF template
     const tmpl = document.getElementById('pdfTemplate');
@@ -2556,9 +2709,12 @@ async function generatePDF(afterSrc, beforeSrc) {
     }
 
     doc.save(`RENO-ai-提案書-${Date.now()}.pdf`);
+    if (typeof onComplete === 'function') onComplete();
 
   } catch(e) {
-    addAgentMessage('現在提案書の生成をご利用いただけません。しばらく経ってから再度お試しください。');
+    addAgentMessage('現在提案書の生成をご利用いただけません。相談内容を残したまま、別の方法で進められます。', null, null,
+      ['施工後イメージ', '概算を見る', '相談内容を続ける']);
+    finalizationState = 'draft';
   } finally {
     overlay.style.display = 'none';
     const tmpl = document.getElementById('pdfTemplate');
@@ -2673,7 +2829,8 @@ function showSimulator() {
             </div>
             <div style="font-size:10px;color:var(--muted);line-height:1.5;margin-top:8px;">候補：住宅リフォーム補助制度、断熱改修支援など。地域・工事内容により対象が変わります。</div>
           </div>
-        <button class="sim-confirm" onclick="simConfirm()" ${simState.items.size ? '' : 'disabled'}>この内容で担当者に相談する</button>
+        <button class="sim-confirm" onclick="simConfirm()" ${simState.items.size ? '' : 'disabled'}>この内容を確認する</button>
+        <button class="sim-reset" type="button" onclick="simResetChoices()">条件を選び直す</button>
       </div>
     </div>`;
   chat.appendChild(div);
@@ -2699,13 +2856,86 @@ function refreshSim() {
   old.remove();
   showSimulator();
 }
+function simResetChoices() {
+  simState = { sizeIdx: 1, items: new Set(), gradeIdx: 1 };
+  refreshSim();
+}
+let finalizationState = 'draft';
+let finalHandoffStarted = false;
+
+function showFinalConfirmation() {
+  document.getElementById('final-confirm-msg')?.remove();
+  const rows = getHandoffSummary('最終確認');
+  const hasImages = Boolean(window._lastAfterSrc && window._lastBeforeSrc);
+  const div = document.createElement('div');
+  div.className = 'msg agent';
+  div.id = 'final-confirm-msg';
+  div.innerHTML = `<div class="avatar agent">${getAgentIconHTML()}</div>
+    <div class="bubble agent">
+      <div class="handoff-card">
+        <div class="handoff-title">相談内容の最終確認</div>
+        <div class="handoff-lead">内容を確定すると、${hasImages ? '提案書PDFを保存した後に' : ''}担当者への相談受付へ進みます。</div>
+        <div class="handoff-summary">
+          <div class="handoff-summary-title">確定する内容</div>
+          ${rows.map(row => `<div class="handoff-summary-row">・${escapeHTML(row)}</div>`).join('')}
+        </div>
+        <button id="final-confirm-submit" class="handoff-submit" type="button" onclick="window.completeFinalConsultation()">${hasImages ? '内容を確定してPDFを保存' : '内容を確定して相談受付へ進む'}</button>
+        <button class="sim-reset" type="button" onclick="reselectEstimate()">概算条件を選び直す</button>
+        <div class="handoff-note">※ 確定後の担当者相談は、この1回のみ表示されます。</div>
+      </div>
+    </div>`;
+  document.getElementById('chat').appendChild(div);
+  finalizationState = 'review';
+  scrollBottom();
+}
+
+function completeFinalConsultation() {
+  if (finalizationState !== 'review') {
+    addAgentMessage('この確認画面はすでに処理済みです。概算画面からもう一度確認できます。', null, null, ['概算を見る']);
+    return;
+  }
+  if (finalHandoffStarted) return;
+  try {
+    finalizationState = 'confirmed';
+    const submit = document.getElementById('final-confirm-submit');
+    if (submit) {
+      submit.disabled = true;
+      submit.textContent = window._lastAfterSrc && window._lastBeforeSrc ? 'PDFを保存しています…' : '受付フォームを準備しています…';
+    }
+    document.getElementById('final-confirm-msg')?.remove();
+    addUserMessage('相談内容を確定しました');
+    const after = window._lastAfterSrc;
+    const before = window._lastBeforeSrc;
+    if (after && before) {
+      generatePDF(after, before, () => {
+        clearDraftCache();
+        handoffToStaff('最終確定済み');
+      });
+    } else {
+      clearDraftCache();
+      handoffToStaff('最終確定済み');
+    }
+  } catch (e) {
+    finalizationState = 'review';
+    addAgentMessage('確定処理を開始できませんでした。もう一度お試しください。', null, null, ['概算を見る']);
+  }
+}
+window.completeFinalConsultation = completeFinalConsultation;
+
+function reselectEstimate() {
+  if (finalizationState === 'confirmed' || finalHandoffStarted) return;
+  finalizationState = 'draft';
+  document.getElementById('final-confirm-msg')?.remove();
+  showSimulator();
+}
+
 function simConfirm() {
   if (simState.items.size === 0) {
     addAgentMessage('施工箇所を1つ以上選択してください。');
     return;
   }
   document.getElementById('sim-msg')?.remove();
-  handoffToStaff('概算シミュレーション');
+  showFinalConfirmation();
 }
 
 // ── Usage ──
@@ -3154,28 +3384,18 @@ async function showCases(room, style) {
     scrollBottom();
   } catch(e) {
     document.getElementById('cases-loading')?.remove();
-    addAgentMessage('事例の読み込みに時間がかかっています。もう一度お試しください。');
+    addAgentMessage('事例の読み込みに時間がかかっています。別の方法で相談を続けられます。', null, null,
+      ['素材を探す', '概算を見る', '担当者に相談', '相談内容を続ける']);
   }
 }
 
 // ── Session History ──
 async function autoSaveSession(afterSrc) {
   try {
-    // Extract structured info from conversation
-    const res = await fetch(EDGE_URL, {
-      method: 'POST',
-      headers: { ...EDGE_HEADERS, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        token: sessionToken, type: 'chat',
-        system: `会話履歴からリフォームの要望を抽出し、以下のJSON形式のみで返してください。
-{"room":"部屋名","parts":"変更箇所","style":"希望スタイル","budget":"予算","summary":"1〜2文の要約"}`,
-        messages: [...history, { role:'user', content: '要望をJSONにまとめてください' }]
-      })
-    });
-    const data = await res.json();
-    const raw  = data.content?.[0]?.text || '{}';
-    let info = {};
-    try { const m = raw.match(/\{[\s\S]+\}/); info = m ? JSON.parse(m[0]) : {}; } catch(e) {}
+    // Extract structured info from conversation. Chat mock mode stays local.
+    const info = MOCK_CHAT_MODE
+      ? getMockConversationSummary(history)
+      : await fetchConversationSummary();
 
     // Store image URL (data URL → truncate for storage efficiency)
     const imgToStore = afterSrc.startsWith('data:')
@@ -3353,19 +3573,61 @@ async function sendMessage() {
   document.getElementById('userInput').focus();
 }
 
+async function getMockAgentResponse(messages) {
+  await new Promise(resolve => setTimeout(resolve, 550));
+  const userMessages = messages.filter(message => message.role === 'user').map(message => String(message.content || ''));
+  const latest = userMessages[userMessages.length - 1] || '';
+  const normalized = latest.toLowerCase();
+  const hasPhoto = Boolean(window._beforeFile || window._beforeURL);
+  const room = ['リビング', 'キッチン', '浴室', '洗面所', '寝室', '玄関', '和室'].find(value => latest.includes(value));
+
+  if (/事例|施工例|参考写真/.test(latest)) {
+    return '雰囲気の近い施工事例をご案内します。[SHOW_CASES: , ]';
+  }
+  if (/概算|いくら|費用|予算|工期|補助金/.test(latest)) {
+    return '条件を選びながら、費用の目安を確認できます。[SHOW_SIMULATOR]';
+  }
+  if (/素材.*(詳しく|詳細)|耐久|お手入れ|メンテナンス/.test(latest)) {
+    return '候補の素材について、特徴やお手入れのしやすさを確認できます。[SHOW_MATERIAL: composite]';
+  }
+
+  if (userMessages.length <= 1 && room) {
+    return `${room}ですね。どの部分を変えたいとお考えですか？\n[SUGGESTIONS: 床材, 壁紙, キッチン設備, 照明, 収納]`;
+  }
+  if (userMessages.length <= 1) {
+    return 'ありがとうございます。まず、リフォームしたいお部屋を教えてください。\n[SUGGESTIONS: リビング, キッチン, 浴室・洗面所, 寝室, 玄関]';
+  }
+  if (/日当たり|明る|光|照明/.test(normalized)) {
+    return '日当たりを活かして、明るく開放的な空間にしたいのですね☀️\n現状写真があれば、光の入り方を残したナチュラルなイメージを作成できます。\n[SUGGESTIONS: 📷 写真を撮る・選ぶ, 概算を見る, 担当者に相談]';
+  }
+  if (userMessages.length === 2) {
+    return 'ご希望の箇所が分かりました。どんな雰囲気にしたいですか？\n[SUGGESTIONS: モダン, ナチュラル, 和風, インダストリアル, 北欧風]';
+  }
+  if (!hasPhoto) {
+    const concern = latest.trim() ? `「${latest.trim()}」も大切なポイントですね。` : 'ご希望を整理しました。';
+    return `${concern}\n今のお部屋の写真があれば、雰囲気を保ちながら施工後イメージを作れます。写真を撮って送ってみてください。\n[SUGGESTIONS: 📷 写真を撮る・選ぶ]`;
+  }
+  return 'ご希望を反映した施工後イメージを作成できます。写真の準備ができたら、次のステップへ進みましょう。\n[SUGGESTIONS: 施工後イメージ, 概算を見る, 担当者に相談]';
+}
+
 async function callAgent() {
   document.getElementById('sendBtn').disabled = true;
+  persistChatHistory();
   addTyping();
   try {
-    const res  = await fetch(EDGE_URL, {
-      method: 'POST',
-      headers: { ...EDGE_HEADERS, 'Content-Type':'application/json' },
-      body: JSON.stringify({ token: sessionToken, type:'chat', system: SYSTEM_PROMPT, messages: history }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error?.message || 'APIエラー');
-
-    const raw = data.content?.[0]?.text || '';
+    let raw = '';
+    if (MOCK_CHAT_MODE) {
+      raw = await getMockAgentResponse(history);
+    } else {
+      const res  = await fetch(EDGE_URL, {
+        method: 'POST',
+        headers: { ...EDGE_HEADERS, 'Content-Type':'application/json' },
+        body: JSON.stringify({ token: sessionToken, type:'chat', system: SYSTEM_PROMPT, messages: history }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error?.message || 'APIエラー');
+      raw = data.content?.[0]?.text || '';
+    }
     removeTyping();
 
     // Parse tags
@@ -3422,8 +3684,10 @@ async function callAgent() {
 
   } catch(e) {
     removeTyping();
-    addAgentMessage('一時的にご利用いただけません。しばらく経ってから再度お試しください。');
+    addAgentMessage('一時的に応答を取得できませんでした。相談を続けるか、もう一度送信できます。', null, null,
+      ['もう一度送る', '担当者に相談', '相談内容を続ける']);
   }
+  persistChatHistory();
   document.getElementById('sendBtn').disabled = false;
 }
 
