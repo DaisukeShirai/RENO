@@ -1,6 +1,8 @@
 import { test, expect } from '@playwright/test';
 
 const installStubs = async (page) => {
+  // 比較テストでは外部CDNの状態に左右されないようSupabaseを固定する。
+  await page.route('**/cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js', (route) => route.abort());
   await page.addInitScript(() => {
     window.supabase = {
       createClient: () => ({

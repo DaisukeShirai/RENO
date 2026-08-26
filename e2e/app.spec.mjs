@@ -2,6 +2,8 @@ import { test, expect } from '@playwright/test';
 
 test.describe('RENOローカル相談フロー', () => {
   test('PIN認証後にバックエンドAPIでチャットできる', async ({ page }) => {
+    // CIでは外部Supabase CDNの実クライアントを読み込まず、認証スタブを使用する。
+    await page.route('**/cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js', (route) => route.abort());
     if (process.env.E2E_USE_REAL_API !== 'true') {
       await page.route('**/assets/reno-config.js', (route) => route.fulfill({
         status: 200,
