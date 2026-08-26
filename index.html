@@ -430,6 +430,13 @@ html.oauth-pending #oauthLoadingOverlay{display:flex;}
 .handoff-card{margin-top:10px;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px;}
 .handoff-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;}
 .handoff-lead{font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:12px;}
+.handoff-estimate{background:linear-gradient(135deg,var(--gold-bg),#fffdf8);border:1.5px solid var(--gold);border-radius:10px;padding:12px;margin:0 0 12px;box-shadow:0 4px 14px rgba(160,120,56,0.12);}
+.handoff-estimate-title{font-size:10px;color:var(--gold);font-weight:600;letter-spacing:.12em;margin-bottom:8px;}
+.handoff-estimate-grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:8px;}
+.handoff-estimate-metric{background:var(--white);border-radius:7px;padding:10px 9px;min-width:0;}
+.handoff-estimate-label{font-size:10px;color:var(--muted);margin-bottom:4px;}
+.handoff-estimate-value{font-size:21px;line-height:1.2;font-weight:600;color:var(--text);white-space:nowrap;}
+.handoff-estimate-value.duration{font-size:18px;color:var(--gold);}
 .handoff-summary{background:var(--bg2);border-radius:7px;padding:10px 11px;margin-bottom:12px;}
 .handoff-summary-title{font-size:10px;color:var(--gold);letter-spacing:.1em;margin-bottom:6px;}
 .handoff-summary-row{font-size:11px;color:var(--text2);line-height:1.6;}
@@ -595,10 +602,21 @@ html.oauth-pending #oauthLoadingOverlay{display:flex;}
 .sim-grades{display:flex;gap:5px;}
 .sim-grade{flex:1;background:var(--white);border:1px solid var(--border);border-radius:5px;padding:7px 6px;font-size:11px;color:var(--muted);cursor:pointer;font-family:inherit;text-align:center;transition:all 0.15s;}
 .sim-grade.active{border-color:var(--gold);color:var(--gold);background:var(--gold-bg);}
-.sim-result{background:var(--gold-bg);border:1px solid rgba(160,120,56,0.2);border-radius:8px;padding:12px 14px;margin-top:4px;}
-.sim-result-label{font-size:10px;color:var(--gold);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px;}
-.sim-result-price{font-size:22px;font-weight:300;color:var(--text);letter-spacing:0.02em;}
-.sim-result-note{font-size:10px;color:var(--muted);margin-top:4px;letter-spacing:0.02em;}
+.sim-result{background:var(--gold-bg);border:1px solid rgba(160,120,56,0.2);border-radius:8px;padding:14px;margin-top:8px;}
+.sim-result-label{font-size:10px;color:var(--gold);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;font-weight:600;}
+.sim-result-highlights{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:8px;}
+.sim-metric{background:var(--white);border:1px solid rgba(160,120,56,0.18);border-radius:8px;padding:11px 10px;min-width:0;}
+.sim-metric.duration{background:rgba(255,255,255,0.55);}
+.sim-metric-label{font-size:10px;color:var(--muted);letter-spacing:0.08em;margin-bottom:4px;}
+.sim-result-price,.sim-duration-value{font-size:24px;font-weight:600;color:var(--text);letter-spacing:0.01em;line-height:1.2;white-space:nowrap;}
+.sim-duration-value{font-size:20px;color:var(--gold);}
+.sim-result-note{font-size:10px;color:var(--muted);margin-top:6px;letter-spacing:0.02em;}
+.sim-result-subinfo{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px;}
+.sim-result-subinfo > div{background:var(--bg2);border-radius:7px;padding:8px;text-align:center;}
+.sim-result-subinfo > div:last-child{background:var(--white);}
+.sim-result-subinfo-label{font-size:10px;color:var(--muted);}
+.sim-result-subinfo-value{font-size:12px;color:var(--gold);font-weight:500;margin-top:3px;}
+.sim-result-footnote{font-size:10px;color:var(--muted);line-height:1.5;margin-top:8px;}
 .sim-confirm{width:100%;margin-top:10px;background:var(--text);border:none;border-radius:7px;color:var(--white);font-size:12px;font-weight:500;padding:10px;cursor:pointer;font-family:inherit;letter-spacing:0.06em;text-transform:uppercase;transition:background 0.15s;}
 .sim-confirm:hover{background:#333;}
 .sim-reset{width:100%;margin-top:7px;background:transparent;border:1px solid var(--border);border-radius:7px;color:var(--muted);font-size:11px;padding:8px;cursor:pointer;font-family:inherit;transition:all 0.15s;}
@@ -1601,9 +1619,14 @@ function lockApp() {
 let history = [];
 let chatStarted = false;
 const CHAT_CACHE_PREFIX = 'reno_chat_history_v1:';
+const CHAT_STATE_SUFFIX = ':state';
 
 function chatCacheKey() {
   return CHAT_CACHE_PREFIX + (sessionEmail || 'guest');
+}
+
+function chatStateKey() {
+  return chatCacheKey() + CHAT_STATE_SUFFIX;
 }
 
 function persistChatHistory() {
@@ -1616,8 +1639,43 @@ function persistChatHistory() {
   } catch (e) {}
 }
 
+function persistChatState(activeView = '') {
+  try {
+    localStorage.setItem(chatStateKey(), JSON.stringify({
+      activeView,
+      simState: {
+        sizeIdx: simState.sizeIdx,
+        items: [...simState.items],
+        gradeIdx: simState.gradeIdx,
+      },
+      selectedMaterialKey: window._selectedMaterialKey || '',
+      savedAt: Date.now(),
+    }));
+  } catch (e) {}
+}
+
+function restoreChatState() {
+  try {
+    const state = JSON.parse(localStorage.getItem(chatStateKey()) || 'null');
+    if (!state || !state.simState) return { activeView: '' };
+    const next = state.simState;
+    if (Number.isInteger(next.sizeIdx) && COST_DATA.sizes[next.sizeIdx]) simState.sizeIdx = next.sizeIdx;
+    if (Number.isInteger(next.gradeIdx) && COST_DATA.grades[next.gradeIdx]) simState.gradeIdx = next.gradeIdx;
+    if (Array.isArray(next.items)) {
+      simState.items = new Set(next.items.filter(key => COST_DATA.items.some(item => item.key === key)));
+    }
+    if (state.selectedMaterialKey) window._selectedMaterialKey = state.selectedMaterialKey;
+    return { activeView: state.activeView || '' };
+  } catch (e) {
+    return { activeView: '' };
+  }
+}
+
 function clearDraftCache() {
-  try { localStorage.removeItem(chatCacheKey()); } catch (e) {}
+  try {
+    localStorage.removeItem(chatCacheKey());
+    localStorage.removeItem(chatStateKey());
+  } catch (e) {}
 }
 
 function restoreCachedChat(cached) {
@@ -1627,23 +1685,39 @@ function restoreCachedChat(cached) {
       addUserMessage(message.content);
       return;
     }
-    const display = String(message.content)
+    const raw = String(message.content);
+    const genMatch = raw.match(/\[GENERATE_IMAGE:\s*([\s\S]+?)\]/);
+    const simMatch = raw.match(/\[SHOW_SIMULATOR\]/);
+    const matMatch = raw.match(/\[SHOW_MATERIAL:\s*(\w+)\]/);
+    const qfMatch = raw.match(/\[QUICK_FORM:\s*([\s\S]+?)\]/);
+    const sugMatch = raw.match(/\[SUGGESTIONS:\s*(.+?)\]/);
+    const display = raw
       .replace(/\[GENERATE_IMAGE:[\s\S]+?\]/g, '')
       .replace(/\[SHOW_SIMULATOR\]|\[SHOW_MATERIAL:\s*\w+\]|\[SHOW_CASES:[^\]]*\]/g, '')
       .replace(/\[QUICK_FORM:[\s\S]+?\]|\[SUGGESTIONS:.+?\]/g, '')
       .trim();
     if (display) addAgentMessage(display);
+    if (genMatch) showUploadCard(genMatch[1].trim());
+    else if (simMatch) showSimulator();
+    else if (matMatch) showMaterial(matMatch[1].trim());
+    else if (qfMatch) showQuickForm(qfMatch[1].trim());
+    if (sugMatch) renderSuggestions(sugMatch[1].split(',').map(s => s.trim()).filter(Boolean));
   });
 }
 
 function initChat() {
   chatStarted = true;
   fetchUsage();
+  const savedState = restoreChatState();
   try {
     const cached = JSON.parse(localStorage.getItem(chatCacheKey()) || '[]');
     if (Array.isArray(cached) && cached.length) {
       history = cached;
       restoreCachedChat(cached);
+      if (savedState.activeView === 'final-confirm') {
+        document.getElementById('sim-msg')?.remove();
+        showFinalConfirmation();
+      }
       return;
     }
   } catch (e) {}
@@ -2392,6 +2466,7 @@ function showMaterial(key) {
   const m = MATERIALS[key];
     if (!m) { addAgentMessage('素材情報が見つかりませんでした。', null, null, ['素材を探す', '概算を見る', '担当者に相談']); return; }
   window._selectedMaterialKey = key;
+  persistChatState();
 
   const chat = document.getElementById('chat');
   const div = document.createElement('div');
@@ -2778,6 +2853,7 @@ function updateSimResult() {
 
 function showSimulator() {
   const chat = document.getElementById('chat');
+  persistChatState('simulator');
   const div = document.createElement('div');
   div.className = 'msg agent'; div.id = 'sim-msg';
 
@@ -2820,14 +2896,23 @@ function showSimulator() {
           <div class="sim-grades">${gradeBtns}</div>
         </div>
           <div class="sim-result">
-            <div class="sim-result-label">概算費用</div>
-            <div class="sim-result-price" id="sim-price">${lo?fmtMoney(lo)+' 〜 '+fmtMoney(hi):'項目を選択してください'}</div>
-            <div class="sim-result-note">※ 相場の目安です。実際の費用は現地調査にてご確認ください。</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px;">
-              <div style="background:var(--bg2);border-radius:7px;padding:8px;text-align:center;"><div style="font-size:10px;color:var(--muted);">概算工期</div><div style="font-size:12px;color:var(--text);font-weight:500;margin-top:3px;">2〜3週間</div></div>
-              <div style="background:var(--gold-bg);border-radius:7px;padding:8px;text-align:center;"><div style="font-size:10px;color:var(--muted);">補助金候補</div><div style="font-size:12px;color:var(--gold);font-weight:500;margin-top:3px;">要件を確認</div></div>
+            <div class="sim-result-label">今回の概算</div>
+            <div class="sim-result-highlights">
+              <div class="sim-metric">
+                <div class="sim-metric-label">概算費用</div>
+                <div class="sim-result-price" id="sim-price">${lo?fmtMoney(lo)+' 〜 '+fmtMoney(hi):'項目を選択してください'}</div>
+              </div>
+              <div class="sim-metric duration">
+                <div class="sim-metric-label">概算工期</div>
+                <div class="sim-duration-value">2〜3週間</div>
+              </div>
             </div>
-            <div style="font-size:10px;color:var(--muted);line-height:1.5;margin-top:8px;">候補：住宅リフォーム補助制度、断熱改修支援など。地域・工事内容により対象が変わります。</div>
+            <div class="sim-result-note">※ 相場の目安です。実際の費用は現地調査にてご確認ください。</div>
+            <div class="sim-result-subinfo">
+              <div><div class="sim-result-subinfo-label">補助金候補</div><div class="sim-result-subinfo-value">要件を確認</div></div>
+              <div><div class="sim-result-subinfo-label">確認方法</div><div class="sim-result-subinfo-value">現地調査</div></div>
+            </div>
+            <div class="sim-result-footnote">候補：住宅リフォーム補助制度、断熱改修支援など。地域・工事内容により対象が変わります。</div>
           </div>
         <button class="sim-confirm" onclick="simConfirm()" ${simState.items.size ? '' : 'disabled'}>この内容を確認する</button>
         <button class="sim-reset" type="button" onclick="simResetChoices()">条件を選び直す</button>
@@ -2839,15 +2924,18 @@ function showSimulator() {
 
 function simSetSize(i) {
   simState.sizeIdx = i;
+  persistChatState('simulator');
   refreshSim();
 }
 function simToggleItem(key) {
   if (simState.items.has(key)) simState.items.delete(key);
   else simState.items.add(key);
+  persistChatState('simulator');
   refreshSim();
 }
 function simSetGrade(i) {
   simState.gradeIdx = i;
+  persistChatState('simulator');
   refreshSim();
 }
 function refreshSim() {
@@ -2858,6 +2946,7 @@ function refreshSim() {
 }
 function simResetChoices() {
   simState = { sizeIdx: 1, items: new Set(), gradeIdx: 1 };
+  persistChatState('simulator');
   refreshSim();
 }
 let finalizationState = 'draft';
@@ -2867,6 +2956,7 @@ function showFinalConfirmation() {
   document.getElementById('final-confirm-msg')?.remove();
   const rows = getHandoffSummary('最終確認');
   const hasImages = Boolean(window._lastAfterSrc && window._lastBeforeSrc);
+  const estimate = simState.items.size ? calcCost() : null;
   const div = document.createElement('div');
   div.className = 'msg agent';
   div.id = 'final-confirm-msg';
@@ -2874,6 +2964,19 @@ function showFinalConfirmation() {
     <div class="bubble agent">
       <div class="handoff-card">
         <div class="handoff-title">相談内容の最終確認</div>
+        ${estimate ? `<div class="handoff-estimate">
+          <div class="handoff-estimate-title">今回の概算</div>
+          <div class="handoff-estimate-grid">
+            <div class="handoff-estimate-metric">
+              <div class="handoff-estimate-label">概算費用</div>
+              <div class="handoff-estimate-value">${fmtMoney(estimate.lo)} 〜 ${fmtMoney(estimate.hi)}</div>
+            </div>
+            <div class="handoff-estimate-metric">
+              <div class="handoff-estimate-label">概算工期</div>
+              <div class="handoff-estimate-value duration">2〜3週間</div>
+            </div>
+          </div>
+        </div>` : ''}
         <div class="handoff-lead">内容を確定すると、${hasImages ? '提案書PDFを保存した後に' : ''}担当者への相談受付へ進みます。</div>
         <div class="handoff-summary">
           <div class="handoff-summary-title">確定する内容</div>
@@ -2890,6 +2993,7 @@ function showFinalConfirmation() {
       </div>
     </div>`;
   document.getElementById('chat').appendChild(div);
+  persistChatState('final-confirm');
   finalizationState = 'review';
   scrollBottom();
 }
@@ -2960,6 +3064,7 @@ function simConfirm() {
     return;
   }
   document.getElementById('sim-msg')?.remove();
+  persistChatState('final-confirm');
   showFinalConfirmation();
 }
 
