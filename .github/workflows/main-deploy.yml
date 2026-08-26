@@ -113,7 +113,8 @@ jobs:
   deploy:
     name: Deploy to AWS
     needs: test
-    if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' && inputs.deploy_aws == true
+    # mainへのpush、または手動実行で明示的に許可した場合だけ本番へデプロイする。
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.deploy_aws == true))
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
