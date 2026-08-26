@@ -5,9 +5,11 @@ on:
     branches:
       - main
       - feature/makeActions
+      - feature/mvp
   pull_request:
     branches:
       - main
+      - feature/mvp
   workflow_dispatch:
 
 permissions:
