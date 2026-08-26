@@ -6,3 +6,5 @@ backend/.aws-sam/
 backend/.pytest_cache/
 __pycache__/
 *.pyc
+test-results/
+playwright-report/

@@ -2,6 +2,18 @@ import { test, expect } from '@playwright/test';
 
 test.describe('RENOローカル相談フロー', () => {
   test('PIN認証後にバックエンドAPIでチャットできる', async ({ page }) => {
+    // E2E実行環境では外部CDNを使わず、Googleログイン部分だけをスタブ化する。
+    await page.addInitScript(() => {
+      window.supabase = {
+        createClient: () => ({
+          auth: {
+            getSession: async () => ({ data: { session: null } }),
+            signOut: async () => ({}),
+            signInWithOAuth: async () => ({ data: {}, error: null }),
+          },
+        }),
+      };
+    });
     const pin = process.env.E2E_PIN || '5678';
     await page.goto(`/?pin=${pin}`);
 

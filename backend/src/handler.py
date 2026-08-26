@@ -17,7 +17,7 @@ def response(status, body):
     return {"statusCode": status, "headers": {
         "Content-Type": "application/json; charset=utf-8",
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Headers": "Content-Type,Authorization",
+        "Access-Control-Allow-Headers": "Content-Type,Authorization,apikey",
         "Access-Control-Allow-Methods": "POST,OPTIONS",
     }, "body": json.dumps(body, ensure_ascii=False, default=str)}
 
