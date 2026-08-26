@@ -631,6 +631,26 @@ html.oauth-pending #oauthLoadingOverlay{display:flex;}
   .menu-drawer{max-width:720px;border-radius:16px 16px 0 0;}
 }
 #chat{scrollbar-gutter:stable;}
+
+/* Material candidates - mockup の候補リスト */
+.material-candidates{margin-top:12px;background:var(--white);border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
+.material-candidates-title{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px;}
+.material-candidates-title svg{color:var(--gold);flex-shrink:0;}
+.material-candidates-note{font-size:10px;color:var(--muted);line-height:1.5;margin-bottom:5px;}
+.material-candidate{display:grid;grid-template-columns:48px minmax(0,1fr);gap:10px;padding:12px 0;border-bottom:1px solid var(--bg2);}
+.material-candidate:last-child{border-bottom:0;padding-bottom:2px;}
+.material-candidate-thumb{width:48px;height:48px;border-radius:7px;background:linear-gradient(135deg,var(--bg2),var(--bg3));border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:16px;}
+.material-candidate-body{min-width:0;}
+.material-candidate-company{font-size:9.5px;color:var(--gold);letter-spacing:.04em;margin-bottom:2px;}
+.material-candidate-name{font-size:12.5px;color:var(--text);font-weight:600;line-height:1.4;}
+.material-candidate-code{font-size:9px;color:var(--muted);margin-left:5px;font-weight:400;}
+.material-candidate-price{font-size:13px;color:var(--text);font-weight:600;margin-top:5px;}
+.material-candidate-price small{font-size:10px;color:var(--muted);font-weight:400;margin-left:3px;}
+.material-candidate-details{display:flex;flex-wrap:wrap;gap:5px 9px;font-size:10px;color:var(--text2);margin-top:4px;line-height:1.5;}
+.material-candidate-details span{white-space:normal;}
+.material-candidate-details b{color:var(--muted);font-weight:400;margin-right:2px;}
+.material-candidate-source{margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);font-size:9.5px;color:var(--muted);line-height:1.5;}
+@media(max-width:380px){.material-candidate{grid-template-columns:40px minmax(0,1fr);gap:8px}.material-candidate-thumb{width:40px;height:40px}.material-candidate-details{gap:3px 7px}}
 </style>
 </head>
 <body>
@@ -2527,6 +2547,73 @@ const MATERIALS = {
   },
 };
 
+// mockup.html の素材候補表示に対応する商品情報。価格は材料費の目安（税・施工費別）です。
+const MATERIAL_CANDIDATES = {
+  oak: [
+    {company:'朝日ウッドテック', name:'ライブナチュラル プレミアム オーク', code:'MRX-001', price:'¥18,000〜24,000', unit:'㎡', detail:'本体 ¥18,000〜／㎡ + 施工費 ¥6,000〜10,000／㎡', life:'約30年', cases:'施工実績 12件'},
+    {company:'無垢フローリング専門店', name:'オーク無垢 乱尺 15mm', code:'OK-15', price:'¥12,000〜18,000', unit:'㎡', detail:'本体 ¥12,000〜／㎡ + オイル仕上げ ¥2,000〜／㎡', life:'約30年', cases:'施工実績 8件'},
+    {company:'イクタ', name:'銘木フロアー ラスティックオーク', code:'IK-RO', price:'¥9,800〜14,000', unit:'㎡', detail:'本体 ¥9,800〜／㎡ + 施工費 ¥5,000〜', life:'約25年', cases:'施工実績 6件'}
+  ],
+  composite: [
+    {company:'DAIKEN', name:'トリニティ ハピアフロア オーク', code:'YB11545', price:'¥12,800', unit:'㎡', detail:'本体 ¥12,800／㎡ + 施工費 ¥4,000〜6,000／㎡', life:'約15年', cases:'施工実績 4件'},
+    {company:'Panasonic', name:'アーキスペックフロアーA オーク', code:'KEAV2', price:'¥9,600', unit:'㎡', detail:'本体 ¥9,600／㎡ + 施工費 ¥4,000〜5,000／㎡', life:'約15年', cases:'施工実績 2件'},
+    {company:'NODA', name:'カナエルC リアルフィニッシュ', code:'CRS-01', price:'¥8,900〜', unit:'㎡', detail:'本体 ¥8,900〜／㎡ + 施工費 ¥4,000〜／㎡', life:'約15年', cases:'施工実績 3件'}
+  ],
+  tile: [
+    {company:'LIXIL', name:'エコカラットプラス ストーングレース', code:'ECP-630', price:'¥13,500〜', unit:'㎡', detail:'本体 ¥13,500〜／㎡ + 施工費 ¥8,000〜12,000／㎡', life:'約20年', cases:'施工実績 9件'},
+    {company:'名古屋モザイク', name:'コラベル ミックス', code:'NMG-01', price:'¥11,000〜16,000', unit:'㎡', detail:'本体 ¥11,000〜／㎡ + 施工費 ¥9,000〜／㎡', life:'約20年', cases:'施工実績 5件'},
+    {company:'平田タイル', name:'ブリックタイル アンティーク', code:'HT-ANT', price:'¥7,800〜', unit:'㎡', detail:'本体 ¥7,800〜／㎡ + 施工費 ¥7,000〜／㎡', life:'約20年', cases:'施工実績 4件'}
+  ],
+  cushion: [
+    {company:'サンゲツ', name:'ノンスリップクッションフロア', code:'HM-11000', price:'¥3,500〜5,500', unit:'㎡', detail:'本体 ¥3,500〜／㎡ + 施工費 ¥2,500〜4,000／㎡', life:'約10年', cases:'施工実績 10件'},
+    {company:'東リ', name:'クッションフロア 住宅用', code:'CF-9600', price:'¥3,000〜5,000', unit:'㎡', detail:'本体 ¥3,000〜／㎡ + 施工費 ¥2,500〜／㎡', life:'約10年', cases:'施工実績 7件'},
+    {company:'リリカラ', name:'抗菌・防カビ クッションフロア', code:'LH-81300', price:'¥3,800〜', unit:'㎡', detail:'本体 ¥3,800〜／㎡ + 施工費 ¥2,500〜／㎡', life:'約10年', cases:'施工実績 5件'}
+  ],
+  plaster: [
+    {company:'珪藻土メーカーA', name:'自然素材の珪藻土 standard', code:'KS-01', price:'¥6,000〜9,000', unit:'㎡', detail:'材料 ¥6,000〜／㎡ + 左官施工費 ¥7,000〜10,000／㎡', life:'約30年', cases:'施工実績 8件'},
+    {company:'四国化成', name:'けいそうリフォーム', code:'KSR-20', price:'¥4,800〜7,500', unit:'㎡', detail:'材料 ¥4,800〜／㎡ + 施工費 ¥6,000〜8,000／㎡', life:'約20年', cases:'施工実績 6件'},
+    {company:'日本プラスター', name:'漆喰うま〜くヌレール', code:'UM-02', price:'¥3,900〜', unit:'㎡', detail:'材料 ¥3,900〜／㎡ + DIY対応', life:'約20年', cases:'施工実績 5件'}
+  ],
+  vinyl: [
+    {company:'サンゲツ', name:'SP 壁紙 スタンダード', code:'SP-9700', price:'¥1,500〜2,500', unit:'㎡', detail:'材料 ¥1,500〜／㎡ + 施工費 ¥1,000〜1,500／㎡', life:'約10年', cases:'施工実績 14件'},
+    {company:'リリカラ', name:'ベース 量産クロス', code:'LB-9200', price:'¥1,200〜2,000', unit:'㎡', detail:'材料 ¥1,200〜／㎡ + 施工費 ¥1,000〜／㎡', life:'約10年', cases:'施工実績 11件'},
+    {company:'東リ', name:'パワー1000 消臭タイプ', code:'WVP-400', price:'¥1,800〜3,000', unit:'㎡', detail:'材料 ¥1,800〜／㎡ + 施工費 ¥1,000〜／㎡', life:'約10年', cases:'施工実績 7件'}
+  ],
+  concrete: [
+    {company:'カラーワークス', name:'モールテックス ベーシック', code:'MTX-01', price:'¥18,000〜28,000', unit:'㎡', detail:'材料 ¥18,000〜／㎡ + 施工費 ¥12,000〜／㎡', life:'約30年', cases:'施工実績 4件'},
+    {company:'フッコー', name:'デザインコンクリート', code:'DC-02', price:'¥12,000〜20,000', unit:'㎡', detail:'材料 ¥12,000〜／㎡ + 施工費 ¥8,000〜／㎡', life:'約20年', cases:'施工実績 3件'},
+    {company:'四国化成', name:'リンクストーン', code:'LS-10', price:'¥9,800〜15,000', unit:'㎡', detail:'材料 ¥9,800〜／㎡ + 施工費 ¥6,000〜／㎡', life:'約20年', cases:'施工実績 2件'}
+  ],
+  marble: [
+    {company:'LIXIL', name:'大理石調タイル マーブル', code:'IPF-600', price:'¥14,000〜22,000', unit:'㎡', detail:'本体 ¥14,000〜／㎡ + 施工費 ¥8,000〜／㎡', life:'約30年', cases:'施工実績 6件'},
+    {company:'ADVAN', name:'天然大理石 クレママーフィル', code:'AD-03', price:'¥24,000〜40,000', unit:'㎡', detail:'本体 ¥24,000〜／㎡ + 施工費 ¥12,000〜／㎡', life:'約30年', cases:'施工実績 3件'},
+    {company:'TOTO', name:'クオラス フロアタイル', code:'QRS-01', price:'¥10,000〜16,000', unit:'㎡', detail:'本体 ¥10,000〜／㎡ + 施工費 ¥7,000〜／㎡', life:'約20年', cases:'施工実績 4件'}
+  ],
+  tatami: [
+    {company:'大建工業', name:'健やかおもて 清流', code:'YQ-01', price:'¥9,500〜14,000', unit:'㎡', detail:'表替え ¥9,500〜／枚 + 施工費込み', life:'約10年', cases:'施工実績 6件'},
+    {company:'セキスイ畳', name:'MIGUSA 市松', code:'MG-02', price:'¥12,000〜18,000', unit:'㎡', detail:'表材 ¥12,000〜／枚 + 施工費込み', life:'約10年', cases:'施工実績 5件'},
+    {company:'積水成型工業', name:'美草 アースカラー', code:'EA-03', price:'¥10,000〜15,000', unit:'㎡', detail:'表材 ¥10,000〜／枚 + 施工費込み', life:'約10年', cases:'施工実績 4件'}
+  ]
+};
+
+function renderMaterialCandidates(key) {
+  const candidates = MATERIAL_CANDIDATES[key] || MATERIAL_CANDIDATES.composite;
+  return `<div class="material-candidates">
+    <div class="material-candidates-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>おすすめ候補（${candidates.length}件）</div>
+    <div class="material-candidates-note">素材の特徴と価格帯を比較できます。価格は材料費・施工費の目安です。</div>
+    ${candidates.map((c, i) => `<div class="material-candidate">
+      <div class="material-candidate-thumb">${i + 1}</div>
+      <div class="material-candidate-body">
+        <div class="material-candidate-company">${escapeHTML(c.company)}</div>
+        <div class="material-candidate-name">${escapeHTML(c.name)}<span class="material-candidate-code">品番 ${escapeHTML(c.code)}</span></div>
+        <div class="material-candidate-price">${escapeHTML(c.price)}<small>/ ${escapeHTML(c.unit)}</small></div>
+        <div class="material-candidate-details"><span><b>価格内訳</b>${escapeHTML(c.detail)}</span><span><b>耐用年数</b>${escapeHTML(c.life)}</span><span><b>実績</b>${escapeHTML(c.cases)}</span></div>
+      </div>
+    </div>`).join('')}
+    <div class="material-candidate-source">出典：各社カタログ・施工事例をもとにした参考価格（現地条件・地域により変動します）</div>
+  </div>`;
+}
+
 function stars(n, max=5) {
   return Array.from({length:max}, (_,i) =>
     `<div class="mat-star ${i<n?'on':'off'}"></div>`
@@ -2590,6 +2677,7 @@ function showMaterial(key) {
           </div>
         </div>
       </div>
+      ${renderMaterialCandidates(key)}
     </div>`;
   chat.appendChild(div);
   renderSuggestions(['画像で確認する', '概算を見る', '別の素材を見る', '担当者に相談', '提案書を作成']);
