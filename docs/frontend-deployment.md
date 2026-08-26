@@ -58,3 +58,8 @@ APIの実装とURLは共通なので、CloudFront用ワークフローを停止�
 - `TOKEN_SECRET`
 
 `OPENAI_MODEL`、`SES_FROM_EMAIL`、`SES_TO_EMAIL`は必要に応じてVariablesへ登録する。
+
+## バックエンドだけを更新
+
+`Deploy backend only`を手動実行すると、Lambda / API Gateway / DynamoDB / S3 / Cognitoのバックエンドだけを更新する。
+CloudFrontやフロントエンドのS3ファイルは変更しない。API URLは実行ログに表示される。

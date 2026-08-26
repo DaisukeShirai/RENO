@@ -1,0 +1,71 @@
+name: Deploy backend only
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  AWS_REGION: ap-northeast-1
+  STACK_NAME: reno-mvp
+
+jobs:
+  deploy:
+    name: Backend deployment
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Set up AWS SAM CLI
+        uses: aws-actions/setup-sam@v2
+
+      - name: Validate and build backend
+        # デプロイ前にSAMテンプレートを検証し、Lambda用の成果物を作成する。
+        run: |
+          sam validate --template-file backend/template.yaml --lint
+          sam build --template-file backend/template.yaml
+
+      - name: Deploy backend resources
+        # OpenAIキーとトークン秘密鍵はLambdaにだけ渡し、フロントへ出力しない。
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          TOKEN_SECRET: ${{ secrets.TOKEN_SECRET }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-5-mini' }}
+          SES_FROM_EMAIL: ${{ vars.SES_FROM_EMAIL || '' }}
+          SES_TO_EMAIL: ${{ vars.SES_TO_EMAIL || '' }}
+        run: |
+          test -n "$OPENAI_API_KEY"
+          test -n "$TOKEN_SECRET"
+          sam deploy \
+            --template-file .aws-sam/build/template.yaml \
+            --stack-name "$STACK_NAME" \
+            --region "$AWS_REGION" \
+            --resolve-s3 \
+            --capabilities CAPABILITY_IAM \
+            --no-confirm-changeset \
+            --no-fail-on-empty-changeset \
+            --parameter-overrides \
+              OpenAIApiKey="$OPENAI_API_KEY" \
+              OpenAIModel="$OPENAI_MODEL" \
+              SesFromEmail="$SES_FROM_EMAIL" \
+              SesToEmail="$SES_TO_EMAIL" \
+              TokenSecret="$TOKEN_SECRET"
+
+      - name: Show backend API URL
+        # CloudFrontの更新は行わず、接続確認用にAPI URLだけ表示する。
+        run: |
+          aws cloudformation describe-stacks \
+            --stack-name "$STACK_NAME" \
+            --region "$AWS_REGION" \
+            --query "Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue" \
+            --output text
