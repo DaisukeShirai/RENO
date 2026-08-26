@@ -43,7 +43,7 @@ Resources:
       StageName: v1
       Cors:
         AllowOrigin: "'*'"
-        AllowHeaders: "'Content-Type,Authorization'"
+        AllowHeaders: "'Content-Type,Authorization,apikey'"
         AllowMethods: "'POST,OPTIONS'"
 
   RenoFunction:
