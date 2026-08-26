@@ -2992,7 +2992,8 @@ function calcCost() {
   let lo = 0, hi = 0;
   COST_DATA.items.forEach(item => {
     if (!simState.items.has(item.key)) return;
-    if (item.unit === 'm2') { lo += item.base[0] * m2; hi += item.base[1] * m2; }
+    // base は万円単位で管理しているため、㎡単価も円へ換算してから合算する。
+    if (item.unit === 'm2') { lo += item.base[0] * m2 * 10000; hi += item.base[1] * m2 * 10000; }
     else                    { lo += item.base[0] * 10000; hi += item.base[1] * 10000; }
   });
   lo = Math.round(lo * mult / 10000) * 10000;
