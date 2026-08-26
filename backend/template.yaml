@@ -44,7 +44,7 @@ Resources:
       Cors:
         AllowOrigin: "'*'"
         AllowHeaders: "'Content-Type,Authorization'"
-        AllowMethods: "POST,OPTIONS"
+        AllowMethods: "'POST,OPTIONS'"
 
   RenoFunction:
     Type: AWS::Serverless::Function
