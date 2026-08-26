@@ -4,9 +4,10 @@ from urllib.request import Request, urlopen
 
 import boto3
 
-TABLE = boto3.resource("dynamodb").Table(os.environ["TABLE_NAME"])
-S3 = boto3.client("s3")
-SES = boto3.client("ses")
+AWS_ENDPOINT_URL = os.environ.get("AWS_ENDPOINT_URL")
+TABLE = boto3.resource("dynamodb", endpoint_url=AWS_ENDPOINT_URL).Table(os.environ["TABLE_NAME"])
+S3 = boto3.client("s3", endpoint_url=AWS_ENDPOINT_URL)
+SES = boto3.client("ses", endpoint_url=AWS_ENDPOINT_URL)
 
 
 def response(status, body):
