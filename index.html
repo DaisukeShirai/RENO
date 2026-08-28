@@ -986,10 +986,11 @@ html.oauth-pending #oauthLoadingOverlay{display:flex;}
     <div id="adminLoginSection" style="margin-top:20px;padding-top:14px;border-top:1px solid var(--border);">
       <input id="adminEmailInput" type="email" autocomplete="username" placeholder="管理者メールアドレス" style="width:100%;box-sizing:border-box;margin-bottom:6px;padding:8px;border:1px solid var(--border);border-radius:6px;font:12px inherit;">
       <input id="adminPasswordInput" type="password" autocomplete="current-password" placeholder="パスワード" style="width:100%;box-sizing:border-box;margin-bottom:6px;padding:8px;border:1px solid var(--border);border-radius:6px;font:12px inherit;">
+      <input id="adminNewPasswordInput" type="password" autocomplete="new-password" placeholder="新しいパスワード（初回のみ）" style="display:none;width:100%;box-sizing:border-box;margin-bottom:6px;padding:8px;border:1px solid var(--border);border-radius:6px;font:12px inherit;">
       <input id="adminMfaInput" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="MFAコード（設定時のみ）" style="display:none;width:100%;box-sizing:border-box;margin-bottom:6px;padding:8px;border:1px solid var(--border);border-radius:6px;font:12px inherit;">
       <button id="googleLoginBtn" onclick="loginWithCognito()" style="display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:6px 10px;border-radius:6px;border:none;background:none;font-family:inherit;font-size:10.5px;color:var(--muted);letter-spacing:0.02em;cursor:pointer;opacity:0.75;">
         <svg width="12" height="12" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.8 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l6-6C34.6 5.1 29.6 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21 21-9.4 21-21c0-1.3-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.8 18.9 13 24 13c3.1 0 5.8 1.1 8 3l6-6C34.6 5.1 29.6 3 24 3c-7.5 0-14 4.2-17.7 11.7z"/><path fill="#4CAF50" d="M24 45c5.5 0 10.4-1.9 14.2-5.1l-6.5-5.5C29.6 36 26.9 37 24 37c-5.2 0-9.7-3.3-11.3-8l-6.6 5.1C9.9 40.7 16.4 45 24 45z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-1 2.9-3 5.3-5.6 6.9l6.5 5.5C39.6 37.4 43 31.7 43 24c0-1.3-.1-2.7-.4-3.5z"/></svg>
-        Googleでログイン
+        管理者ログイン
       </button>
       <div id="googleLoginStatus" style="min-height:14px;margin-top:4px;font-size:10px;color:var(--muted);text-align:center;"></div>
     </div>
@@ -1594,6 +1595,7 @@ async function checkPin() {
 // ── Google ログイン（管理者専用） ──
 let cognitoChallengeSession = '';
 let cognitoUsername = '';
+let cognitoChallengeName = '';
 
 async function cognitoRequest(target, body) {
   const region = window.RENO_CONFIG?.cognitoRegion || 'ap-northeast-1';
@@ -1612,6 +1614,7 @@ async function loginWithCognito() {
   const button = document.getElementById('googleLoginBtn');
   const email = document.getElementById('adminEmailInput')?.value.trim();
   const password = document.getElementById('adminPasswordInput')?.value;
+  const newPassword = document.getElementById('adminNewPasswordInput')?.value;
   const mfa = document.getElementById('adminMfaInput')?.value.trim();
   const clientId = window.RENO_CONFIG?.cognitoClientId || '';
   if (!clientId) { if (statusEl) statusEl.textContent = 'Cognito設定が未反映です'; return; }
@@ -1621,13 +1624,23 @@ async function loginWithCognito() {
   try {
     let auth;
     if (cognitoChallengeSession) {
-      if (!mfa) throw new Error('MFAコードを入力してください');
-      auth = await cognitoRequest('RespondToAuthChallenge', {
-        ClientId: clientId,
-        ChallengeName: 'SOFTWARE_TOKEN_MFA',
-        Session: cognitoChallengeSession,
-        ChallengeResponses: { USERNAME: cognitoUsername, SOFTWARE_TOKEN_MFA_CODE: mfa }
-      });
+      if (cognitoChallengeName === 'NEW_PASSWORD_REQUIRED') {
+        if (!newPassword) throw new Error('新しいパスワードを入力してください');
+        auth = await cognitoRequest('RespondToAuthChallenge', {
+          ClientId: clientId,
+          ChallengeName: 'NEW_PASSWORD_REQUIRED',
+          Session: cognitoChallengeSession,
+          ChallengeResponses: { USERNAME: cognitoUsername, NEW_PASSWORD: newPassword }
+        });
+      } else {
+        if (!mfa) throw new Error('MFAコードを入力してください');
+        auth = await cognitoRequest('RespondToAuthChallenge', {
+          ClientId: clientId,
+          ChallengeName: 'SOFTWARE_TOKEN_MFA',
+          Session: cognitoChallengeSession,
+          ChallengeResponses: { USERNAME: cognitoUsername, SOFTWARE_TOKEN_MFA_CODE: mfa }
+        });
+      }
     } else {
       cognitoUsername = email;
       auth = await cognitoRequest('InitiateAuth', {
@@ -1638,8 +1651,16 @@ async function loginWithCognito() {
     }
     if (auth.ChallengeName === 'SOFTWARE_TOKEN_MFA') {
       cognitoChallengeSession = auth.Session;
+      cognitoChallengeName = auth.ChallengeName;
       document.getElementById('adminMfaInput').style.display = '';
       if (statusEl) statusEl.textContent = '認証アプリの6桁コードを入力してください';
+      return;
+    }
+    if (auth.ChallengeName === 'NEW_PASSWORD_REQUIRED') {
+      cognitoChallengeSession = auth.Session;
+      cognitoChallengeName = auth.ChallengeName;
+      document.getElementById('adminNewPasswordInput').style.display = '';
+      if (statusEl) statusEl.textContent = '初回ログインのため新しいパスワードを入力してください';
       return;
     }
     const accessToken = auth.AuthenticationResult?.AccessToken;
@@ -1651,10 +1672,16 @@ async function loginWithCognito() {
     const data = await res.json();
     if (!res.ok || !data.token || data.role !== 'admin') throw new Error(data.error || '管理者権限がありません');
     cognitoChallengeSession = '';
+    cognitoChallengeName = '';
+    document.getElementById('adminNewPasswordInput').style.display = 'none';
+    document.getElementById('adminMfaInput').style.display = 'none';
     applySession(data);
   } catch (e) {
     if (statusEl) statusEl.textContent = e.message || '管理者ログインに失敗しました';
-    if (!cognitoChallengeSession) document.getElementById('adminMfaInput').style.display = 'none';
+    if (!cognitoChallengeSession) {
+      document.getElementById('adminMfaInput').style.display = 'none';
+      document.getElementById('adminNewPasswordInput').style.display = 'none';
+    }
   } finally {
     button.disabled = false;
   }
