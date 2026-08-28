@@ -43,11 +43,12 @@ body{background:var(--bg);font-family:'DM Sans','Hiragino Sans',sans-serif;color
 #pinScreen{
   position:fixed;inset:0;
   background:linear-gradient(160deg,var(--white) 0%,var(--gold-bg) 100%);
-  display:flex;align-items:center;justify-content:center;
+  display:flex;align-items:flex-start;justify-content:center;
   z-index:600;padding:24px;
   padding-top:max(24px, env(safe-area-inset-top));
+  overflow-y:auto;
 }
-.pin-card{width:100%;max-width:320px;text-align:center;position:relative;}
+.pin-card{width:100%;max-width:320px;text-align:center;position:relative;margin:0 auto;padding:8px 0 24px;}
 #oauthLoadingOverlay{display:none;position:absolute;inset:-24px;background:linear-gradient(160deg,var(--white) 0%,var(--gold-bg) 100%);z-index:20;align-items:center;justify-content:center;flex-direction:column;gap:14px;border-radius:8px;}
 html.oauth-pending #oauthLoadingOverlay{display:flex;}
 .oauth-spinner{width:28px;height:28px;border-radius:50%;border:2.5px solid var(--border);border-top-color:var(--gold);animation:oauthSpin 0.8s linear infinite;}
@@ -1439,7 +1440,8 @@ function initLoginView() {
 
 function showGuestPinManually() {
   document.getElementById('guestPinSection').style.display = '';
-  document.getElementById('adminLoginSection').style.display = 'none';
+  // PIN付きURLで入った場合も、管理者は同じ画面からログインできるようにする。
+  document.getElementById('adminLoginSection').style.display = '';
 }
 
 // PC keyboard support
