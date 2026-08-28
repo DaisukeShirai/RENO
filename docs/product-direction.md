@@ -6,10 +6,10 @@
 
 ## メインの対象
 
-メインの変更対象は、GitHub Pagesで公開している`index.html`です。
+メインの変更対象は、Amplify Hostingで公開する`index.html`およびReact版フロントエンドです。
 
 ```text
-GitHub Pages: https://iflag-hps.github.io/RENO/
+公開先：Amplify Hostingの公開URL（環境ごとに設定）
 Custom domain: https://reno.taskra.jp/
 ```
 

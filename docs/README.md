@@ -10,7 +10,7 @@ RENOのリフォーム相談モックと、追加機能の検討内容をまと�
 
 ## 現在の位置づけ
 
-- `index.html`：GitHub Pagesで公開しているメインのアプリモック
+- `index.html`：Amplify Hostingで公開するメインアプリの元データ
 - `pages/mockup.html`：追加機能4案を切り出したUIプレビュー。検討用・参考用
 - `pages/`：補助的なページ
 - `assets/`：画像・アイコンなどの素材

@@ -1,23 +1,26 @@
 # GitHub Actions一覧
 
-Actions画面で迷った場合は、次の基準で選択してください。
+フロントエンドはGitHub Actionsから直接公開せず、Amplify Hostingのリポジトリ連携で公開します。リポジトリ直下の `amplify.yml` にビルド設定があります。
 
 | 表示名 | ファイル | いつ使うか | 実行内容 |
 |---|---|---|---|
-| `PROD: Deploy frontend to GitHub Pages` | `deploy-pages.yml` | フロントを公開・更新するとき | `index.html`、`assets/`、`pages/`をGitHub Pagesへ公開 |
-| `CI: Test and optionally deploy backend` | `main-deploy.yml` | 通常は自動実行 | LocalStack、SAM、Playwrightのテスト。AWSデプロイ部分は手動入力時のみ |
-| `PROD: Deploy backend to AWS (SAM)` | `deploy-backend.yml` | AWSバックエンドを更新するとき | `reno-mvp`のLambda、API Gateway、DynamoDB、S3、Cognitoをデプロイ |
+| `CI: Test and optionally deploy backend` | `main-deploy.yml` | 通常のpush・Pull Request | LocalStack、SAM、React、Playwrightのテスト。AWSデプロイは手動入力時のみ |
+| `PROD: Deploy backend to AWS (SAM)` | `deploy-backend.yml` | AWSバックエンドを更新するとき | `reno-mvp` のLambda、API Gateway、DynamoDB、S3、Cognitoをデプロイ |
 | `REUSABLE: LocalStack smoke tests` | `localstack-test.yml` | 単独では使わない | 他のWorkflowから呼び出す共通テスト |
 
-## 迷ったときの選び方
+## 使い分け
 
-- 画面の修正を公開する：`PROD: Deploy frontend to GitHub Pages`
-- バックエンドを変更した：`PROD: Deploy backend to AWS (SAM)`
-- テストだけ確認したい：`CI: Test and optionally deploy backend`
-- `REUSABLE: LocalStack smoke tests`は直接実行しない
+- 画面を公開・更新する：Amplify Hostingの対象ブランチへpushする
+- バックエンドを変更する：`PROD: Deploy backend to AWS (SAM)` を手動実行する
+- テストを確認する：`CI: Test and optionally deploy backend` の結果を確認する
+- `REUSABLE: LocalStack smoke tests` は直接実行しない
 
-## 現在使わないWorkflow
+## Amplify Hostingの設定
 
-Amplify向けの旧`deploy-all.yml`は削除済みです。
+1. Amplify HostingでこのGitHubリポジトリの `main` ブランチを接続する。
+2. アプリの環境変数に `RENO_API_URL`、`RENO_MOCK_CHAT=false`、必要に応じて `COGNITO_CLIENT_ID` を設定する。
+3. 保存後、Amplifyの自動ビルド・公開を実行する。
 
-将来Amplify Hostingへ切り替える場合は、Actionsを増やすのではなく、リポジトリ連携と`amplify.yml`を使用します。AWSバックエンド用の`deploy-backend.yml`は継続利用します。
+`amplify.yml` は `npm ci` と `npm run build:react` を実行し、生成された `dist` を公開します。OpenAI APIキーなどの秘密値はフロントエンド環境変数へ設定しません。
+
+バックエンドのAPI URLやCognitoクライアントIDが変わった場合は、Amplifyの環境変数を更新して再デプロイします。

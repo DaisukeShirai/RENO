@@ -1,70 +1,49 @@
 # フロントエンドのデプロイ
 
-## 一時公開：S3 + CloudFront
-
-`.github/workflows/deploy-cloudfront.yml`をGitHub Actionsから手動実行する。
-現行`index.html`と同一仕様のReact版をViteでビルドし、S3へ同期してCloudFrontのキャッシュを無効化する。LambdaやDynamoDBのリソースは変更しない。
-
-RENO専用の配信基盤は`infra/frontend-cloudfront.yaml`で作成する。既存のS3バケットやCloudFrontディストリビューションは使用しない。
-
-GitHubの`production`環境に次のSecretsを登録する。
-
-- `AWS_ACCESS_KEY_ID`
-- `AWS_SECRET_ACCESS_KEY`
-
-次のVariablesを登録する。
-
-- `FRONTEND_BUCKET`: CloudFrontのオリジンになっているS3バケット
-- `CLOUDFRONT_DISTRIBUTION_ID`: CloudFrontディストリビューションID
-- `RENO_API_URL`: API Gatewayの`/agent`エンドポイント
-- `SUPABASE_URL`
-- `SUPABASE_ANON_KEY`
-
-`RENO_MOCK_CHAT=false`を固定しているため、設定したAPI Gateway経由でLambdaを呼び出す。
-OpenAIの秘密鍵はフロントエンドへ渡さず、Lambdaの環境変数またはGitHub Secretsから設定する。
-
 ## 正式公開：Amplify Hosting + Lambda
 
-正式公開時はAmplify Hostingのリポジトリ連携へ切り替える。ビルド前に同じ環境変数を設定し、リポジトリルートを成果物として配信する。
+フロントエンドはAmplify HostingへGitHubリポジトリを接続して公開します。対象ブランチへのpushでAmplifyが自動ビルド・デプロイします。GitHub Pages、S3、CloudFrontへGitHub Actionsから直接配信するWorkflowは使用しません。
+
+リポジトリ直下の `amplify.yml` がビルド設定です。
 
 ```yaml
 version: 1
 frontend:
   phases:
+    preBuild:
+      commands:
+        - npm ci
     build:
       commands:
         - node scripts/generate-config.mjs
-        - rm -rf dist
-        - mkdir -p dist
-        - cp index.html dist/index.html
-        - cp -R assets dist/assets
-        - cp -R pages dist/pages
+        - npm run build:react
   artifacts:
     baseDirectory: dist
     files:
       - '**/*'
 ```
 
-APIの実装とURLは共通なので、CloudFront用ワークフローを停止してAmplifyの自動デプロイを有効にするだけで移行できる。
+Amplifyの環境変数には次を設定します。
 
-## 全機能を一度にデプロイ
+- `RENO_API_URL`：API Gatewayの `/v1/agent` エンドポイント
+- `RENO_MOCK_CHAT`：`false`
+- `COGNITO_CLIENT_ID`：Cognito User Pool Client ID
 
-バックエンドとフロントエンドを同時に更新して動作確認する場合は、
-`Deploy full MVP`を手動実行する。Lambdaを先にデプロイし、CloudFormationの出力からAPI URLを自動取得してCloudFrontへ反映する。
+OpenAI APIキーやトークン秘密鍵はフロントエンド環境変数へ設定せず、バックエンドのSecretsへ設定します。
 
-このワークフローには、既存のAWS Secretsに加えて次のSecretsが必要になる。
+## デプロイ手順
 
-- `OPENAI_API_KEY`
-- `TOKEN_SECRET`
+1. Amplify HostingでGitHubリポジトリの `main` ブランチを接続する。
+2. 上記の環境変数をAmplifyへ設定する。
+3. `main` へpushし、Amplifyのビルドと公開結果を確認する。
+4. Amplifyの公開URLでチャット、画像アップロード、画像診断、相談受付を確認する。
 
-`OPENAI_MODEL`、`SES_FROM_EMAIL`、`SES_TO_EMAIL`は必要に応じてVariablesへ登録する。
+バックエンドを先に更新する場合は、GitHub Actionsの `PROD: Deploy backend to AWS (SAM)` を実行します。API URLまたはCognitoクライアントIDが変わった場合は、Amplifyの環境変数を更新して再デプロイします。
 
 ## 本番デプロイのブランチ制限
 
-本番リソースを更新するジョブは`main`ブランチからの実行に限定している。
-featureブランチから手動実行した場合は、LocalStackのスモークテストだけを実行し、本番デプロイジョブはスキップする。
+バックエンドの本番デプロイジョブは `main` ブランチからの実行に限定しています。featureブランチから手動実行した場合は、LocalStackなどのテストだけを実行し、本番デプロイはスキップします。
 
-## バックエンドだけを更新
+## バックエンドだけを更新する場合
 
-`Deploy backend only`を手動実行すると、Lambda / API Gateway / DynamoDB / S3 / Cognitoのバックエンドだけを更新する。
-CloudFrontやフロントエンドのS3ファイルは変更しない。API URLは実行ログに表示される。
+`PROD: Deploy backend to AWS (SAM)` を手動実行すると、Lambda、API Gateway、DynamoDB、S3、Cognitoだけを更新します。フロントエンドはAmplifyのリポジトリ連携で管理されるため、バックエンド更新時にAWSへ同期する必要はありません。
