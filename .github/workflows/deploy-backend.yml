@@ -58,9 +58,9 @@ jobs:
             "OpenAIApiKey=$OPENAI_API_KEY"
             "OpenAIModel=$OPENAI_MODEL"
             "TokenSecret=$TOKEN_SECRET"
-            "AdminEmail=$ADMIN_EMAIL"
             "DemoPin=$DEMO_PIN"
           )
+          if [ -n "$ADMIN_EMAIL" ]; then PARAM_OVERRIDES+=("AdminEmail=$ADMIN_EMAIL"); fi
           # SES未使用時は空のパラメータを渡さず、テンプレートの既定値を使う。
           if [ -n "$SES_FROM_EMAIL" ]; then PARAM_OVERRIDES+=("SesFromEmail=$SES_FROM_EMAIL"); fi
           if [ -n "$SES_TO_EMAIL" ]; then PARAM_OVERRIDES+=("SesToEmail=$SES_TO_EMAIL"); fi
