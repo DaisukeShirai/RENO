@@ -18,7 +18,7 @@ os.environ.setdefault("AWS_ACCESS_KEY_ID", "test")
 os.environ.setdefault("AWS_SECRET_ACCESS_KEY", "test")
 os.environ.setdefault("TABLE_NAME", TABLE_NAME)
 os.environ.setdefault("ASSET_BUCKET", BUCKET_NAME)
-# CI環境に同名の秘密があっても、発行と検証で同じテスト用秘密を使う。
+# CIでも同じ秘密鍵でトークンを検証できるよう、テストでは固定値を使う。
 os.environ["TOKEN_SECRET"] = "localstack-test-secret-0123456789abcdef"
 os.environ.setdefault("AWS_ENDPOINT_URL", ENDPOINT)
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
@@ -40,7 +40,6 @@ class LocalStackHandlerTest(unittest.TestCase):
 
         cls.dynamodb = boto3.resource("dynamodb", endpoint_url=ENDPOINT, region_name="ap-northeast-1")
         cls.s3 = boto3.client("s3", endpoint_url=ENDPOINT, region_name="ap-northeast-1")
-        # ローカルで繰り返し実行しても、既存のテスト用リソースを再利用する。
         if TABLE_NAME not in cls.dynamodb.meta.client.list_tables().get("TableNames", []):
             cls.dynamodb.create_table(
                 TableName=TABLE_NAME,
