@@ -1,0 +1,33 @@
+name: "SYNC: Merge tested main to fork"
+
+on:
+  workflow_run:
+    workflows:
+      - "CI: Test and optionally deploy backend"
+    types:
+      - completed
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    name: Sync main to Amplify fork
+    if: ${{ github.repository == 'IFLAG-hps/RENO' && github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout tested main
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+
+      - name: Push tested main to fork
+        env:
+          FORK_REPO_TOKEN: ${{ secrets.FORK_REPO_TOKEN }}
+        run: |
+          test -n "$FORK_REPO_TOKEN"
+          git push "https://x-access-token:${FORK_REPO_TOKEN}@github.com/DaisukeShirai/RENO.git" \
+            "HEAD:main"

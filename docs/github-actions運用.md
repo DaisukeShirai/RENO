@@ -51,6 +51,12 @@ LocalStack、SAM、React、PlaywrightのCIを実行します。AWSへの実デ�
 
 他のWorkflowから呼び出す再利用可能なテストWorkflowです。単独では通常実行しません。
 
+### `sync-fork.yml`
+
+`main-deploy.yml`のテストが成功した後に自動実行し、テスト済みの`main`を`DaisukeShirai/RENO/main`へ反映します。Amplifyはfork側の`main`を参照するため、この反映を起点にAmplifyがビルド・公開します。
+
+実行には、上流リポジトリのActions Secret `FORK_REPO_TOKEN` が必要です。トークンにはforkリポジトリの`main`へのcontents書き込み権限を付与します。
+
 ## 操作手順
 
 ## 標準の作業フロー

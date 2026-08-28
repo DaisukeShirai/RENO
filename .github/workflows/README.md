@@ -7,6 +7,7 @@
 | `CI: Test and optionally deploy backend` | `main-deploy.yml` | 通常のpush・Pull Request | LocalStack、SAM、React、Playwrightのテスト。AWSデプロイは手動入力時のみ |
 | `PROD: Deploy backend to AWS (SAM)` | `deploy-backend.yml` | AWSバックエンドを更新するとき | `reno-mvp` のLambda、API Gateway、DynamoDB、S3、Cognitoをデプロイ |
 | `REUSABLE: LocalStack smoke tests` | `localstack-test.yml` | 単独では使わない | 他のWorkflowから呼び出す共通テスト |
+| `SYNC: Merge tested main to fork` | `sync-fork.yml` | CI成功後に自動実行 | テスト済みの`main`を`DaisukeShirai/RENO/main`へ反映 |
 
 ## 使い分け
 
@@ -24,6 +25,10 @@
 5. Amplify Hostingのビルドと公開URLを確認する。
 
 Amplifyはfork側の`RENO/main`を参照します。画面の公開・更新は、fork側`main`への反映を起点にAmplifyが自動実行します。
+
+## fork同期用Secret
+
+`sync-fork.yml`を有効にするには、上流リポジトリ（`IFLAG-hps/RENO`）のActions Secretに`FORK_REPO_TOKEN`を登録します。トークンには`DaisukeShirai/RENO`の`main`へcontentsを書き込む権限が必要です。fork側では同期Workflowを実行しません。
 
 ## Amplify Hostingの設定
 
