@@ -95,6 +95,9 @@ def lambda_handler(event, context):
         typ = body.get("type")
         if typ == "verify_pin":
             pin = str(body.get("pin", ""))
+            demo_pin = os.environ.get("DEMO_PIN", "").strip()
+            if demo_pin and pin == demo_pin:
+                return response(200, {"token": token_for("demo:" + pin), "role": "guest", "label": "デモ用PIN"})
             item = TABLE.get_item(Key={"pk": "PIN#" + pin, "sk": "PIN"}).get("Item")
             if not item or item.get("expires_at", 0) < int(time.time()) or item.get("uses", 0) >= item.get("max_uses", 0): return response(401, {"error": "invalid pin"})
             TABLE.update_item(Key={"pk": "PIN#" + pin, "sk": "PIN"}, UpdateExpression="SET uses = uses + :one", ExpressionAttributeValues={":one": 1})

@@ -732,7 +732,7 @@ html.oauth-pending #oauthLoadingOverlay{display:flex;}
       <svg class="menu-item-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
     </button>
     <div class="menu-divider"></div>
-    <button class="menu-item" onclick="openAdminLogin();closeMenuSheet();">
+    <button class="menu-item" style="display:none;" onclick="openAdminLogin();closeMenuSheet();">
       <div class="menu-item-icon" style="background:#f4f2ee;">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a07838" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c.8-3.5 3.4-5 8-5s7.2 1.5 8 5"/><path d="M17 11h4M19 9v4"/></svg>
       </div>
@@ -983,7 +983,7 @@ html.oauth-pending #oauthLoadingOverlay{display:flex;}
     </div>
 
     <!-- 管理者用 Google ログイン：控えめなサブ手段として PIN の下に表示 -->
-    <div id="adminLoginSection" style="margin-top:20px;padding-top:14px;border-top:1px solid var(--border);">
+    <div id="adminLoginSection" style="display:none;margin-top:20px;padding-top:14px;border-top:1px solid var(--border);">
       <input id="adminEmailInput" type="email" autocomplete="username" placeholder="管理者メールアドレス" style="width:100%;box-sizing:border-box;margin-bottom:6px;padding:8px;border:1px solid var(--border);border-radius:6px;font:12px inherit;">
       <input id="adminPasswordInput" type="password" autocomplete="current-password" placeholder="パスワード" style="width:100%;box-sizing:border-box;margin-bottom:6px;padding:8px;border:1px solid var(--border);border-radius:6px;font:12px inherit;">
       <input id="adminNewPasswordInput" type="password" autocomplete="new-password" placeholder="新しいパスワード（初回のみ）" style="display:none;width:100%;box-sizing:border-box;margin-bottom:6px;padding:8px;border:1px solid var(--border);border-radius:6px;font:12px inherit;">
@@ -1040,16 +1040,12 @@ html.oauth-pending #oauthLoadingOverlay{display:flex;}
 
 <script>
 // ── Config ──
-const SUPABASE_URL  = window.RENO_CONFIG?.supabaseUrl || '';
-const SUPABASE_ANON = window.RENO_CONFIG?.supabaseAnonKey || '';
-if (!SUPABASE_URL || !SUPABASE_ANON) {
-  console.warn('RENO: Supabase設定がありません。npm run build:configを実行してください。');
+const EDGE_URL      = window.RENO_CONFIG?.apiUrl || '';
+const EDGE_HEADERS  = {};
+const supabaseAuth  = null;
+if (!EDGE_URL) {
+  console.warn('RENO: API URLが設定されていません。デモモックモードで起動します。');
 }
-const supabaseAuth  = (window.supabase && SUPABASE_URL && SUPABASE_ANON)
-  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON)
-  : null;
-const EDGE_URL      = window.RENO_CONFIG?.apiUrl || `${SUPABASE_URL}/functions/v1/reno-agent`;
-const EDGE_HEADERS  = { 'Authorization': `Bearer ${SUPABASE_ANON}`, 'apikey': SUPABASE_ANON };
 
 // ── Timeout付きfetch（画像生成など時間のかかるリクエスト用）──
 // AbortControllerで指定ミリ秒後に強制中断し、タイムアウト専用のエラーを投げる
@@ -1442,7 +1438,7 @@ function initLoginView() {
 function showGuestPinManually() {
   document.getElementById('guestPinSection').style.display = '';
   // PIN付きURLで入った場合も、管理者は同じ画面からログインできるようにする。
-  document.getElementById('adminLoginSection').style.display = '';
+  document.getElementById('adminLoginSection').style.display = 'none';
 }
 
 // PC keyboard support
@@ -1773,7 +1769,7 @@ function lockApp() {
   document.getElementById('pinScreen').style.display = 'flex';
   document.getElementById('app').style.display = 'none';
   document.getElementById('guestPinSection').style.display = '';
-  document.getElementById('adminLoginSection').style.display = '';
+  document.getElementById('adminLoginSection').style.display = 'none';
   const avatarBtn = document.getElementById('userAvatarBtn');
   if (avatarBtn) avatarBtn.style.display = 'none';
   const userMenu = document.getElementById('userMenu');

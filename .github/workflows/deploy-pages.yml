@@ -1,0 +1,64 @@
+name: Deploy frontend to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+env:
+  RENO_API_URL: ${{ vars.RENO_API_URL || 'https://emqw3lokv0.execute-api.ap-northeast-1.amazonaws.com/v1/agent' }}
+  COGNITO_CLIENT_ID: ${{ vars.COGNITO_CLIENT_ID }}
+  AWS_REGION: ap-northeast-1
+  RENO_MOCK_CHAT: "false"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Generate public runtime config
+        run: |
+          test -n "$RENO_API_URL"
+          node scripts/generate-config.mjs
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Assemble static site
+        run: |
+          rm -rf _site
+          mkdir -p _site
+          cp index.html _site/index.html
+          cp manifest.json _site/manifest.json
+          cp CNAME _site/CNAME
+          touch _site/.nojekyll
+          cp -R assets _site/assets
+          cp -R pages _site/pages
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

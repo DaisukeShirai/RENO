@@ -47,18 +47,19 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           TOKEN_SECRET: ${{ secrets.TOKEN_SECRET }}
           ADMIN_EMAIL: ${{ vars.ADMIN_EMAIL }}
+          DEMO_PIN: ${{ vars.DEMO_PIN || '1234' }}
           OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-5-mini' }}
           SES_FROM_EMAIL: ${{ vars.SES_FROM_EMAIL || '' }}
           SES_TO_EMAIL: ${{ vars.SES_TO_EMAIL || '' }}
         run: |
           test -n "$OPENAI_API_KEY"
           test -n "$TOKEN_SECRET"
-          test -n "$ADMIN_EMAIL"
           PARAM_OVERRIDES=(
             "OpenAIApiKey=$OPENAI_API_KEY"
             "OpenAIModel=$OPENAI_MODEL"
             "TokenSecret=$TOKEN_SECRET"
             "AdminEmail=$ADMIN_EMAIL"
+            "DemoPin=$DEMO_PIN"
           )
           # SES未使用時は空のパラメータを渡さず、テンプレートの既定値を使う。
           if [ -n "$SES_FROM_EMAIL" ]; then PARAM_OVERRIDES+=("SesFromEmail=$SES_FROM_EMAIL"); fi

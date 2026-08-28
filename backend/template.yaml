@@ -17,6 +17,7 @@ Globals:
         SES_TO_EMAIL: !Ref SesToEmail
         TOKEN_SECRET: !Ref TokenSecret
         ADMIN_EMAIL: !Ref AdminEmail
+        DEMO_PIN: !Ref DemoPin
 
 Parameters:
   OpenAIApiKey:
@@ -39,6 +40,9 @@ Parameters:
   AdminEmail:
     Type: String
     Default: ''
+  DemoPin:
+    Type: String
+    Default: '1234'
 
 Resources:
   RenoApi:
