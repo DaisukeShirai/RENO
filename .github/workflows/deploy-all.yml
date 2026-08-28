@@ -1,4 +1,4 @@
-name: Deploy full MVP
+name: Deploy backend for Amplify
 
 on:
   workflow_dispatch:
@@ -16,7 +16,7 @@ jobs:
     uses: ./.github/workflows/localstack-test.yml
 
   deploy:
-    name: Deploy backend and frontend
+    name: Deploy backend for Amplify frontend
     needs: localstack-test
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -35,17 +35,16 @@ jobs:
       - name: Set up AWS SAM CLI
         uses: aws-actions/setup-sam@v2
 
-      - name: Build backend
-        run: sam build --template-file backend/template.yaml
+      - name: Validate and build backend
+        run: |
+          sam validate --template-file backend/template.yaml --lint
+          sam build --template-file backend/template.yaml
 
       - name: Deploy backend resources
-        # OpenAIキーとトークン秘密鍵はLambdaにだけ渡し、フロントへ出力しない。
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           TOKEN_SECRET: ${{ secrets.TOKEN_SECRET }}
           OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-5-mini' }}
-          SES_FROM_EMAIL: ${{ vars.SES_FROM_EMAIL || '' }}
-          SES_TO_EMAIL: ${{ vars.SES_TO_EMAIL || '' }}
         run: |
           test -n "$OPENAI_API_KEY"
           test -n "$TOKEN_SECRET"
@@ -54,9 +53,6 @@ jobs:
             "OpenAIModel=$OPENAI_MODEL"
             "TokenSecret=$TOKEN_SECRET"
           )
-          # SES未使用時は空のパラメータを渡さず、テンプレートの既定値を使う。
-          if [ -n "$SES_FROM_EMAIL" ]; then PARAM_OVERRIDES+=("SesFromEmail=$SES_FROM_EMAIL"); fi
-          if [ -n "$SES_TO_EMAIL" ]; then PARAM_OVERRIDES+=("SesToEmail=$SES_TO_EMAIL"); fi
           sam deploy \
             --template-file .aws-sam/build/template.yaml \
             --stack-name "$STACK_NAME" \
@@ -67,59 +63,13 @@ jobs:
             --no-fail-on-empty-changeset \
             --parameter-overrides "${PARAM_OVERRIDES[@]}"
 
-      - name: Get deployed API URL
+      - name: Show deployed API URL for Amplify
         run: |
           API_URL=$(aws cloudformation describe-stacks \
             --stack-name "$STACK_NAME" \
+            --region "$AWS_REGION" \
             --query "Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue" \
             --output text)
           test -n "$API_URL"
-          echo "RENO_API_URL=$API_URL" >> "$GITHUB_ENV"
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-
-      - name: Generate frontend configuration
-        # API URLとSupabaseの公開設定だけを静的ファイルへ出力する。
-        env:
-          RENO_MOCK_CHAT: "false"
-          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
-        run: node scripts/generate-config.mjs
-
-      - name: Install frontend dependencies
-        run: npm ci
-
-      - name: Build React frontend
-        # 現行index.htmlと同一仕様のReact版をCloudFront配信用にビルドする。
-        run: npm run build:react
-
-      - name: Upload frontend to S3
-        env:
-          FRONTEND_BUCKET: ${{ vars.FRONTEND_BUCKET }}
-        run: |
-          FRONTEND_BUCKET="$(printf '%s' "$FRONTEND_BUCKET" | tr -d '\r\n')"
-          test -n "$FRONTEND_BUCKET"
-          aws s3 sync dist/ "s3://$FRONTEND_BUCKET" --delete \
-            --cache-control "public,max-age=31536000,immutable" \
-            --exclude "index.html" \
-            --exclude "assets/reno-config.js"
-          aws s3 cp dist/index.html "s3://$FRONTEND_BUCKET/index.html" \
-            --cache-control "no-cache,no-store,must-revalidate" \
-            --content-type "text/html; charset=utf-8"
-          aws s3 cp dist/assets/reno-config.js "s3://$FRONTEND_BUCKET/assets/reno-config.js" \
-            --cache-control "no-cache,no-store,must-revalidate" \
-            --content-type "application/javascript; charset=utf-8"
-
-      - name: Invalidate CloudFront cache
-        # API URLや画面の変更をすぐ確認できるようにキャッシュを無効化する。
-        env:
-          CLOUDFRONT_DISTRIBUTION_ID: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}
-        run: |
-          CLOUDFRONT_DISTRIBUTION_ID="$(printf '%s' "$CLOUDFRONT_DISTRIBUTION_ID" | tr -d '\r\n')"
-          test -n "$CLOUDFRONT_DISTRIBUTION_ID"
-          aws cloudfront create-invalidation \
-            --distribution-id "$CLOUDFRONT_DISTRIBUTION_ID" \
-            --paths "/index.html" "/assets/reno-config.js" "/pages/*"
+          echo "RENO_API_URL=$API_URL"
+          echo "Set this value in Amplify Hosting environment variables."
