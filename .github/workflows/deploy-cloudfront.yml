@@ -59,6 +59,7 @@ jobs:
         env:
           FRONTEND_BUCKET: ${{ vars.FRONTEND_BUCKET }}
         run: |
+          FRONTEND_BUCKET="$(printf '%s' "$FRONTEND_BUCKET" | tr -d '\r\n')"
           test -n "$FRONTEND_BUCKET"
           aws s3 sync dist/ "s3://$FRONTEND_BUCKET" --delete \
             --cache-control "public,max-age=31536000,immutable" \
@@ -76,6 +77,7 @@ jobs:
         env:
           CLOUDFRONT_DISTRIBUTION_ID: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}
         run: |
+          CLOUDFRONT_DISTRIBUTION_ID="$(printf '%s' "$CLOUDFRONT_DISTRIBUTION_ID" | tr -d '\r\n')"
           test -n "$CLOUDFRONT_DISTRIBUTION_ID"
           aws cloudfront create-invalidation \
             --distribution-id "$CLOUDFRONT_DISTRIBUTION_ID" \
