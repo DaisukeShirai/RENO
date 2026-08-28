@@ -16,6 +16,7 @@ Globals:
         SES_FROM_EMAIL: !Ref SesFromEmail
         SES_TO_EMAIL: !Ref SesToEmail
         TOKEN_SECRET: !Ref TokenSecret
+        ADMIN_EMAIL: !Ref AdminEmail
 
 Parameters:
   OpenAIApiKey:
@@ -35,6 +36,9 @@ Parameters:
     Type: String
     NoEcho: true
     MinLength: 32
+  AdminEmail:
+    Type: String
+    Default: ''
 
 Resources:
   RenoApi:
@@ -106,11 +110,33 @@ Resources:
       UserPoolName: reno-mvp-users
       AutoVerifiedAttributes: [email]
       UsernameAttributes: [email]
+      MfaConfiguration: OPTIONAL
+      EnabledMfas: [SOFTWARE_TOKEN_MFA]
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: true
+
+  RenoUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId: !Ref RenoUserPool
+      ClientName: reno-mvp-web
+      GenerateSecret: false
+      ExplicitAuthFlows:
+        - ALLOW_USER_PASSWORD_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+
+  RenoAdminsGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties:
+      GroupName: admin
+      UserPoolId: !Ref RenoUserPool
 
 Outputs:
   ApiUrl:
     Value: !Sub https://${RenoApi}.execute-api.${AWS::Region}.amazonaws.com/v1/agent
   UserPoolId:
     Value: !Ref RenoUserPool
+  UserPoolClientId:
+    Value: !Ref RenoUserPoolClient
   AssetBucket:
     Value: !Ref RenoAssetBucket

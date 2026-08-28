@@ -18,7 +18,9 @@ const config = `// 公開設定のみ出力。秘密情報はこのファイル�
   apiUrl: value('RENO_API_URL'),
   mockChat: value('RENO_MOCK_CHAT') !== 'false',
   supabaseUrl: value('SUPABASE_URL'),
-  supabaseAnonKey: value('SUPABASE_ANON_KEY')
+  supabaseAnonKey: value('SUPABASE_ANON_KEY'),
+  cognitoClientId: value('COGNITO_CLIENT_ID'),
+  cognitoRegion: value('AWS_REGION') || 'ap-northeast-1'
 }, null, 2)};\n`;
 await writeFile('assets/reno-config.js', config, 'utf8');
 console.log('Generated assets/reno-config.js');

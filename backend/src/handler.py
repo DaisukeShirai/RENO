@@ -10,6 +10,7 @@ AWS_ENDPOINT_URL = os.environ.get("AWS_ENDPOINT_URL")
 TABLE = boto3.resource("dynamodb", endpoint_url=AWS_ENDPOINT_URL).Table(os.environ["TABLE_NAME"])
 S3 = boto3.client("s3", endpoint_url=AWS_ENDPOINT_URL)
 SES = boto3.client("ses", endpoint_url=AWS_ENDPOINT_URL)
+COGNITO = boto3.client("cognito-idp", endpoint_url=AWS_ENDPOINT_URL)
 USAGE_LIMIT = 10
 MAX_INPUT_MESSAGES = 20
 MAX_MESSAGE_CHARS = 4000
@@ -98,6 +99,18 @@ def lambda_handler(event, context):
             if not item or item.get("expires_at", 0) < int(time.time()) or item.get("uses", 0) >= item.get("max_uses", 0): return response(401, {"error": "invalid pin"})
             TABLE.update_item(Key={"pk": "PIN#" + pin, "sk": "PIN"}, UpdateExpression="SET uses = uses + :one", ExpressionAttributeValues={":one": 1})
             return response(200, {"token": token_for("guest:" + pin), "role": "guest", "label": item.get("label", "")})
+        if typ == "cognito_login":
+            access_token = str(body.get("access_token", ""))
+            admin_email = os.environ.get("ADMIN_EMAIL", "").strip().lower()
+            if not access_token or not admin_email: return response(401, {"error": "admin login is not configured"})
+            try:
+                cognito_user = COGNITO.get_user(AccessToken=access_token)
+                attributes = {item.get("Name"): item.get("Value", "") for item in cognito_user.get("UserAttributes", [])}
+                email = attributes.get("email", "").strip().lower()
+                if not email or email != admin_email: return response(403, {"error": "admin access denied"})
+                return response(200, {"token": token_for("admin:" + email, "admin"), "role": "admin", "email": email})
+            except Exception:
+                return response(401, {"error": "invalid Cognito session"})
         user = subject_from_token(body.get("token", ""))
         if not user: return response(401, {"error": "unauthorized"})
         if typ == "chat":
