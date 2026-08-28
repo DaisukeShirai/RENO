@@ -15,6 +15,16 @@
 - テストを確認する：`CI: Test and optionally deploy backend` の結果を確認する
 - `REUSABLE: LocalStack smoke tests` は直接実行しない
 
+## 標準の作業フロー
+
+1. 作業ブランチで編集する。
+2. プロジェクトの`main`へマージする。
+3. `main`の状態でローカルテストを実行する。
+4. テスト成功後、`DaisukeShirai/RENO`の`main`へマージまたはpushする。
+5. Amplify Hostingのビルドと公開URLを確認する。
+
+Amplifyはfork側の`RENO/main`を参照します。画面の公開・更新は、fork側`main`への反映を起点にAmplifyが自動実行します。
+
 ## Amplify Hostingの設定
 
 1. Amplify HostingでこのGitHubリポジトリの `main` ブランチを接続する。
