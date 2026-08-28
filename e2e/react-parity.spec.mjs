@@ -16,7 +16,7 @@ const installStubs = async (page) => {
   });
   const respond = async (route) => {
     const body = route.request().postDataJSON();
-    const response = body.type === 'verify_pin'
+    const response = body.type === 'verify_pin' || body.type === 'demo_login'
       ? { token: 'parity-token', role: 'guest' }
       : { content: [{ type: 'text', text: 'ご相談内容を確認しました。\n[SUGGESTIONS: 素材を探す, 概算を見る, 施工後イメージ]' }] };
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(response) });
@@ -30,8 +30,8 @@ test('React版が現行index.htmlと同じDOM・表示になる', async ({ page,
   await Promise.all([installStubs(page), installStubs(legacy)]);
 
   await Promise.all([
-    page.goto('http://127.0.0.1:4173/?pin=5678'),
-    legacy.goto('http://127.0.0.1:4174/?pin=5678'),
+    page.goto('http://127.0.0.1:4173/'),
+    legacy.goto('http://127.0.0.1:4174/'),
   ]);
   await Promise.all([
     expect(page.locator('#app')).toBeVisible({ timeout: 15_000 }),

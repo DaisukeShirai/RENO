@@ -93,6 +93,11 @@ def lambda_handler(event, context):
         body = json.loads(event.get("body") or "{}")
         if not isinstance(body, dict): return response(400, {"error": "request body must be an object"})
         typ = body.get("type")
+        if typ == "demo_login":
+            # PINなしの動作デモ用。ブラウザごとに利用量を分けるため識別子をハッシュ化する。
+            demo_id = str(body.get("demo_id", "browser"))[:120]
+            subject = "demo:" + hashlib.sha256(demo_id.encode()).hexdigest()[:32]
+            return response(200, {"token": token_for(subject), "role": "guest", "label": "動作デモ"})
         if typ == "verify_pin":
             pin = str(body.get("pin", ""))
             demo_pin = os.environ.get("DEMO_PIN", "").strip()

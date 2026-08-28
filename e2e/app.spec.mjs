@@ -12,7 +12,7 @@ test.describe('RENOローカル相談フロー', () => {
       }));
       const respond = async (route) => {
         const body = route.request().postDataJSON();
-        if (body.type === 'verify_pin') {
+        if (body.type === 'verify_pin' || body.type === 'demo_login') {
           await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ token: 'e2e-token', role: 'guest' }) });
           return;
         }
@@ -36,8 +36,7 @@ test.describe('RENOローカル相談フロー', () => {
         }),
       };
     });
-    const pin = process.env.E2E_PIN || '5678';
-    await page.goto(`/?pin=${pin}`);
+    await page.goto('/');
 
     await expect(page.locator('#pinScreen')).toBeHidden({ timeout: 15_000 });
     await expect(page.locator('#app')).toBeVisible();

@@ -1,4 +1,4 @@
-name: Test and deploy main
+name: "CI: Test and optionally deploy backend"
 
 on:
   push:
@@ -27,7 +27,7 @@ env:
 
 jobs:
   test:
-    name: Test with LocalStack
+    name: Test LocalStack, SAM, and E2E
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -112,7 +112,7 @@ jobs:
         run: docker logs reno-api || true
 
   deploy:
-    name: Deploy to AWS
+    name: Optional deploy to AWS (manual)
     needs: test
     # AWS更新は手動実行で明示的に許可した場合だけ行う。
     if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' && inputs.deploy_aws == true

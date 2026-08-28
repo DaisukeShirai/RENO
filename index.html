@@ -43,7 +43,7 @@ body{background:var(--bg);font-family:'DM Sans','Hiragino Sans',sans-serif;color
 #pinScreen{
   position:fixed;inset:0;
   background:linear-gradient(160deg,var(--white) 0%,var(--gold-bg) 100%);
-  display:flex;align-items:flex-start;justify-content:center;
+  display:none;align-items:flex-start;justify-content:center;
   z-index:600;padding:24px;
   padding-top:max(24px, env(safe-area-inset-top));
   overflow-y:auto;
@@ -549,6 +549,13 @@ html.oauth-pending #oauthLoadingOverlay{display:flex;}
 
 /* ── Input bar ── */
 #inputbar{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:10px;align-items:flex-end;flex-shrink:0;background:var(--white);}
+#inputbar{display:block;padding:10px 16px 14px;}
+#inputbarTools{display:flex;align-items:center;justify-content:space-between;max-width:880px;margin:0 auto 8px;}
+#inputbarTools .inputbar-caption{font-size:10px;color:var(--muted);letter-spacing:.08em;}
+#inputbarTools .inputbar-actions{display:flex;gap:7px;}
+#inputbarTools .h-menu-btn{width:32px;height:32px;}
+.inputbar-row{display:flex;gap:10px;align-items:flex-end;max-width:880px;margin:0 auto;}
+.h-right > .h-menu-btn{display:none !important;}
 #userInput{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:16px;padding:10px 14px;outline:none;resize:none;max-height:120px;font-family:inherit;line-height:1.5;transition:border-color 0.2s;min-height:42px;}
 #userInput:focus{border-color:var(--gold);}
 #sendBtn{background:var(--gold-bg);border:1px solid rgba(160,120,56,0.3);border-radius:7px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.15s;flex-shrink:0;color:var(--gold);}
@@ -627,10 +634,11 @@ html.oauth-pending #oauthLoadingOverlay{display:flex;}
 #app{display:none;flex:1;flex-direction:column;height:100vh;height:100dvh;overflow:hidden;}
 /* PC対応：1024px以上でセンタリング（iPadは全幅のまま） */
 @media(min-width:1024px){
-  #app{width:720px;max-width:720px;margin:0 auto;box-shadow:0 0 40px rgba(0,0,0,0.08);position:relative;}
+  #app{width:100%;max-width:1200px;margin:0 auto;box-shadow:0 0 40px rgba(0,0,0,0.08);position:relative;}
   #pinScreen .pin-card{max-width:360px;}
   #menuSheet{align-items:flex-end;justify-content:center;}
   .menu-drawer{max-width:720px;border-radius:16px 16px 0 0;}
+  #chat{padding:24px 8%;}
 }
 #chat{scrollbar-gutter:stable;}
 
@@ -1028,6 +1036,18 @@ html.oauth-pending #oauthLoadingOverlay{display:flex;}
   </div>
   <div id="chat"></div>
   <div id="inputbar">
+    <div id="inputbarTools">
+      <span class="inputbar-caption">RENO AI Agent</span>
+      <div class="inputbar-actions">
+        <button class="h-menu-btn" id="inputQrBtn" onclick="openQrModal()" title="スマホで開く" style="display:none;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><rect x="19" y="14" width="2" height="2"/><rect x="14" y="19" width="2" height="2"/><rect x="19" y="19" width="2" height="2"/></svg>
+        </button>
+        <button class="h-menu-btn" onclick="openMenuSheet()" title="メニュー">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="inputbar-row">
     <textarea id="userInput" placeholder="メッセージを入力..." rows="1"
       oninput="autoResize(this)"
       onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage();}">
@@ -1035,6 +1055,7 @@ html.oauth-pending #oauthLoadingOverlay{display:flex;}
     <button id="sendBtn" onclick="sendMessage()">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
     </button>
+    </div>
   </div>
 </div>
 
@@ -1206,11 +1227,15 @@ document.addEventListener('DOMContentLoaded', () => {
   if (tog) tog.checked = seEnabled;
   initIconPicker();
   // PCならQRボタン表示
-  const isTouch = navigator.maxTouchPoints > 0;
-  if (!isTouch) {
-    const qrBtn = document.getElementById('qrBtn');
-    if (qrBtn) qrBtn.style.display = 'flex';
+  const isDesktop = window.matchMedia('(min-width: 1024px)').matches;
+  if (isDesktop) {
+    ['qrBtn', 'inputQrBtn'].forEach((id) => {
+      const qrBtn = document.getElementById(id);
+      if (qrBtn) qrBtn.style.display = 'flex';
+    });
   }
+  const qrUrl = document.querySelector('.qr-url');
+  if (qrUrl) qrUrl.textContent = `${location.origin}${location.pathname}`;
   // PWAモード（スタンドアロン）なら「ブラウザで開く」を表示
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches
     || window.navigator.standalone === true;
@@ -1391,7 +1416,12 @@ window.addEventListener('load', async () => {
     return;
   }
   const googleHandled = await handleGoogleRedirect();
-  if (!googleHandled && !restoreCachedSession()) initLoginView();
+  if (googleHandled || restoreCachedSession()) return;
+  if (urlPin.length === 4) {
+    initLoginView();
+  } else {
+    startDemoSession();
+  }
 });
 
 function saveAuthSession(data) {
@@ -1428,6 +1458,7 @@ function initLoginView() {
   const params = new URLSearchParams(location.search);
   const urlPin = (params.get('pin') || '').replace(/\D/g, '');
   if (urlPin.length === 4) {
+    document.getElementById('pinScreen').style.display = 'flex';
     showGuestPinManually();
     pinValue = urlPin;
     renderDots();
@@ -1439,6 +1470,29 @@ function showGuestPinManually() {
   document.getElementById('guestPinSection').style.display = '';
   // PIN付きURLで入った場合も、管理者は同じ画面からログインできるようにする。
   document.getElementById('adminLoginSection').style.display = 'none';
+}
+
+async function startDemoSession() {
+  if (!EDGE_URL) {
+    applySession({ token: 'demo-local', role: 'guest', label: '動作デモ' });
+    return;
+  }
+  try {
+    const demoId = safeLocalGet('reno_demo_id', '') || (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`);
+    safeLocalSet('reno_demo_id', demoId);
+    const res = await fetchWithTimeout(EDGE_URL, {
+      method: 'POST',
+      headers: { ...EDGE_HEADERS, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'demo_login', demo_id: demoId })
+    }, 15000);
+    const data = await res.json();
+    if (!res.ok || !data.token) throw new Error(data.error || 'デモセッションを開始できません');
+    applySession(data);
+  } catch (error) {
+    console.error(error);
+    const status = document.getElementById('googleLoginStatus');
+    if (status) status.textContent = 'デモを開始できません。時間をおいて再読み込みしてください。';
+  }
 }
 
 // PC keyboard support
@@ -1766,9 +1820,9 @@ function lockApp() {
   clearAuthSession();
   pinChecking = false;
   renderDots();
-  document.getElementById('pinScreen').style.display = 'flex';
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('guestPinSection').style.display = '';
+  document.getElementById('pinScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  document.getElementById('guestPinSection').style.display = 'none';
   document.getElementById('adminLoginSection').style.display = 'none';
   const avatarBtn = document.getElementById('userAvatarBtn');
   if (avatarBtn) avatarBtn.style.display = 'none';
@@ -1777,6 +1831,7 @@ function lockApp() {
   // URLに?pinが残っているとリロード時に再度ゲスト扱いになるので消しておく
   if (location.search) { try { window.history.replaceState(null, '', location.pathname); } catch (e) {} }
   if (supabaseAuth) supabaseAuth.auth.signOut().catch(() => {});
+  startDemoSession();
 }
 
 // ── Chat ──

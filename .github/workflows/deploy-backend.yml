@@ -1,4 +1,4 @@
-name: Deploy backend only
+name: "PROD: Deploy backend to AWS (SAM)"
 
 on:
   workflow_dispatch:
@@ -12,11 +12,11 @@ env:
 
 jobs:
   localstack-test:
-    name: LocalStack test only
+    name: Pre-deploy LocalStack tests
     uses: ./.github/workflows/localstack-test.yml
 
   deploy:
-    name: Backend deployment
+    name: Deploy backend stack
     needs: localstack-test
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest

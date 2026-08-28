@@ -1,4 +1,4 @@
-name: Deploy frontend to GitHub Pages
+name: "PROD: Deploy frontend to GitHub Pages"
 
 on:
   push:
@@ -23,6 +23,7 @@ env:
 
 jobs:
   build:
+    name: Build GitHub Pages site
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -54,6 +55,7 @@ jobs:
 
   deploy:
     needs: build
+    name: Publish GitHub Pages site
     runs-on: ubuntu-latest
     environment:
       name: github-pages
