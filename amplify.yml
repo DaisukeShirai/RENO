@@ -1,15 +1,13 @@
 version: 1
 frontend:
   phases:
+    preBuild:
+      commands:
+        - npm ci
     build:
       commands:
         - node scripts/generate-config.mjs
-        - rm -rf dist
-        - mkdir -p dist
-        - cp index.html dist/index.html
-        - cp manifest.json dist/manifest.json
-        - cp -R assets dist/assets
-        - cp -R pages dist/pages
+        - npm run build:react
   artifacts:
     baseDirectory: dist
     files:

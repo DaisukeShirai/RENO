@@ -1,3 +1,6 @@
+# ARCHIVED: GitHub Pages deployment workflow.
+# This file is retained for reference and is intentionally outside
+# .github/workflows so GitHub Actions does not register it.
 name: "PROD: Deploy frontend to GitHub Pages"
 
 on:
