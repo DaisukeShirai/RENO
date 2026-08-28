@@ -3357,7 +3357,7 @@ const SAMPLE_IMAGES = [
 
 // ── Guest PIN Panel ──
 let gpinDays = 7;
-let gpinUses = 3;
+let gpinUses = 30;
 
 function openGuestPinPanel() {
   document.getElementById('guestPinPanel').classList.add('open');
@@ -3387,7 +3387,7 @@ function renderGpinPanel() {
       <div class="gpin-row">
         <label class="gpin-label">使用回数</label>
         <div class="gpin-uses">
-          ${[3,5,10].map(u => `<button class="gpin-use ${gpinUses===u?'active':''}" onclick="gpinSetUses(${u})">${u}回</button>`).join('')}
+          ${[10,30,99].map(u => `<button class="gpin-use ${gpinUses===u?'active':''}" onclick="gpinSetUses(${u})">${u}回</button>`).join('')}
         </div>
       </div>
       <button class="gpin-issue-btn" id="gpinIssueBtn" onclick="issueGuestPin()">PINを発行する</button>

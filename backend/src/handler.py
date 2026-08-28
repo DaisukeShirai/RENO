@@ -121,7 +121,7 @@ def lambda_handler(event, context):
             return response(200, {"download_url": url, "expires_in": 900})
         if typ == "create_guest_pin":
             if user.get("role") != "admin": return response(403, {"error": "admin only"})
-            pin = f"{uuid.uuid4().int % 10000:04d}"; max_uses = min(20, max(1, int(body.get("max_uses", 3)))); expires_at = int(time.time()) + min(30, max(1, int(body.get("days", 7)))) * 86400
+            pin = f"{uuid.uuid4().int % 10000:04d}"; max_uses = min(100, max(1, int(body.get("max_uses", 30)))); expires_at = int(time.time()) + min(30, max(1, int(body.get("days", 7)))) * 86400
             save({"pk": "PIN#" + pin, "sk": "PIN", "owner_sub": user["sub"], "label": str(body.get("label", ""))[:120], "uses": 0, "max_uses": max_uses, "expires_at": expires_at})
             return response(200, {"pin": pin, "label": body.get("label", ""), "max_uses": max_uses, "expires_at": expires_at * 1000})
         if typ == "get_guest_pins":
