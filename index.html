@@ -556,7 +556,6 @@ html.oauth-pending #oauthLoadingOverlay{display:flex;}
 #inputbarTools .h-menu-btn{width:32px;height:32px;}
 .inputbar-row{display:flex;gap:10px;align-items:flex-end;max-width:880px;margin:0 auto;}
 .h-right > .h-menu-btn{display:none !important;}
-a[href="pages/lp.html"]{display:none !important;}
 #userInput{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:16px;padding:10px 14px;outline:none;resize:none;max-height:120px;font-family:inherit;line-height:1.5;transition:border-color 0.2s;min-height:42px;}
 #userInput:focus{border-color:var(--gold);}
 #sendBtn{background:var(--gold-bg);border:1px solid rgba(160,120,56,0.3);border-radius:7px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.15s;flex-shrink:0;color:var(--gold);}
@@ -792,10 +791,6 @@ a[href="pages/lp.html"]{display:none !important;}
     </div>
     <div class="menu-version">RENO AI Agent</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px 20px 4px;">
-      <a href="pages/lp.html" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:5px;font-size:11px;color:var(--muted);letter-spacing:0.04em;text-decoration:none;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 6px;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--gold-light)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10z"/></svg>
-        サービス紹介
-      </a>
       <a href="pages/agent.html" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:5px;font-size:11px;color:var(--muted);letter-spacing:0.04em;text-decoration:none;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 6px;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--gold-light)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
         AIエージェント
@@ -898,7 +893,6 @@ a[href="pages/lp.html"]{display:none !important;}
       <button class="qr-btn-close" onclick="closeQrModal()">閉じる</button>
     </div>
     <div style="text-align:center;padding:10px 0 0;">
-      <a href="pages/lp.html" target="_blank" onclick="closeQrModal()" style="font-size:11px;color:var(--muted);text-decoration:none;border-bottom:1px solid var(--border);padding-bottom:1px;letter-spacing:0.04em;">サービスサイトを見る →</a>
     </div>
   </div>
 </div>
@@ -1006,7 +1000,6 @@ a[href="pages/lp.html"]{display:none !important;}
       <div id="googleLoginStatus" style="min-height:14px;margin-top:4px;font-size:10px;color:var(--muted);text-align:center;"></div>
     </div>
 
-    <a href="pages/lp.html" target="_blank" style="display:block;margin-top:14px;font-size:11px;color:var(--muted);letter-spacing:0.06em;text-decoration:none;border-bottom:1px solid var(--border);padding-bottom:1px;">サービス紹介ページ →</a>
   </div>
 </div>
 <div id="app">
@@ -1239,7 +1232,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   const qrUrl = document.querySelector('.qr-url');
   if (qrUrl) qrUrl.textContent = `${location.origin}${location.pathname}`;
-  document.querySelectorAll('a[href="pages/lp.html"]').forEach((link) => link.remove());
   // PWAモード（スタンドアロン）なら「ブラウザで開く」を表示
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches
     || window.navigator.standalone === true;
