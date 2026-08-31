@@ -21,6 +21,6 @@ sam build --template-file backend/template.yaml
 sam deploy --guided --template-file .aws-sam/build/template.yaml
 ```
 
-`UnlimitedMode` は実運用開始前の検証用設定です。必要な期間だけ `true` にし、実運用開始前には必ず `false` に戻してください。既定値は `false` です。
+`UnlimitedMode` は実運用開始前の検証用設定です。実運用開始前は `true` で運用し、正式運用開始時に必ず `false` に戻してください。既定値は `true` です。
 
 最低限、`OpenAIApiKey`、`OpenAIModel`、`SesFromEmail`、`SesToEmail` を環境に合わせて入力してください。APIキーはブラウザへ配置せず、Lambdaの環境変数としてのみ使用します。デプロイ後に出力された `ApiUrl` を `assets/reno-config.js` の `apiUrl` に設定します。

@@ -47,7 +47,7 @@ Parameters:
   UnlimitedMode:
     Type: String
     AllowedValues: ['true', 'false']
-    Default: 'false'
+    Default: 'true'
 
 Resources:
   RenoApi:
