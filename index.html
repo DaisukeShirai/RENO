@@ -3297,6 +3297,42 @@ function updateSimResult() {
   el.textContent = `${fmtMoney(lo)} 〜 ${fmtMoney(hi)}`;
 }
 
+function getEstimateCacheKey() {
+  return `reno_estimate_v1:${JSON.stringify({
+    size: [6, 8, 10, 12][simState.sizeIdx],
+    items: [...simState.items].sort(),
+    grade: ['eco', 'std', 'pre'][simState.gradeIdx],
+  })}`;
+}
+
+function readEstimateCache(key) {
+  try {
+    const value = JSON.parse(sessionStorage.getItem(key) || 'null');
+    return value && value.expiresAt > Date.now() ? value.data : null;
+  } catch (e) { return null; }
+}
+
+function writeEstimateCache(key, data) {
+  try { sessionStorage.setItem(key, JSON.stringify({ expiresAt: Date.now() + 30 * 60 * 1000, data })); } catch (e) {}
+}
+
+function applyEstimateResult(card, data) {
+  window._lastEstimate = data;
+  const price = card.querySelector('.sim-result-price');
+  const duration = card.querySelector('.sim-duration-value');
+  const note = card.querySelector('.sim-result-note');
+  if (price) price.textContent = `${fmtMoney(data.estimate.low)} 〜 ${fmtMoney(data.estimate.high)}`;
+  if (duration) duration.textContent = `${data.duration.low}〜${data.duration.high}週間`;
+  if (note && data.explanation) note.textContent = data.explanation;
+  const subsidyValue = card.querySelector('.sim-result-subinfo-value');
+  if (subsidyValue) {
+    subsidyValue.textContent = data.subsidies?.length
+      ? data.subsidies.map(program => program.name).join('、')
+      : '該当候補なし（追加条件を確認）';
+    subsidyValue.title = data.subsidies?.map(program => `${program.name}：${program.source_url}`).join('\n') || '';
+  }
+}
+
 async function requestEstimate() {
   const card = document.getElementById('sim-msg');
   if (!card) return;
@@ -3304,6 +3340,12 @@ async function requestEstimate() {
   const priceEl = card.querySelector('.sim-result-price');
   const noteEl = card.querySelector('.sim-result-note');
   if (!simState.items.size) return;
+  const cacheKey = getEstimateCacheKey();
+  const cached = readEstimateCache(cacheKey);
+  if (cached) {
+    applyEstimateResult(card, cached);
+    return;
+  }
   if (!EDGE_URL) {
     if (priceEl) priceEl.textContent = 'API未接続';
     if (durationEl) durationEl.textContent = '—';
@@ -3327,20 +3369,8 @@ async function requestEstimate() {
     }, 20000);
     const data = await res.json();
     if (!res.ok || !data.estimate || !data.duration) throw new Error(data.error || 'estimate failed');
-    window._lastEstimate = data;
-    const price = card.querySelector('.sim-result-price');
-    const duration = card.querySelector('.sim-duration-value');
-    const note = card.querySelector('.sim-result-note');
-    if (price) price.textContent = `${fmtMoney(data.estimate.low)} 〜 ${fmtMoney(data.estimate.high)}`;
-    if (duration) duration.textContent = `${data.duration.low}〜${data.duration.high}週間`;
-    if (note && data.explanation) note.textContent = data.explanation;
-    const subsidyValue = card.querySelector('.sim-result-subinfo-value');
-    if (subsidyValue) {
-      subsidyValue.textContent = data.subsidies?.length
-        ? data.subsidies.map(program => program.name).join('、')
-        : '該当候補なし（追加条件を確認）';
-      subsidyValue.title = data.subsidies?.map(program => `${program.name}：${program.source_url}`).join('\n') || '';
-    }
+    applyEstimateResult(card, data);
+    writeEstimateCache(cacheKey, data);
   } catch (e) {
     console.warn('Estimate API failed:', e.message);
     if (durationEl) durationEl.textContent = '現地調査後に確定';
