@@ -31,24 +31,8 @@ ESTIMATE_ITEMS = {
     "storage": {"base": (15, 60), "unit": "flat", "weeks": (1, 2)},
 }
 ESTIMATE_GRADES = {"eco": 0.75, "std": 1.0, "pre": 1.5}
-SUBSIDY_PROGRAMS = [
-    {
-        "id": "jutaku-shoene-2026",
-        "name": "住宅省エネ2026キャンペーン（リフォーム）",
-        "eligible_signals": ["window", "insulation", "water_heater"],
-        "application_by": "登録済みのリフォーム事業者等",
-        "updated_at": "2026-03-30",
-        "source_url": "https://jutaku-shoene2026.mlit.go.jp/about/reform.html",
-    },
-    {
-        "id": "mado-renovation-2026",
-        "name": "先進的窓リノベ2026事業",
-        "eligible_signals": ["window"],
-        "application_by": "登録済みの窓リノベ事業者",
-        "updated_at": "2026-06-29",
-        "source_url": "https://window-renovation2026.env.go.jp/",
-    },
-]
+with open(os.path.join(os.path.dirname(__file__), "data", "subsidies.json"), encoding="utf-8") as subsidy_file:
+    SUBSIDY_PROGRAMS = json.load(subsidy_file)
 ESTIMATE_CACHE_TTL_SECONDS = 1800
 ESTIMATE_CACHE_MAX_ENTRIES = 256
 _ESTIMATE_CACHE = OrderedDict()
