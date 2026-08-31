@@ -57,6 +57,11 @@ class LocalStackHandlerTest(unittest.TestCase):
 
         cls.handler = handler
 
+    def setUp(self):
+        # テスト順に依存しないよう、handlerのプロセス内状態を毎回初期化する。
+        os.environ["TOKEN_SECRET"] = "localstack-test-secret-0123456789abcdef"
+        self.handler.UNLIMITED_MODE = False
+
     def test_verify_pin_and_authenticated_usage(self):
         self.handler.save({
             "pk": "PIN#1234",
