@@ -30,6 +30,24 @@ ESTIMATE_ITEMS = {
     "storage": {"base": (15, 60), "unit": "flat", "weeks": (1, 2)},
 }
 ESTIMATE_GRADES = {"eco": 0.75, "std": 1.0, "pre": 1.5}
+SUBSIDY_PROGRAMS = [
+    {
+        "id": "jutaku-shoene-2026",
+        "name": "住宅省エネ2026キャンペーン（リフォーム）",
+        "eligible_signals": ["window", "insulation", "water_heater"],
+        "application_by": "登録済みのリフォーム事業者等",
+        "updated_at": "2026-03-30",
+        "source_url": "https://jutaku-shoene2026.mlit.go.jp/about/reform.html",
+    },
+    {
+        "id": "mado-renovation-2026",
+        "name": "先進的窓リノベ2026事業",
+        "eligible_signals": ["window"],
+        "application_by": "登録済みの窓リノベ事業者",
+        "updated_at": "2026-06-29",
+        "source_url": "https://window-renovation2026.env.go.jp/",
+    },
+]
 
 
 def response(status, body):
@@ -122,6 +140,7 @@ def estimate(body, user):
 
     api_key = os.environ.get("OPENAI_API_KEY", "").strip()
     size_key, item_keys, grade_key = requested_size, list(dict.fromkeys(requested_items)), requested_grade
+    subsidy_signals = []
     explanation = "選択した工事内容と面積をもとに、標準的な施工条件で概算しています。"
     source = "rule"
     if api_key:
@@ -130,7 +149,8 @@ def estimate(body, user):
         prompt = (
             "リフォーム相談の会話から見積り条件を抽出してください。JSONだけを返してください。\n"
             "キーは size（6,8,10,12のいずれか）、items（floor,wall,kitchen,bath,toilet,wash,light,storageの配列）、"
-            "grade（eco,std,preのいずれか）、explanation（日本語80文字以内）です。"
+            "grade（eco,std,preのいずれか）、subsidy_signals（window,insulation,water_heaterの配列）、"
+            "explanation（日本語80文字以内）です。"
             "会話に明示がない条件は、画面で選択された値を維持してください。金額は計算しないでください。\n"
             f"画面選択: size={requested_size}, items={','.join(requested_items)}, grade={requested_grade}\n"
             f"会話: {context_text}"
@@ -154,6 +174,7 @@ def estimate(body, user):
                 candidate_items = list(dict.fromkeys(key for key in candidate_items if key in ESTIMATE_ITEMS))
                 if candidate_items:
                     size_key, item_keys, grade_key = candidate_size, candidate_items, candidate_grade
+                    subsidy_signals = list(dict.fromkeys(signal for signal in ai_conditions.get("subsidy_signals", []) if signal in {"window", "insulation", "water_heater"}))
                     explanation = str(ai_conditions.get("explanation", explanation))[:240] or explanation
                     source = "ai"
         except (HTTPError, URLError, TimeoutError, json.JSONDecodeError, ValueError):
@@ -174,7 +195,12 @@ def estimate(body, user):
     high = round(high * multiplier / 10000) * 10000
     duration = {"low": max(1, low_weeks), "high": max(low_weeks, high_weeks)}
 
-    return {"estimate": {"low": low, "high": high}, "duration": duration, "conditions": {"size": size_key, "items": item_keys, "grade": grade_key}, "explanation": explanation, "source": source}
+    subsidies = [
+        {**program, "match": "candidate", "reason": "会話内容に対象となる可能性のある工事が含まれています。"}
+        for program in SUBSIDY_PROGRAMS
+        if set(subsidy_signals) & set(program["eligible_signals"])
+    ]
+    return {"estimate": {"low": low, "high": high}, "duration": duration, "conditions": {"size": size_key, "items": item_keys, "grade": grade_key}, "subsidies": subsidies, "explanation": explanation, "source": source}
 
 
 def lambda_handler(event, context):
