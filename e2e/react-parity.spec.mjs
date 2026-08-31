@@ -18,6 +18,8 @@ const installStubs = async (page) => {
     const body = route.request().postDataJSON();
     const response = body.type === 'verify_pin' || body.type === 'demo_login'
       ? { token: 'parity-token', role: 'guest' }
+      : body.type === 'get_usage'
+        ? { plan: 'standard', count: 0, limit: 10, remaining: 10, unlimited: false }
       : { content: [{ type: 'text', text: 'ご相談内容を確認しました。\n[SUGGESTIONS: 素材を探す, 概算を見る, 施工後イメージ]' }] };
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(response) });
   };
