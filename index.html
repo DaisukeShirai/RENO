@@ -3515,6 +3515,10 @@ function renderUsageBadge() {
     return;
   }
   const { plan, count, limit } = currentUsage;
+  if (currentUsage.unlimited || plan === 'unlimited') {
+    el.innerHTML = '<span style="color:var(--gold);font-size:11px;">∞ 無制限</span>';
+    return;
+  }
   if (plan === 'pro') { el.innerHTML = '<span style="color:#7ab87a;font-size:11px;">✦ Pro</span>'; return; }
   const pips = Array.from({ length: limit > 10 ? 10 : limit }, (_, i) => {
     const used = i < count;

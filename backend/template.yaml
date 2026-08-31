@@ -18,6 +18,7 @@ Globals:
         TOKEN_SECRET: !Ref TokenSecret
         ADMIN_EMAIL: !Ref AdminEmail
         DEMO_PIN: !Ref DemoPin
+        UNLIMITED_MODE: !Ref UnlimitedMode
 
 Parameters:
   OpenAIApiKey:
@@ -43,6 +44,10 @@ Parameters:
   DemoPin:
     Type: String
     Default: '1234'
+  UnlimitedMode:
+    Type: String
+    AllowedValues: ['true', 'false']
+    Default: 'false'
 
 Resources:
   RenoApi:

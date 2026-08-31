@@ -76,6 +76,20 @@ class LocalStackHandlerTest(unittest.TestCase):
         self.assertEqual(usage["statusCode"], 200)
         self.assertEqual(json.loads(usage["body"])["limit"], 10)
 
+    def test_unlimited_mode_reports_unlimited_and_ignores_limit(self):
+        previous = self.handler.UNLIMITED_MODE
+        try:
+            self.handler.UNLIMITED_MODE = True
+            token = self.handler.token_for("unlimited-test")
+            usage = self.handler.lambda_handler({"body": json.dumps({"type": "get_usage", "token": token})}, None)
+            payload = json.loads(usage["body"])
+            self.assertEqual(usage["statusCode"], 200)
+            self.assertEqual(payload["plan"], "unlimited")
+            self.assertTrue(payload["unlimited"])
+            self.assertIsNone(payload["remaining"])
+        finally:
+            self.handler.UNLIMITED_MODE = previous
+
 
 if __name__ == "__main__":
     unittest.main()
