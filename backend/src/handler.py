@@ -1,5 +1,6 @@
 """RENO MVP APIのエントリーポイント。"""
 import base64, hashlib, hmac, json, os, posixpath, time, uuid
+from collections import OrderedDict
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -48,6 +49,9 @@ SUBSIDY_PROGRAMS = [
         "source_url": "https://window-renovation2026.env.go.jp/",
     },
 ]
+ESTIMATE_CACHE_TTL_SECONDS = 1800
+ESTIMATE_CACHE_MAX_ENTRIES = 256
+_ESTIMATE_CACHE = OrderedDict()
 
 
 def response(status, body):
@@ -138,6 +142,16 @@ def estimate(body, user):
     if not isinstance(requested_items, list) or not requested_items or any(key not in ESTIMATE_ITEMS for key in requested_items):
         return {"error": "at least one valid estimate item is required"}
 
+    requested_items = list(dict.fromkeys(requested_items))
+    cache_key = json.dumps({"v": 1, "size": requested_size, "items": requested_items, "grade": requested_grade}, separators=(",", ":"), sort_keys=True)
+    now = time.time()
+    cached = _ESTIMATE_CACHE.get(cache_key)
+    if cached and cached["expires_at"] > now:
+        _ESTIMATE_CACHE.move_to_end(cache_key)
+        return cached["value"]
+    if cached:
+        _ESTIMATE_CACHE.pop(cache_key, None)
+
     api_key = os.environ.get("OPENAI_API_KEY", "").strip()
     size_key, item_keys, grade_key = requested_size, list(dict.fromkeys(requested_items)), requested_grade
     subsidy_signals = []
@@ -200,7 +214,12 @@ def estimate(body, user):
         for program in SUBSIDY_PROGRAMS
         if set(subsidy_signals) & set(program["eligible_signals"])
     ]
-    return {"estimate": {"low": low, "high": high}, "duration": duration, "conditions": {"size": size_key, "items": item_keys, "grade": grade_key}, "subsidies": subsidies, "explanation": explanation, "source": source}
+    value = {"estimate": {"low": low, "high": high}, "duration": duration, "conditions": {"size": size_key, "items": item_keys, "grade": grade_key}, "subsidies": subsidies, "explanation": explanation, "source": source}
+    _ESTIMATE_CACHE[cache_key] = {"expires_at": now + ESTIMATE_CACHE_TTL_SECONDS, "value": value}
+    _ESTIMATE_CACHE.move_to_end(cache_key)
+    while len(_ESTIMATE_CACHE) > ESTIMATE_CACHE_MAX_ENTRIES:
+        _ESTIMATE_CACHE.popitem(last=False)
+    return value
 
 
 def lambda_handler(event, context):
