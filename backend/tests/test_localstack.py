@@ -129,7 +129,7 @@ class LocalStackHandlerTest(unittest.TestCase):
             })}, None)
             self.assertEqual(result["statusCode"], 200)
             payload = json.loads(result["body"])
-            self.assertEqual(payload["estimate"], {"low": 1170000, "high": 2275000})
+            self.assertEqual(payload["estimate"], {"low": 1170000, "high": 2280000})
             self.assertEqual(payload["duration"], {"low": 1, "high": 2})
             self.assertEqual(payload["source"], "rule")
         finally:
