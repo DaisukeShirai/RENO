@@ -132,7 +132,31 @@ class LocalStackHandlerTest(unittest.TestCase):
             self.assertEqual(payload["estimate"], {"low": 1170000, "high": 2280000})
             self.assertEqual(payload["duration"], {"low": 1, "high": 2})
             self.assertEqual(payload["subsidies"], [])
-            self.assertEqual(payload["source"], "rule")
+            self.assertEqual(payload["source"], "fallback")
+            self.assertTrue(payload["warning"])
+        finally:
+            if previous_key is None:
+                os.environ.pop("OPENAI_API_KEY", None)
+            else:
+                os.environ["OPENAI_API_KEY"] = previous_key
+
+    def test_material_recommendation_exposes_fallback_state(self):
+        previous_key = os.environ.get("OPENAI_API_KEY")
+        try:
+            os.environ["OPENAI_API_KEY"] = "   "
+            token = self.handler.token_for("material-recommendation-test")
+            result = self.handler.lambda_handler({"body": json.dumps({
+                "type": "material_recommendation",
+                "token": token,
+                "selected_key": "composite",
+                "catalog": [{"key": "composite", "name": "複合フローリング", "pros": [], "cons": []}],
+                "context": [],
+            }, ensure_ascii=False)}, None)
+            self.assertEqual(result["statusCode"], 200)
+            payload = json.loads(result["body"])
+            self.assertEqual(payload["source"], "fallback")
+            self.assertTrue(payload["warning"])
+            self.assertEqual(payload["recommendations"][0]["key"], "composite")
         finally:
             if previous_key is None:
                 os.environ.pop("OPENAI_API_KEY", None)

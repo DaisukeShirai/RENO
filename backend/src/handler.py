@@ -140,7 +140,7 @@ def estimate(body, user):
     size_key, item_keys, grade_key = requested_size, list(dict.fromkeys(requested_items)), requested_grade
     subsidy_signals = []
     explanation = "選択した工事内容と面積をもとに、標準的な施工条件で概算しています。"
-    source = "rule"
+    source = "fallback"
     if api_key:
         context = body.get("context", [])
         context_text = json.dumps(context[-10:] if isinstance(context, list) else [], ensure_ascii=False)[:12000]
@@ -199,11 +199,78 @@ def estimate(body, user):
         if set(subsidy_signals) & set(program["eligible_signals"])
     ]
     value = {"estimate": {"low": low, "high": high}, "duration": duration, "conditions": {"size": size_key, "items": item_keys, "grade": grade_key}, "subsidies": subsidies, "explanation": explanation, "source": source}
+    if source != "ai":
+        value["warning"] = "AIから正しい概算条件を取得できなかったため、登録済みの計算ルールで表示しています。"
     _ESTIMATE_CACHE[cache_key] = {"expires_at": now + ESTIMATE_CACHE_TTL_SECONDS, "value": value}
     _ESTIMATE_CACHE.move_to_end(cache_key)
     while len(_ESTIMATE_CACHE) > ESTIMATE_CACHE_MAX_ENTRIES:
         _ESTIMATE_CACHE.popitem(last=False)
     return value
+
+
+def material_recommendation(body, user):
+    """登録済みカタログから、相談内容に合う素材候補をAIに選定させる。"""
+    selected_key = str(body.get("selected_key", ""))[:80]
+    catalog = body.get("catalog", [])
+    if not isinstance(catalog, list) or not catalog:
+        return {"error": "material catalog is required"}
+    catalog = [item for item in catalog if isinstance(item, dict) and item.get("key")]
+    catalog_by_key = {str(item["key"]): item for item in catalog}
+    if selected_key not in catalog_by_key:
+        return {"error": "invalid material key"}
+
+    fallback = {
+        "source": "fallback",
+        "warning": "AIから正しい候補を取得できなかったため、登録済みの標準候補を表示しています。",
+        "recommendations": [{"key": selected_key, "reason": "選択された素材の登録済み候補です。"}],
+    }
+    api_key = os.environ.get("OPENAI_API_KEY", "").strip()
+    if not api_key:
+        return fallback
+
+    compact_catalog = [{
+        "key": str(item["key"]),
+        "name": str(item.get("name", ""))[:120],
+        "category": str(item.get("category", ""))[:80],
+        "pros": [str(value)[:100] for value in item.get("pros", [])[:5]] if isinstance(item.get("pros"), list) else [],
+        "cons": [str(value)[:100] for value in item.get("cons", [])[:5]] if isinstance(item.get("cons"), list) else [],
+    } for item in catalog]
+    context = body.get("context", [])
+    context_text = json.dumps(context[-10:] if isinstance(context, list) else [], ensure_ascii=False)[:12000]
+    prompt = (
+        "リフォーム相談から、登録済み素材カタログの候補を最大3件選んでください。JSONだけを返してください。\n"
+        "形式: {\"recommendations\":[{\"key\":\"登録カタログのkey\",\"reason\":\"日本語の短い理由\"}]}\n"
+        "カタログにないkey、商品名、価格、性能を作らないでください。相談内容に根拠がなければ選択素材のkeyを1件返してください。\n"
+        f"選択素材: {selected_key}\n相談履歴: {context_text}\nカタログ: {json.dumps(compact_catalog, ensure_ascii=False)}"
+    )
+    request = Request("https://api.openai.com/v1/responses", data=json.dumps({
+        "model": os.environ.get("OPENAI_MODEL", "gpt-5-mini"),
+        "input": [{"role": "system", "content": "JSON形式を厳密に返す素材選定アシスタントです。"}, {"role": "user", "content": prompt}],
+        "max_output_tokens": 300,
+        "store": False,
+    }).encode(), headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, method="POST")
+    try:
+        with urlopen(request, timeout=15) as result:
+            payload = json.loads(result.read())
+        raw = payload.get("output_text", "")
+        match = raw[raw.find("{"):raw.rfind("}") + 1]
+        parsed = json.loads(match) if match else {}
+        recommendations = parsed.get("recommendations")
+        if not isinstance(recommendations, list):
+            return fallback
+        valid = []
+        for recommendation in recommendations[:3]:
+            if not isinstance(recommendation, dict):
+                continue
+            key = str(recommendation.get("key", ""))
+            reason = str(recommendation.get("reason", "")).strip()[:240]
+            if key in catalog_by_key and reason:
+                valid.append({"key": key, "reason": reason})
+        if not valid:
+            return fallback
+        return {"source": "ai", "recommendations": valid}
+    except (HTTPError, URLError, TimeoutError, json.JSONDecodeError, ValueError):
+        return fallback
 
 
 def lambda_handler(event, context):
@@ -247,6 +314,10 @@ def lambda_handler(event, context):
             return response(status, result)
         if typ == "estimate":
             result = estimate(body, user)
+            status = 400 if "error" in result else 200
+            return response(status, result)
+        if typ == "material_recommendation":
+            result = material_recommendation(body, user)
             status = 400 if "error" in result else 200
             return response(status, result)
         if typ == "get_usage": return response(200, usage(user))
