@@ -115,6 +115,13 @@ class LocalStackHandlerTest(unittest.TestCase):
             else:
                 os.environ["OPENAI_API_KEY"] = previous_key
 
+    def test_generated_tokens_are_stable(self):
+        for index in range(100):
+            token = self.handler.token_for(f"token-roundtrip-{index}")
+            subject = self.handler.subject_from_token(token)
+            self.assertIsNotNone(subject)
+            self.assertEqual(subject["sub"], f"token-roundtrip-{index}")
+
 
 if __name__ == "__main__":
     unittest.main()

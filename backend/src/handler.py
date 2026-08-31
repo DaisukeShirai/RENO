@@ -31,13 +31,22 @@ def response(status, body):
 def token_for(subject, role="guest"):
     payload = json.dumps({"sub": subject, "role": role, "exp": int(time.time()) + 7 * 86400}, separators=(",", ":")).encode()
     sig = hmac.new(os.environ["TOKEN_SECRET"].encode(), payload, hashlib.sha256).digest()
-    return base64.urlsafe_b64encode(payload + b"." + sig).decode().rstrip("=")
+    # payloadと署名を分離してエンコードし、署名中の`.`を区切り文字と誤認しない。
+    encode = lambda value: base64.urlsafe_b64encode(value).decode().rstrip("=")
+    return encode(payload) + "." + encode(sig)
 
 
 def subject_from_token(token):
     try:
-        raw = base64.urlsafe_b64decode(token + "=" * (-len(token) % 4))
-        payload, signature = raw.rsplit(b".", 1)
+        if not isinstance(token, str): return None
+        if "." in token:
+            payload_token, signature_token = token.split(".", 1)
+            payload = base64.urlsafe_b64decode(payload_token + "=" * (-len(payload_token) % 4))
+            signature = base64.urlsafe_b64decode(signature_token + "=" * (-len(signature_token) % 4))
+        else:
+            # 旧形式（payload + b"." + signatureをまとめてBase64化）も許容する。
+            raw = base64.urlsafe_b64decode(token + "=" * (-len(token) % 4))
+            payload, signature = raw.rsplit(b".", 1)
         expected = hmac.new(os.environ["TOKEN_SECRET"].encode(), payload, hashlib.sha256).digest()
         if not hmac.compare_digest(signature, expected): return None
         data = json.loads(payload)
