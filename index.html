@@ -3324,6 +3324,13 @@ async function requestEstimate() {
     if (price) price.textContent = `${fmtMoney(data.estimate.low)} 〜 ${fmtMoney(data.estimate.high)}`;
     if (duration) duration.textContent = `${data.duration.low}〜${data.duration.high}週間`;
     if (note && data.explanation) note.textContent = data.explanation;
+    const subsidyValue = card.querySelector('.sim-result-subinfo-value');
+    if (subsidyValue) {
+      subsidyValue.textContent = data.subsidies?.length
+        ? data.subsidies.map(program => program.name).join('、')
+        : '該当候補なし（追加条件を確認）';
+      subsidyValue.title = data.subsidies?.map(program => `${program.name}：${program.source_url}`).join('\n') || '';
+    }
   } catch (e) {
     console.warn('Estimate API failed:', e.message);
     if (durationEl) durationEl.textContent = '現地調査後に確定';

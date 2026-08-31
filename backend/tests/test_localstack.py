@@ -131,6 +131,7 @@ class LocalStackHandlerTest(unittest.TestCase):
             payload = json.loads(result["body"])
             self.assertEqual(payload["estimate"], {"low": 1170000, "high": 2280000})
             self.assertEqual(payload["duration"], {"low": 1, "high": 2})
+            self.assertEqual(payload["subsidies"], [])
             self.assertEqual(payload["source"], "rule")
         finally:
             if previous_key is None:
