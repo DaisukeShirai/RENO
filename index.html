@@ -3489,6 +3489,19 @@ async function fetchUsage() {
       body: JSON.stringify({ token: sessionToken, type: 'get_usage' })
     });
     const data = await res.json();
+    if (!res.ok || !Number.isFinite(Number(data?.count)) || !Number.isFinite(Number(data?.limit))) {
+      if (res.status === 401) {
+        clearAuthSession();
+        if (sessionRole === 'guest') {
+          sessionToken = '';
+          await startDemoSession();
+          return;
+        }
+      }
+      const el = document.getElementById('usageBadge');
+      if (el) el.textContent = '利用回数を確認できません';
+      return;
+    }
     currentUsage = data;
     renderUsageBadge();
   } catch(e) {}
@@ -3502,6 +3515,10 @@ function renderUsageBadge() {
     return;
   }
   const { plan, count, limit } = currentUsage;
+  if (currentUsage.unlimited || plan === 'unlimited') {
+    el.innerHTML = '<span style="color:var(--gold);font-size:11px;">∞ 無制限</span>';
+    return;
+  }
   if (plan === 'pro') { el.innerHTML = '<span style="color:#7ab87a;font-size:11px;">✦ Pro</span>'; return; }
   const pips = Array.from({ length: limit > 10 ? 10 : limit }, (_, i) => {
     const used = i < count;
@@ -3515,7 +3532,7 @@ function renderUsageBadge() {
 }
 
 function updateUsageAfterGen(usageData) {
-  if (!usageData) return;
+  if (!usageData || !Number.isFinite(Number(usageData.count)) || !Number.isFinite(Number(usageData.limit))) return;
   currentUsage = usageData;
   renderUsageBadge();
 }
@@ -4165,6 +4182,7 @@ async function callAgent() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error?.message || 'APIエラー');
+      updateUsageAfterGen(data.usage);
       raw = data.content?.[0]?.text || '';
     }
     removeTyping();

@@ -12,6 +12,7 @@ S3 = boto3.client("s3", endpoint_url=AWS_ENDPOINT_URL)
 SES = boto3.client("ses", endpoint_url=AWS_ENDPOINT_URL)
 COGNITO = boto3.client("cognito-idp", endpoint_url=AWS_ENDPOINT_URL)
 USAGE_LIMIT = 10
+UNLIMITED_MODE = os.environ.get("UNLIMITED_MODE", "false").strip().lower() == "true"
 MAX_INPUT_MESSAGES = 20
 MAX_MESSAGE_CHARS = 4000
 MAX_SYSTEM_CHARS = 8000
@@ -57,7 +58,7 @@ def query_user(user, prefix):
 
 def usage(user):
     count = len(query_user(user, "CHAT#"))
-    return {"plan": "standard", "count": count, "limit": USAGE_LIMIT, "remaining": max(0, USAGE_LIMIT - count)}
+    return {"plan": "unlimited" if UNLIMITED_MODE else "standard", "count": count, "limit": USAGE_LIMIT, "remaining": None if UNLIMITED_MODE else max(0, USAGE_LIMIT - count), "unlimited": UNLIMITED_MODE}
 
 
 def safe_filename(name):
@@ -69,7 +70,7 @@ def chat(body, user):
     messages = body.get("messages", [])
     if not isinstance(messages, list) or len(messages) > 50: return {"error": "messages must be an array of at most 50 items"}
     current = usage(user)
-    if current["count"] >= current["limit"]: return {"error": "usage limit reached", "usage": current}
+    if not UNLIMITED_MODE and current["count"] >= current["limit"]: return {"error": "usage limit reached", "usage": current}
     api_key = os.environ.get("OPENAI_API_KEY")
     if api_key:
         input_messages = ([{"role": "system", "content": str(body.get("system", ""))[:MAX_SYSTEM_CHARS]}] + [{"role": m.get("role", "user"), "content": str(m.get("content", ""))[:MAX_MESSAGE_CHARS]} for m in messages[-MAX_INPUT_MESSAGES:] if isinstance(m, dict) and m.get("role") in ("user", "assistant")])
