@@ -3297,7 +3297,48 @@ function updateSimResult() {
   el.textContent = `${fmtMoney(lo)} 〜 ${fmtMoney(hi)}`;
 }
 
+async function requestEstimate() {
+  const card = document.getElementById('sim-msg');
+  if (!card || !EDGE_URL || !simState.items.size) return;
+  const durationEl = card.querySelector('.sim-duration-value');
+  if (durationEl) durationEl.textContent = '計算中…';
+  try {
+    const res = await fetchWithTimeout(EDGE_URL, {
+      method: 'POST',
+      headers: { ...EDGE_HEADERS, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token: sessionToken,
+        type: 'estimate',
+        size: String([6, 8, 10, 12][simState.sizeIdx]),
+        items: [...simState.items],
+        grade: ['eco', 'std', 'pre'][simState.gradeIdx],
+        context: history.slice(-10),
+      }),
+    }, 20000);
+    const data = await res.json();
+    if (!res.ok || !data.estimate || !data.duration) throw new Error(data.error || 'estimate failed');
+    window._lastEstimate = data;
+    const price = card.querySelector('.sim-result-price');
+    const duration = card.querySelector('.sim-duration-value');
+    const note = card.querySelector('.sim-result-note');
+    if (price) price.textContent = `${fmtMoney(data.estimate.low)} 〜 ${fmtMoney(data.estimate.high)}`;
+    if (duration) duration.textContent = `${data.duration.low}〜${data.duration.high}週間`;
+    if (note && data.explanation) note.textContent = data.explanation;
+  } catch (e) {
+    console.warn('Estimate API failed:', e.message);
+    if (durationEl) durationEl.textContent = '現地調査後に確定';
+    const note = card.querySelector('.sim-result-note');
+    if (note) note.textContent = '概算APIに接続できないため、現地調査後に正式な工期を確定します。';
+  }
+}
+
+function getEstimateDurationLabel() {
+  const duration = window._lastEstimate?.duration;
+  return duration ? `${duration.low}〜${duration.high}週間` : '2〜3週間';
+}
+
 function showSimulator() {
+  setTimeout(requestEstimate, 0);
   const chat = document.getElementById('chat');
   persistChatState('simulator');
   const div = document.createElement('div');
@@ -3350,7 +3391,7 @@ function showSimulator() {
               </div>
               <div class="sim-metric duration">
                 <div class="sim-metric-label">概算工期</div>
-                <div class="sim-duration-value">2〜3週間</div>
+                <div class="sim-duration-value">${getEstimateDurationLabel()}</div>
               </div>
             </div>
             <div class="sim-result-note">※ 相場の目安です。実際の費用は現地調査にてご確認ください。</div>
@@ -3419,7 +3460,7 @@ function showFinalConfirmation() {
             </div>
             <div class="handoff-estimate-metric">
               <div class="handoff-estimate-label">概算工期</div>
-              <div class="handoff-estimate-value duration">2〜3週間</div>
+              <div class="handoff-estimate-value duration">${getEstimateDurationLabel()}</div>
             </div>
           </div>
         </div>` : ''}

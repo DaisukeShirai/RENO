@@ -18,6 +18,19 @@ MAX_MESSAGE_CHARS = 4000
 MAX_SYSTEM_CHARS = 8000
 MAX_OUTPUT_TOKENS = 500
 
+ESTIMATE_SIZES = {"6": 10, "8": 13, "10": 16, "12": 20}
+ESTIMATE_ITEMS = {
+    "floor": {"base": (8, 15), "unit": "m2", "weeks": (1, 2)},
+    "wall": {"base": (1, 2.5), "unit": "m2", "weeks": (1, 2)},
+    "kitchen": {"base": (60, 180), "unit": "flat", "weeks": (2, 3)},
+    "bath": {"base": (60, 150), "unit": "flat", "weeks": (2, 3)},
+    "toilet": {"base": (15, 50), "unit": "flat", "weeks": (1, 2)},
+    "wash": {"base": (15, 50), "unit": "flat", "weeks": (1, 2)},
+    "light": {"base": (8, 30), "unit": "flat", "weeks": (1, 1)},
+    "storage": {"base": (15, 60), "unit": "flat", "weeks": (1, 2)},
+}
+ESTIMATE_GRADES = {"eco": 0.75, "std": 1.0, "pre": 1.5}
+
 
 def response(status, body):
     return {"statusCode": status, "headers": {
@@ -97,6 +110,55 @@ def chat(body, user):
     return {"content": [{"type": "text", "text": text}], "usage": usage(user)}
 
 
+def estimate(body, user):
+    """サーバー側の料金マスタで計算し、AIには説明文だけを生成させる。"""
+    size_key = str(body.get("size", "8"))
+    item_keys = body.get("items", [])
+    grade_key = str(body.get("grade", "std"))
+    if size_key not in ESTIMATE_SIZES or grade_key not in ESTIMATE_GRADES:
+        return {"error": "invalid estimate condition"}
+    if not isinstance(item_keys, list) or not item_keys or any(key not in ESTIMATE_ITEMS for key in item_keys):
+        return {"error": "at least one valid estimate item is required"}
+
+    m2 = ESTIMATE_SIZES[size_key]
+    multiplier = ESTIMATE_GRADES[grade_key]
+    low = high = 0
+    low_weeks = high_weeks = 0
+    for key in dict.fromkeys(item_keys):
+        item = ESTIMATE_ITEMS[key]
+        factor = m2 if item["unit"] == "m2" else 1
+        low += item["base"][0] * factor * 10000
+        high += item["base"][1] * factor * 10000
+        low_weeks = max(low_weeks, item["weeks"][0])
+        high_weeks = max(high_weeks, item["weeks"][1])
+    low = round(low * multiplier / 10000) * 10000
+    high = round(high * multiplier / 10000) * 10000
+    duration = {"low": max(1, low_weeks), "high": max(low_weeks, high_weeks)}
+
+    explanation = "選択した工事内容と面積をもとに、標準的な施工条件で概算しています。"
+    api_key = os.environ.get("OPENAI_API_KEY", "").strip()
+    if api_key:
+        prompt = (
+            "あなたはリフォーム見積りアシスタントです。以下の計算済み結果を変更せず、"
+            "前提と注意点を含む日本語の説明を80文字以内で返してください。金額や工期を新たに計算しないでください。\n"
+            f"面積:{m2}m2、工事項目:{','.join(dict.fromkeys(item_keys))}、グレード:{grade_key}、"
+            f"概算:{low}〜{high}円、工期:{duration['low']}〜{duration['high']}週間"
+        )
+        request = Request("https://api.openai.com/v1/responses", data=json.dumps({
+            "model": os.environ.get("OPENAI_MODEL", "gpt-5-mini"),
+            "input": [{"role": "system", "content": "リフォーム業務の説明を簡潔かつ正確に行う。"}, {"role": "user", "content": prompt}],
+            "max_output_tokens": 160,
+            "store": False,
+        }).encode(), headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, method="POST")
+        try:
+            with urlopen(request, timeout=15) as result:
+                payload = json.loads(result.read())
+            explanation = payload.get("output_text", "") or explanation
+        except (HTTPError, URLError, TimeoutError):
+            explanation = "計算済みの概算です。現地調査と仕様確定後に正式なお見積りとなります。"
+    return {"estimate": {"low": low, "high": high}, "duration": duration, "explanation": explanation, "source": "ai" if api_key else "rule"}
+
+
 def lambda_handler(event, context):
     try:
         method = event.get("requestContext", {}).get("http", {}).get("method") or event.get("httpMethod")
@@ -135,6 +197,10 @@ def lambda_handler(event, context):
         if typ == "chat":
             result = chat(body, user)
             status = 429 if "usage limit" in result.get("error", "") else 503 if "unavailable" in result.get("error", "") else 400 if "messages" in result.get("error", "") else 200
+            return response(status, result)
+        if typ == "estimate":
+            result = estimate(body, user)
+            status = 400 if "error" in result else 200
             return response(status, result)
         if typ == "get_usage": return response(200, usage(user))
         if typ == "save_session":

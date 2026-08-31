@@ -115,6 +115,29 @@ class LocalStackHandlerTest(unittest.TestCase):
             else:
                 os.environ["OPENAI_API_KEY"] = previous_key
 
+    def test_estimate_returns_server_side_cost_and_duration(self):
+        previous_key = os.environ.get("OPENAI_API_KEY")
+        try:
+            os.environ["OPENAI_API_KEY"] = "   "
+            token = self.handler.token_for("estimate-test")
+            result = self.handler.lambda_handler({"body": json.dumps({
+                "type": "estimate",
+                "token": token,
+                "size": "8",
+                "items": ["floor", "wall"],
+                "grade": "std",
+            })}, None)
+            self.assertEqual(result["statusCode"], 200)
+            payload = json.loads(result["body"])
+            self.assertEqual(payload["estimate"], {"low": 1170000, "high": 2275000})
+            self.assertEqual(payload["duration"], {"low": 1, "high": 2})
+            self.assertEqual(payload["source"], "rule")
+        finally:
+            if previous_key is None:
+                os.environ.pop("OPENAI_API_KEY", None)
+            else:
+                os.environ["OPENAI_API_KEY"] = previous_key
+
     def test_generated_tokens_are_stable(self):
         for index in range(100):
             token = self.handler.token_for(f"token-roundtrip-{index}")
