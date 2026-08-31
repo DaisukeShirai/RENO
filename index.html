@@ -554,6 +554,8 @@ html.oauth-pending #oauthLoadingOverlay{display:flex;}
 #inputbarTools .inputbar-caption{font-size:10px;color:var(--muted);letter-spacing:.08em;}
 #inputbarTools .inputbar-actions{display:flex;gap:7px;}
 #inputbarTools .h-menu-btn{width:32px;height:32px;}
+.chat-reset-btn{width:auto !important;padding:0 9px;font-size:11px;gap:5px;color:var(--text2);white-space:nowrap;}
+.chat-reset-btn:hover{color:var(--red);border-color:rgba(176,64,64,0.35);background:#fff8f7;}
 .inputbar-row{display:flex;gap:10px;align-items:flex-end;max-width:880px;margin:0 auto;}
 .h-right > .h-menu-btn{display:none !important;}
 #userInput{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:16px;padding:10px 14px;outline:none;resize:none;max-height:120px;font-family:inherit;line-height:1.5;transition:border-color 0.2s;min-height:42px;}
@@ -1035,6 +1037,10 @@ html.oauth-pending #oauthLoadingOverlay{display:flex;}
     <div id="inputbarTools">
       <span class="inputbar-caption">RENO AI Agent</span>
       <div class="inputbar-actions">
+        <button class="h-menu-btn chat-reset-btn" id="chatResetBtn" onclick="resetConversation()" title="会話をリセットして一から話す" aria-label="会話をリセットして一から話す">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 4 3 10 9 10"/></svg>
+          <span>最初から</span>
+        </button>
         <button class="h-menu-btn" id="inputQrBtn" onclick="openQrModal()" title="スマホで開く" style="display:none;">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><rect x="19" y="14" width="2" height="2"/><rect x="14" y="19" width="2" height="2"/><rect x="19" y="19" width="2" height="2"/></svg>
         </button>
@@ -1833,6 +1839,7 @@ function lockApp() {
 // ── Chat ──
 let history = [];
 let chatStarted = false;
+let chatResetToken = 0;
 const CHAT_CACHE_PREFIX = 'reno_chat_history_v1:';
 const CHAT_STATE_SUFFIX = ':state';
 
@@ -1927,6 +1934,36 @@ function clearDraftCache() {
     localStorage.removeItem(chatCacheKey());
     localStorage.removeItem(chatStateKey());
   } catch (e) {}
+}
+
+function resetConversation() {
+  if (!window.confirm('現在の会話を消去して、最初から始めますか？')) return;
+
+  // 進行中の応答があっても、リセット後の画面へ古い応答を追加させない。
+  chatResetToken += 1;
+  removeTyping();
+  clearDraftCache();
+  history = [];
+  window._beforeFile = null;
+  window._beforeURL = '';
+  window._lastAfterSrc = '';
+  window._lastBeforeSrc = '';
+  window._genPrompt = '';
+  window._selectedMaterialKey = '';
+  window._pendingUploadPrompt = '';
+  if (simState) simState = { sizeIdx: 1, items: new Set(DEFAULT_SIM_ITEMS), gradeIdx: 1 };
+  finalizationState = 'draft';
+  finalHandoffStarted = false;
+
+  const input = document.getElementById('userInput');
+  if (input) {
+    input.value = '';
+    input.style.height = 'auto';
+  }
+  document.getElementById('chat').innerHTML = '';
+  document.getElementById('sendBtn').disabled = false;
+  chatStarted = false;
+  initChat();
 }
 
 function restoreCachedChat(cached, skipInteractive = false) {
@@ -4167,6 +4204,7 @@ async function getMockAgentResponse(messages) {
 }
 
 async function callAgent() {
+  const requestToken = chatResetToken;
   document.getElementById('sendBtn').disabled = true;
   persistChatHistory();
   addTyping();
@@ -4185,6 +4223,7 @@ async function callAgent() {
       updateUsageAfterGen(data.usage);
       raw = data.content?.[0]?.text || '';
     }
+    if (requestToken !== chatResetToken) return;
     removeTyping();
 
     // Parse tags
@@ -4240,6 +4279,7 @@ async function callAgent() {
     }
 
   } catch(e) {
+    if (requestToken !== chatResetToken) return;
     removeTyping();
     addAgentMessage('一時的に応答を取得できませんでした。相談を続けるか、もう一度送信できます。', null, null,
       ['もう一度送る', '担当者に相談', '相談内容を続ける']);
