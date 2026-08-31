@@ -111,14 +111,53 @@ def chat(body, user):
 
 
 def estimate(body, user):
-    """サーバー側の料金マスタで計算し、AIには説明文だけを生成させる。"""
-    size_key = str(body.get("size", "8"))
-    item_keys = body.get("items", [])
-    grade_key = str(body.get("grade", "std"))
-    if size_key not in ESTIMATE_SIZES or grade_key not in ESTIMATE_GRADES:
+    """AIで条件を抽出し、金額と工期はサーバーの料金マスタで検証計算する。"""
+    requested_size = str(body.get("size", "8"))
+    requested_items = body.get("items", [])
+    requested_grade = str(body.get("grade", "std"))
+    if requested_size not in ESTIMATE_SIZES or requested_grade not in ESTIMATE_GRADES:
         return {"error": "invalid estimate condition"}
-    if not isinstance(item_keys, list) or not item_keys or any(key not in ESTIMATE_ITEMS for key in item_keys):
+    if not isinstance(requested_items, list) or not requested_items or any(key not in ESTIMATE_ITEMS for key in requested_items):
         return {"error": "at least one valid estimate item is required"}
+
+    api_key = os.environ.get("OPENAI_API_KEY", "").strip()
+    size_key, item_keys, grade_key = requested_size, list(dict.fromkeys(requested_items)), requested_grade
+    explanation = "選択した工事内容と面積をもとに、標準的な施工条件で概算しています。"
+    source = "rule"
+    if api_key:
+        context = body.get("context", [])
+        context_text = json.dumps(context[-10:] if isinstance(context, list) else [], ensure_ascii=False)[:12000]
+        prompt = (
+            "リフォーム相談の会話から見積り条件を抽出してください。JSONだけを返してください。\n"
+            "キーは size（6,8,10,12のいずれか）、items（floor,wall,kitchen,bath,toilet,wash,light,storageの配列）、"
+            "grade（eco,std,preのいずれか）、explanation（日本語80文字以内）です。"
+            "会話に明示がない条件は、画面で選択された値を維持してください。金額は計算しないでください。\n"
+            f"画面選択: size={requested_size}, items={','.join(requested_items)}, grade={requested_grade}\n"
+            f"会話: {context_text}"
+        )
+        request = Request("https://api.openai.com/v1/responses", data=json.dumps({
+            "model": os.environ.get("OPENAI_MODEL", "gpt-5-mini"),
+            "input": [{"role": "system", "content": "指定されたJSON形式を厳守するリフォーム見積り条件抽出器。"}, {"role": "user", "content": prompt}],
+            "max_output_tokens": 240,
+            "store": False,
+        }).encode(), headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, method="POST")
+        try:
+            with urlopen(request, timeout=15) as result:
+                payload = json.loads(result.read())
+            raw = payload.get("output_text", "")
+            match = raw[raw.find("{"):raw.rfind("}") + 1]
+            ai_conditions = json.loads(match) if match else {}
+            candidate_size = str(ai_conditions.get("size", requested_size))
+            candidate_items = ai_conditions.get("items", requested_items)
+            candidate_grade = str(ai_conditions.get("grade", requested_grade))
+            if candidate_size in ESTIMATE_SIZES and candidate_grade in ESTIMATE_GRADES and isinstance(candidate_items, list):
+                candidate_items = list(dict.fromkeys(key for key in candidate_items if key in ESTIMATE_ITEMS))
+                if candidate_items:
+                    size_key, item_keys, grade_key = candidate_size, candidate_items, candidate_grade
+                    explanation = str(ai_conditions.get("explanation", explanation))[:240] or explanation
+                    source = "ai"
+        except (HTTPError, URLError, TimeoutError, json.JSONDecodeError, ValueError):
+            pass
 
     m2 = ESTIMATE_SIZES[size_key]
     multiplier = ESTIMATE_GRADES[grade_key]
@@ -135,28 +174,7 @@ def estimate(body, user):
     high = round(high * multiplier / 10000) * 10000
     duration = {"low": max(1, low_weeks), "high": max(low_weeks, high_weeks)}
 
-    explanation = "選択した工事内容と面積をもとに、標準的な施工条件で概算しています。"
-    api_key = os.environ.get("OPENAI_API_KEY", "").strip()
-    if api_key:
-        prompt = (
-            "あなたはリフォーム見積りアシスタントです。以下の計算済み結果を変更せず、"
-            "前提と注意点を含む日本語の説明を80文字以内で返してください。金額や工期を新たに計算しないでください。\n"
-            f"面積:{m2}m2、工事項目:{','.join(dict.fromkeys(item_keys))}、グレード:{grade_key}、"
-            f"概算:{low}〜{high}円、工期:{duration['low']}〜{duration['high']}週間"
-        )
-        request = Request("https://api.openai.com/v1/responses", data=json.dumps({
-            "model": os.environ.get("OPENAI_MODEL", "gpt-5-mini"),
-            "input": [{"role": "system", "content": "リフォーム業務の説明を簡潔かつ正確に行う。"}, {"role": "user", "content": prompt}],
-            "max_output_tokens": 160,
-            "store": False,
-        }).encode(), headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, method="POST")
-        try:
-            with urlopen(request, timeout=15) as result:
-                payload = json.loads(result.read())
-            explanation = payload.get("output_text", "") or explanation
-        except (HTTPError, URLError, TimeoutError):
-            explanation = "計算済みの概算です。現地調査と仕様確定後に正式なお見積りとなります。"
-    return {"estimate": {"low": low, "high": high}, "duration": duration, "explanation": explanation, "source": "ai" if api_key else "rule"}
+    return {"estimate": {"low": low, "high": high}, "duration": duration, "conditions": {"size": size_key, "items": item_keys, "grade": grade_key}, "explanation": explanation, "source": source}
 
 
 def lambda_handler(event, context):
