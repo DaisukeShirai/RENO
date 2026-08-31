@@ -3299,9 +3299,19 @@ function updateSimResult() {
 
 async function requestEstimate() {
   const card = document.getElementById('sim-msg');
-  if (!card || !EDGE_URL || !simState.items.size) return;
+  if (!card) return;
   const durationEl = card.querySelector('.sim-duration-value');
+  const priceEl = card.querySelector('.sim-result-price');
+  const noteEl = card.querySelector('.sim-result-note');
+  if (!simState.items.size) return;
+  if (!EDGE_URL) {
+    if (priceEl) priceEl.textContent = 'API未接続';
+    if (durationEl) durationEl.textContent = '—';
+    if (noteEl) noteEl.textContent = '見積りAPIに接続できないため、算出できません。';
+    return;
+  }
   if (durationEl) durationEl.textContent = '計算中…';
+  if (priceEl) priceEl.textContent = '計算中…';
   try {
     const res = await fetchWithTimeout(EDGE_URL, {
       method: 'POST',
@@ -3368,8 +3378,6 @@ function showSimulator() {
     `<button class="sim-grade ${i===simState.gradeIdx?'active':''}" onclick="simSetGrade(${i})">${g.label}</button>`
   ).join('');
 
-  const { lo, hi } = calcCost();
-
   div.innerHTML = `<div class="avatar agent">${getAgentIconHTML()}</div>
     <div class="bubble agent">
       <div class="sim-card">
@@ -3394,7 +3402,7 @@ function showSimulator() {
             <div class="sim-result-highlights">
               <div class="sim-metric">
                 <div class="sim-metric-label">概算費用</div>
-                <div class="sim-result-price" id="sim-price">${lo?fmtMoney(lo)+' 〜 '+fmtMoney(hi):'項目を選択してください'}</div>
+                <div class="sim-result-price" id="sim-price">${simState.items.size ? '算出中…' : '項目を選択してください'}</div>
               </div>
               <div class="sim-metric duration">
                 <div class="sim-metric-label">概算工期</div>
