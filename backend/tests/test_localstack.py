@@ -90,6 +90,26 @@ class LocalStackHandlerTest(unittest.TestCase):
         finally:
             self.handler.UNLIMITED_MODE = previous
 
+    def test_chat_with_whitespace_openai_key_uses_local_fallback(self):
+        previous_key = os.environ.get("OPENAI_API_KEY")
+        try:
+            os.environ["OPENAI_API_KEY"] = "   "
+            token = self.handler.token_for("whitespace-key-test")
+            result = self.handler.lambda_handler({"body": json.dumps({
+                "type": "chat",
+                "token": token,
+                "messages": [{"role": "user", "content": "テスト"}],
+            })}, None)
+            self.assertEqual(result["statusCode"], 200)
+            payload = json.loads(result["body"])
+            self.assertIn("content", payload)
+            self.assertEqual(payload["usage"]["count"], 1)
+        finally:
+            if previous_key is None:
+                os.environ.pop("OPENAI_API_KEY", None)
+            else:
+                os.environ["OPENAI_API_KEY"] = previous_key
+
 
 if __name__ == "__main__":
     unittest.main()

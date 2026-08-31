@@ -71,7 +71,8 @@ def chat(body, user):
     if not isinstance(messages, list) or len(messages) > 50: return {"error": "messages must be an array of at most 50 items"}
     current = usage(user)
     if not UNLIMITED_MODE and current["count"] >= current["limit"]: return {"error": "usage limit reached", "usage": current}
-    api_key = os.environ.get("OPENAI_API_KEY")
+    # CIの空値指定などで空白だけが渡っても、OpenAI API呼び出しへ進めない。
+    api_key = os.environ.get("OPENAI_API_KEY", "").strip()
     if api_key:
         input_messages = ([{"role": "system", "content": str(body.get("system", ""))[:MAX_SYSTEM_CHARS]}] + [{"role": m.get("role", "user"), "content": str(m.get("content", ""))[:MAX_MESSAGE_CHARS]} for m in messages[-MAX_INPUT_MESSAGES:] if isinstance(m, dict) and m.get("role") in ("user", "assistant")])
         request = Request("https://api.openai.com/v1/responses", data=json.dumps({"model": os.environ.get("OPENAI_MODEL", "gpt-5-mini"), "input": input_messages, "max_output_tokens": MAX_OUTPUT_TOKENS, "store": False}).encode(), headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}, method="POST")
