@@ -3,6 +3,7 @@ import MainPage from './migrated/main.jsx';
 import AgentPage from './migrated/agent.jsx';
 import RevenuePage from './migrated/revenue.jsx';
 import MockupPage from './migrated/mockup.jsx';
+import DesktopQrDock from './DesktopQrDock.jsx';
 import './migrated/main.css';
 
 const pages = {
@@ -30,5 +31,8 @@ export default function App() {
     }
   }, [Page]);
 
-  return <Page />;
+  return <>
+    <Page />
+    {Page === MainPage && <DesktopQrDock />}
+  </>;
 }

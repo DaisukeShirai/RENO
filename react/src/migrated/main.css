@@ -121,6 +121,26 @@ html.oauth-pending #oauthLoadingOverlay{display:flex;}
 .qr-btn-copy{flex:1;padding:9px;border:1px solid var(--border);border-radius:8px;background:transparent;font-size:12px;color:var(--text2);cursor:pointer;font-family:inherit;}
 .qr-btn-close{flex:1;padding:9px;border:none;border-radius:8px;background:var(--gold);font-size:13px;color:white;cursor:pointer;font-weight:600;font-family:inherit;}
 
+/* PCのみ: スマホへ引き継ぐための常駐QRコード */
+#desktopQrDock{display:none;}
+@media (min-width:1024px){
+  #desktopQrDock{
+    position:fixed;z-index:250;top:50%;right:24px;transform:translateY(-50%);
+    display:flex;flex-direction:column;align-items:center;width:184px;padding:14px;
+    background:rgba(255,255,255,0.96);border:1px solid var(--border);border-radius:14px;
+    box-shadow:0 10px 30px rgba(38,31,20,0.12);text-align:center;
+    backdrop-filter:blur(8px);
+  }
+  .desktop-qr-dock-icon{
+    display:flex;align-items:center;justify-content:center;width:28px;height:28px;
+    margin-bottom:5px;border-radius:8px;background:var(--gold-bg);color:var(--gold);
+    font-size:18px;font-weight:600;line-height:1;
+  }
+  .desktop-qr-dock-title{font-size:13px;font-weight:600;color:var(--text);}
+  #desktopQrDock p{margin:3px 0 10px;font-size:10px;line-height:1.5;color:var(--muted);}
+  #desktopQrDock img{display:block;width:142px;height:142px;background:#f8f8f6;border-radius:6px;}
+}
+
 .menu-divider{height:1px;background:var(--border);margin:4px 0;}
 .menu-version{font-size:11px;color:var(--muted);text-align:center;padding:16px 20px 0;letter-spacing:0.06em;}
 /* SE toggle */
