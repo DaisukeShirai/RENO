@@ -963,6 +963,7 @@ function initChat() {
         && !savedState.chatSnapshot.includes('id="typing"');
       if (canRestoreSnapshot) {
         document.getElementById('chat').innerHTML = savedState.chatSnapshot;
+        refreshAgentAvatars();
         restoreInteractiveSuggestions();
       } else {
         restoreCachedChat(cached, ['final-confirm', 'material'].includes(savedState.activeView));
@@ -1023,9 +1024,19 @@ const AGENT_ICONS = [
 // f1:通常, f2:笑顔, f3:思考中
 // male選択時は常にm1
 // 初期アイコン
-let _agentIconId = safeLocalGet('reno_agent_icon', 'f1');
+function normalizeAgentIconId(value) {
+  const id = String(value || '').trim().toLowerCase();
+  const aliases = { female: 'f1', male: 'm1', default: 'f1' };
+  const normalized = aliases[id] || id;
+  return normalized === 'none' || AGENT_ICONS.some(icon => icon.id === normalized)
+    ? normalized
+    : 'f1';
+}
+
+let _agentIconId = normalizeAgentIconId(safeLocalGet('reno_agent_icon', 'f1'));
+safeLocalSet('reno_agent_icon', _agentIconId);
 // 現在の表情 (f1/f2/f3 or m1 or none)
-let _currentIconId = _agentIconId;
+let _currentIconId = normalizeAgentIconId(_agentIconId);
 
 // 感情タイプ → female表情マッピング
 const EMOTION_MAP = {
@@ -1047,13 +1058,22 @@ function getIconForEmotion(emotion) {
 }
 
 function getAgentIconHTML(iconId) {
-  const id = iconId || _currentIconId || 'f1';
+  const id = normalizeAgentIconId(iconId || _currentIconId || 'f1');
   if (id === 'none') return null;
   const ic = AGENT_ICONS.find(i => i.id === id);
   if (!ic || ic.type !== 'img') {
     return `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>`;
   }
   return `<img src="${ic.src}" alt="agent">`;
+}
+
+function refreshAgentAvatars() {
+  const id = normalizeAgentIconId(_currentIconId || _agentIconId || 'f1');
+  const icon = AGENT_ICONS.find(item => item.id === id);
+  if (!icon) return;
+  document.querySelectorAll('.avatar.agent img').forEach(img => {
+    img.src = icon.src;
+  });
 }
 // Compat alias
 Object.defineProperty(window, 'agentIcon', { get: () => getAgentIconHTML() });
