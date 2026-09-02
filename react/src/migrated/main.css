@@ -129,7 +129,7 @@ html.oauth-pending #oauthLoadingOverlay{display:flex;}
     width:156px;padding:10px;
     background:rgba(255,255,255,0.96);border:1px solid var(--border);border-radius:14px;
     box-shadow:0 10px 30px rgba(38,31,20,0.12);text-align:center;
-    backdrop-filter:blur(8px);
+    backdrop-filter:blur(8px);pointer-events:none;
   }
   .desktop-qr-dock-icon{
     display:flex;align-items:center;justify-content:center;width:24px;height:24px;
@@ -137,7 +137,7 @@ html.oauth-pending #oauthLoadingOverlay{display:flex;}
     font-size:15px;font-weight:600;line-height:1;
   }
   .desktop-qr-dock-title{font-size:12px;font-weight:600;color:var(--text);}
-  .desktop-qr-dock-drag-handle{cursor:grab;touch-action:none;user-select:none;}
+  .desktop-qr-dock-drag-handle{cursor:grab;touch-action:none;user-select:none;pointer-events:auto;}
   .desktop-qr-dock-drag-handle:active{cursor:grabbing;}
   #desktopQrDock p{margin:2px 0 7px;font-size:9px;line-height:1.4;color:var(--muted);}
   #desktopQrDock img{display:block;width:116px;height:116px;background:#f8f8f6;border-radius:5px;}
