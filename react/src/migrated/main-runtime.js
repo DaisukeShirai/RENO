@@ -1,4 +1,9 @@
 
+import {
+  getTemplateActionResponse,
+  getTemplateAgentResponse,
+} from './template-chat-flow.js';
+
 // ── Config ──
 const EDGE_URL      = window.RENO_CONFIG?.apiUrl || '';
 const EDGE_HEADERS  = {};
@@ -1129,9 +1134,18 @@ function tapChip(text) {
     return;
   }
   if (text === '別の部屋を相談する') {
-    addUserMessage(text);
-    history.push({ role:'user', content: text });
-    callAgent();
+    const response = getTemplateActionResponse('choose-room', history);
+    addTemplateTurn(text, response.reply, response.suggestions);
+    return;
+  }
+  if (text === '別の箇所も試す') {
+    const response = getTemplateActionResponse('choose-part', history);
+    addTemplateTurn(text, response.reply, response.suggestions);
+    return;
+  }
+  if (text === 'スタイルを変えてみる') {
+    const response = getTemplateActionResponse('change-style', history);
+    addTemplateTurn(text, response.reply, response.suggestions);
     return;
   }
   if (text === '素材を探す' || text === '素材提案' || text === '別の素材を見る') {
@@ -1171,6 +1185,11 @@ function tapChip(text) {
       addUserMessage(text);
       showUploadCard('施工後イメージを確認するため、現状写真を選んでください');
     }
+    return;
+  }
+  if (text === 'このスタイルで進めたい') {
+    addUserMessage(text);
+    showUploadCard('施工後イメージを作成するため、現状写真を選んでください');
     return;
   }
   if (text === '提案書を作成') {
@@ -3277,6 +3296,15 @@ async function getMockAgentResponse(messages) {
   return 'ご希望を反映した施工後イメージを作成できます。写真の準備ができたら、次のステップへ進みましょう。\n[SUGGESTIONS: 施工後イメージ, 概算を見る, 担当者に相談]';
 }
 
+function addTemplateTurn(userText, reply, suggestions) {
+  addUserMessage(userText);
+  history.push({ role: 'user', content: userText });
+  const raw = `${reply}\n[SUGGESTIONS: ${suggestions.join(', ')}]`;
+  addAgentMessage(reply, null, null, suggestions);
+  history.push({ role: 'assistant', content: raw });
+  persistChatHistory();
+}
+
 async function callAgent() {
   const requestToken = chatResetToken;
   document.getElementById('sendBtn').disabled = true;
@@ -3284,8 +3312,11 @@ async function callAgent() {
   addTyping();
   try {
     let raw = '';
-    if (MOCK_CHAT_MODE) {
-            raw = await getMockAgentResponse(history);
+    const templateResponse = getTemplateAgentResponse(history);
+    if (templateResponse) {
+      raw = templateResponse;
+    } else if (MOCK_CHAT_MODE) {
+      raw = await getMockAgentResponse(history);
     } else {
       const res  = await fetch(EDGE_URL, {
         method: 'POST',
@@ -3300,7 +3331,7 @@ async function callAgent() {
     }
     if (requestToken !== chatResetToken) return;
     removeTyping();
-    if (MOCK_CHAT_MODE) {
+    if (MOCK_CHAT_MODE && !templateResponse) {
       addAgentMessage('\u73fe\u5728\u306fAI\u306b\u63a5\u7d9a\u3057\u3066\u3044\u306a\u3044\u305f\u3081\u3001\u30c7\u30e2\u5fdc\u7b54\u3092\u8868\u793a\u3057\u3066\u3044\u307e\u3059\u3002');
     }
 
