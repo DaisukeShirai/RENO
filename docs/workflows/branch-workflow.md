@@ -32,6 +32,60 @@ flowchart LR
     T -->|失敗| X[forkへは同期しない]
 ```
 
+## 全体ワークフロー
+
+```mermaid
+flowchart TB
+    DEV[開発者]
+
+    subgraph ORIGIN[origin: IFLAG-hps/RENO]
+        OI[Issue作業ブランチ<br/>[Issue番号]-概要]
+        SYNC[sync-fork.yml<br/>Issueブランチのpushで起動]
+        PROMOTE[promote-tested-issue-branch.yml<br/>同期完了後に起動]
+        VALIDATE[main-deploy.yml<br/>LocalStack・SAM・E2Eを検証]
+        OM[main]
+    end
+
+    subgraph FORK[fork: DaisukeShirai/RENO]
+        FI[同名Issueブランチ]
+        FD[dev]
+        FS[staging]
+        FM[main]
+        FCI[main-deploy.yml<br/>環境ブランチのCI]
+        DEPLOY[deploy-backend.yml<br/>SAMデプロイ]
+    end
+
+    subgraph HOSTING[公開環境]
+        AD[Amplify dev]
+        AS[Amplify staging]
+        AP[Amplify production]
+    end
+
+    DEV -->|origin/mainを親に作成・push| OI
+    OI --> SYNC
+    SYNC -->|FORK_REPO_TOKENで同期| FI
+    SYNC -->|成功| PROMOTE
+    PROMOTE -->|同じSHAを再利用| VALIDATE
+    VALIDATE -->|成功時のみマージ| OM
+    OM -->|次の作業ブランチの親| OI
+
+    FI -->|PRをマージ| FD
+    FD -->|PRをマージ| FS
+    FS -->|PRをマージ| FM
+
+    FD --> FCI
+    FS --> FCI
+    FM --> FCI
+    FD --> DEPLOY
+    FS --> DEPLOY
+    FM --> DEPLOY
+    FD --> AD
+    FS --> AS
+    FM --> AP
+```
+
+`origin/main` の更新は fork の環境昇格とは独立し、Issueブランチの同期後に origin 側の検証が成功した場合だけ実行されます。fork の `dev` / `staging` / `main` は、それぞれの確認・公開環境を更新するためのPR昇格フローです。
+
 ## 同期・検証後の origin/main 更新
 
 Issueブランチのfork同期が成功すると、origin側の`promote-tested-issue-branch.yml`が同じコミットを検証します。検証に成功した場合だけ、同じIssueブランチを`origin/main`へマージします。これにより、次のIssueブランチを`origin/main`から作成しても、検証済みの変更を親にできます。
