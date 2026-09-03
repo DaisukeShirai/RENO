@@ -4,11 +4,15 @@ on:
   push:
     branches:
       - main
+      - staging
+      - dev
       - feature/makeActions
       - feature/mvp
   pull_request:
     branches:
       - main
+      - staging
+      - dev
       - feature/mvp
   workflow_dispatch:
     inputs:
