@@ -32,6 +32,21 @@ flowchart LR
     T -->|失敗| X[forkへは同期しない]
 ```
 
+## staging 昇格時の origin/main 更新
+
+forkのIssueブランチを`staging`へ直接PRマージした場合、fork側で実行される`sync-fork.yml`が同じIssueブランチを`origin/main`へマージします。これにより、次のIssueブランチを`origin/main`から作成しても、受入済みの変更を親にできます。`dev`から`staging`への環境昇格はIssueブランチではないため、このマージ対象にはなりません。
+
+```mermaid
+flowchart LR
+    OI[origin: Issue作業ブランチ] -->|push| FI[fork: 同名Issueブランチ]
+    FI -->|PRをstagingへマージ| FS[fork/staging]
+    FS -->|closed pull_requestイベント| W[sync-fork.yml<br/>forkで実行]
+    OI -->|fetch| W
+    OM[origin/main] -->|fetch| W
+    W -->|origin/Issueブランチをマージ| OM
+    OM -->|次の作業ブランチの親| NEXT[次のorigin Issue作業ブランチ]
+```
+
 ## 各ブランチの位置づけ
 
 | 対象 | 役割 | 主な操作 | 公開環境への影響 |

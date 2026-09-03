@@ -4,6 +4,11 @@ on:
   push:
     branches:
       - '[1-9]*-*'
+  pull_request:
+    branches:
+      - staging
+    types:
+      - closed
 
 permissions:
   contents: read
@@ -32,3 +37,45 @@ jobs:
           case "$BRANCH" in [1-9]*-*) ;; *) echo "Unexpected branch: $BRANCH"; exit 1 ;; esac
           git push "https://x-access-token:${FORK_REPO_TOKEN}@github.com/DaisukeShirai/RENO.git" \
             --force "HEAD:refs/heads/$BRANCH"
+
+  merge-promoted-branch:
+    name: Merge promoted issue branch into origin main
+    if: >-
+      ${{ github.repository == 'DaisukeShirai/RENO'
+          && github.event_name == 'pull_request'
+          && github.event.pull_request.merged == true }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Identify an issue branch promotion
+        id: source
+        env:
+          BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          case "$BRANCH" in
+            [1-9]*-*) echo "should_merge=true" >> "$GITHUB_OUTPUT" ;;
+            *) echo "should_merge=false" >> "$GITHUB_OUTPUT"; echo "Not an issue branch: $BRANCH" ;;
+          esac
+
+      - name: Checkout workflow revision
+        if: steps.source.outputs.should_merge == 'true'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Merge promoted branch into origin main
+        if: steps.source.outputs.should_merge == 'true'
+        env:
+          ORIGIN_REPO_TOKEN: ${{ secrets.ORIGIN_REPO_TOKEN }}
+          BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          test -n "$ORIGIN_REPO_TOKEN"
+          git remote rename origin fork
+          git remote add origin "https://x-access-token:${ORIGIN_REPO_TOKEN}@github.com/IFLAG-hps/RENO.git"
+          git fetch origin main "$BRANCH"
+          git switch --create origin-main --track origin/main
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git merge --no-ff "origin/$BRANCH" -m "Merge branch '$BRANCH' into main"
+          git push origin HEAD:refs/heads/main
