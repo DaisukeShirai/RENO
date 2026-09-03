@@ -13,13 +13,14 @@ for (const [name, file] of Object.entries(files)) {
   workflows[name] = await readFile(file, 'utf8');
 }
 
-for (const name of ['backend']) {
-  assert.match(workflows[name], /if: github\.ref == 'refs\/heads\/main'/, `${name}: main branch restriction is missing`);
-  assert.match(workflows[name], /uses: \.\/\.github\/workflows\/localstack-test\.yml/, `${name}: LocalStack test is missing`);
-  assert.match(workflows[name], /needs: localstack-test/, `${name}: test dependency is missing`);
-}
+assert.match(workflows.backend, /- dev/, 'backend: dev push trigger is missing');
+assert.match(workflows.backend, /workflow_dispatch:/, 'backend: manual deployment trigger is missing');
+assert.match(workflows.backend, /staging:staging/, 'backend: staging branch guard is missing');
+assert.match(workflows.backend, /production:main/, 'backend: production branch guard is missing');
+assert.match(workflows.backend, /Environment=\$DEPLOYMENT_ENVIRONMENT/, 'backend: CloudFormation environment parameter is missing');
+assert.match(workflows.backend, /uses: \.\/\.github\/workflows\/localstack-test\.yml/, 'backend: LocalStack test is missing');
+assert.match(workflows.backend, /needs: \[prepare, localstack-test\]/, 'backend: test dependency is missing');
 
-assert.match(workflows.main, /github\.ref == 'refs\/heads\/main'/, 'main-deploy: main branch restriction is missing');
 assert.match(workflows.localstack, /workflow_call:/, 'LocalStack workflow_call is missing');
 assert.match(workflows.backend, /OPENAI_API_KEY: \$\{\{ secrets\.OPENAI_API_KEY \}\}/, 'backend OpenAI key configuration is missing');
 assert.match(workflows.sync, /workflow_run:/, 'fork sync workflow trigger is missing');
@@ -27,6 +28,10 @@ assert.match(workflows.sync, /github\.event\.workflow_run\.conclusion == 'succes
 assert.match(workflows.sync, /github\.repository == 'IFLAG-hps\/RENO'/, 'fork sync source repository guard is missing');
 assert.match(workflows.sync, /secrets\.FORK_REPO_TOKEN/, 'fork sync token configuration is missing');
 assert.match(workflows.sync, /DaisukeShirai\/RENO\.git/, 'fork repository target is missing');
+assert.match(workflows.sync, /main\|staging\|dev/, 'fork sync branch allow-list is missing');
+const samTemplate = await readFile('backend/template.yaml', 'utf8');
+assert.match(samTemplate, /Environment:\n    Type: String/, 'SAM environment parameter is missing');
+assert.match(samTemplate, /reno-mvp-\$\{Environment\}-users/, 'Cognito user pool environment isolation is missing');
 const amplifyConfig = await readFile('amplify.yml', 'utf8');
 assert.match(amplifyConfig, /npm ci/, 'Amplify dependency installation is missing');
 assert.match(amplifyConfig, /npm run build:react/, 'Amplify React build is missing');

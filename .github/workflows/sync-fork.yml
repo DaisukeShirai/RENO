@@ -1,24 +1,26 @@
-name: "SYNC: Merge tested main to fork"
+name: "SYNC: Mirror tested environment branches to fork"
 
 on:
   workflow_run:
     workflows:
-      - "CI: Test and optionally deploy backend"
+      - "CI: Validate application"
     types:
       - completed
     branches:
       - main
+      - staging
+      - dev
 
 permissions:
   contents: read
 
 jobs:
   sync:
-    name: Sync main to Amplify fork
-    if: ${{ github.repository == 'IFLAG-hps/RENO' && github.event.workflow_run.conclusion == 'success' }}
+    name: Sync tested branch to Amplify fork
+    if: ${{ github.repository == 'IFLAG-hps/RENO' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout tested main
+      - name: Checkout tested branch
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
@@ -27,10 +29,12 @@ jobs:
           # FORK_REPO_TOKEN below and authenticate the push as github-actions[bot].
           persist-credentials: false
 
-      - name: Push tested main to fork
+      - name: Push tested branch to fork
         env:
           FORK_REPO_TOKEN: ${{ secrets.FORK_REPO_TOKEN }}
         run: |
           test -n "$FORK_REPO_TOKEN"
+          BRANCH="${{ github.event.workflow_run.head_branch }}"
+          case "$BRANCH" in main|staging|dev) ;; *) echo "Unexpected branch: $BRANCH"; exit 1 ;; esac
           git push "https://x-access-token:${FORK_REPO_TOKEN}@github.com/DaisukeShirai/RENO.git" \
-            "HEAD:main"
+            "HEAD:$BRANCH"

@@ -13,18 +13,18 @@
 | `dev` | 日常の開発・結合 | 開発用URL | 作業ブランチからPRをマージ |
 | `feature/<内容>` | 個別タスクの実装 | 原則なし | `dev`向けPRを作成 |
 
-Amplifyには `main`、`staging`、`dev` をそれぞれ別ブランチとして接続し、各ブランチのpushで対応するプレビュー環境を更新する。環境ごとにAPI URL、モック設定、Cognitoクライアントなどの公開設定を分ける。
+Amplifyには `main`、`staging`、`dev` をそれぞれ別ブランチとして接続し、各ブランチのpushで対応するプレビュー環境を更新する。環境ごとにAPI URL、モック設定、Cognitoクライアントなどの公開設定を分ける。バックエンドはブランチ単位ではなく、`dev`、`staging`、`production`の3スタックで分離する。
 
 ## 標準フロー
 
 1. Notionでタスク、完了条件、見積工数を登録する。
 2. `dev`から `feature/<内容>` ブランチを作成する。
 3. 実装・ローカルテストを行い、作業ブランチから `dev` へPRを作成する。
-4. CI（バックエンド、SAM、E2E、Reactビルド）が成功したことを確認して `dev` にマージする。
+4. CI（バックエンド、SAM、E2E、Reactビルド）が成功したことを確認して `dev` にマージする。`dev`へのpushは `reno-mvp-dev` バックエンドスタックを更新する。
 5. `dev`のプレビュー環境で動作確認し、タスクの実績工数と検証結果をNotionに記録する。
 6. まとまった機能単位で `dev` から `staging` へPRを作成する。
-7. `staging`のプレビューURLを上長へ共有し、受入確認を受ける。
-8. 承認された変更だけを `staging` から `main` へPRでマージする。
+7. `staging`のバックエンドデプロイを手動実行して `reno-mvp-staging` を更新し、プレビューURLを上長へ共有して受入確認を受ける。
+8. 承認された変更だけを `staging` から `main` へPRでマージする。`production`スタックの更新は、`main`から手動実行する。
 9. `main`のCI成功後、動作デモURLで最終確認する。
 
 ## マージルール
@@ -44,6 +44,12 @@ Amplifyには `main`、`staging`、`dev` をそれぞれ別ブランチとして
 | MVP接続版 | S3アップロード、相談保存、受付API、SES | `dev` → `staging` |
 | 本番MVP | 画像生成・ファイル保存・履歴・エラー処理・AWS結合テスト | `staging` → `main` |
 
-## CIの扱い
+## バックエンドデプロイの扱い
 
-`main-deploy.yml` は `main`、`staging`、`dev` へのpushと、それらを対象とするPRで検証を実行する。AWS本番デプロイのジョブは `main` からの手動実行に限定する。
+| Gitブランチ | CloudFormationスタック | 実行方法 | GitHub Environment |
+| --- | --- | --- | --- |
+| `dev` | `reno-mvp-dev` | push時に自動デプロイ | `dev` |
+| `staging` | `reno-mvp-staging` | 手動実行 | `staging` |
+| `main` | `reno-mvp-prod` | 手動実行・承認必須 | `production` |
+
+`main-deploy.yml` は `main`、`staging`、`dev` へのpushと、それらを対象とするPRで検証を実行する。`deploy-backend.yml` がLocalStackテスト後に対象スタックを更新する。各スタックはDynamoDB、S3、Cognitoを個別に作成するため、データは環境間で共有されない。

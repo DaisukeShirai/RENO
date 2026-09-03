@@ -1,4 +1,4 @@
-name: "CI: Test and optionally deploy backend"
+name: "CI: Validate application"
 
 on:
   push:
@@ -119,7 +119,7 @@ jobs:
     name: Optional deploy to AWS (manual)
     needs: test
     # AWS更新は手動実行で明示的に許可した場合だけ行う。
-    if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' && inputs.deploy_aws == true
+    if: ${{ false }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
