@@ -6,15 +6,11 @@ on:
       - main
       - staging
       - dev
-      - 'feature/**'
-      - feature/makeActions
-      - feature/mvp
   pull_request:
     branches:
       - main
       - staging
       - dev
-      - feature/mvp
   workflow_dispatch:
     inputs:
       deploy_aws:
