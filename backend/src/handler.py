@@ -414,6 +414,16 @@ def lambda_handler(event, context):
             result = chat(body, user, session_id)
             status = 429 if "usage limit" in result.get("error", "") else 503 if "unavailable" in result.get("error", "") else 400 if "messages" in result.get("error", "") else 200
             return response(status, result)
+        if typ == "save_chat_turn":
+            session_id = str(body.get("sessionId", "")).strip()
+            user_message = str(body.get("userMessage", "")).strip()
+            assistant_message = str(body.get("assistantMessage", "")).strip()
+            if not session_id or not user_message or not assistant_message:
+                return response(400, {"error": "sessionId, userMessage and assistantMessage are required"})
+            if not session_item(user, session_id):
+                return response(404, {"error": "session not found"})
+            save_chat_turn(user, session_id, user_message, assistant_message)
+            return response(200, {"ok": True, "sessionId": session_id})
         if typ == "estimate":
             result = estimate(body, user)
             status = 400 if "error" in result else 200
