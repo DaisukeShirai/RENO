@@ -788,6 +788,8 @@ let chatStarted = false;
 let chatResetToken = 0;
 const CHAT_CACHE_PREFIX = 'reno_chat_history_v1:';
 const CHAT_STATE_SUFFIX = ':state';
+const ACTIVE_SESSION_SUFFIX = ':active-session';
+let currentSessionId = '';
 
 function chatCacheKey() {
   return CHAT_CACHE_PREFIX + (sessionEmail || 'guest');
@@ -795,6 +797,56 @@ function chatCacheKey() {
 
 function chatStateKey() {
   return chatCacheKey() + CHAT_STATE_SUFFIX;
+}
+
+function activeSessionKey() {
+  return chatCacheKey() + ACTIVE_SESSION_SUFFIX;
+}
+
+function loadActiveSessionId() {
+  return safeLocalGet(activeSessionKey(), '');
+}
+
+function setActiveSessionId(sessionId) {
+  currentSessionId = String(sessionId || '');
+  if (currentSessionId) safeLocalSet(activeSessionKey(), currentSessionId);
+  else {
+    try { localStorage.removeItem(activeSessionKey()); } catch (e) {}
+  }
+}
+
+async function ensureSession() {
+  if (currentSessionId || !EDGE_URL) return currentSessionId;
+  if (!sessionToken) throw new Error('ログインセッションがありません');
+  const res = await fetchWithTimeout(EDGE_URL, {
+    method: 'POST',
+    headers: { ...EDGE_HEADERS, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token: sessionToken, type: 'create_session' }),
+  });
+  const data = await res.json();
+  const sessionId = data?.session?.sessionId;
+  if (!res.ok || !sessionId) throw new Error(data?.error || '相談セッションを作成できませんでした');
+  setActiveSessionId(sessionId);
+  return sessionId;
+}
+
+async function saveMockChatTurn(userMessage, assistantMessage) {
+  if (!currentSessionId || !EDGE_URL || !userMessage || !assistantMessage) return;
+  const res = await fetchWithTimeout(EDGE_URL, {
+    method: 'POST',
+    headers: { ...EDGE_HEADERS, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      token: sessionToken,
+      type: 'save_chat_turn',
+      sessionId: currentSessionId,
+      userMessage,
+      assistantMessage,
+    }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data?.error || '会話を保存できませんでした');
+  }
 }
 
 function persistChatHistory() {
@@ -889,6 +941,7 @@ function resetConversation() {
   chatResetToken += 1;
   removeTyping();
   clearDraftCache();
+  setActiveSessionId('');
   history = [];
   window._beforeFile = null;
   window._beforeURL = '';
@@ -952,6 +1005,7 @@ function restoreInteractiveSuggestions() {
 
 function initChat() {
   chatStarted = true;
+  currentSessionId = loadActiveSessionId();
   fetchUsage();
   const savedState = restoreChatState();
   try {
@@ -3138,37 +3192,59 @@ async function openHistoryPanel() {
       body: JSON.stringify({ token: sessionToken, type: 'get_sessions' })
     });
     const data = await res.json();
+    const sessions = Array.isArray(data) ? data : (Array.isArray(data?.sessions) ? data.sessions : []);
 
-    if (!Array.isArray(data) || data.length === 0) {
+    if (sessions.length === 0) {
       list.innerHTML = '<div class="history-empty">まだ履歴がありません。<br>ヒアリングを完了すると<br>ここに保存されます。</div>';
       return;
     }
 
-    list.innerHTML = data.map(s => {
-      const date = new Date(s.created_at).toLocaleDateString('ja-JP', {
+    list.innerHTML = sessions.map(s => {
+      const date = new Date((s.createdAt || 0) * 1000).toLocaleDateString('ja-JP', {
         month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'
       });
-      const imageSrc = safeImageSrc(s.after_image_url);
-      const imgHtml = imageSrc
-        ? `<img class="session-img" src="${escapeHTML(imageSrc)}" alt="after">`
-        : `<div class="session-img-placeholder">NO IMAGE</div>`;
-      return `<div class="session-card">
-        ${imgHtml}
+      const sessionId = escapeJSString(s.sessionId || '');
+      return `<div class="session-card" role="button" tabindex="0" onclick="resumeSession('${sessionId}')">
+        <div class="session-img-placeholder">CHAT</div>
         <div class="session-body">
           <div class="session-date">${date}</div>
           <div class="session-tags">
-            ${s.room  ? `<span class="session-tag">${escapeHTML(s.room)}</span>` : ''}
-            ${s.parts ? `<span class="session-tag">${escapeHTML(s.parts)}</span>` : ''}
-            ${s.style ? `<span class="session-tag">${escapeHTML(s.style)}</span>` : ''}
-            ${s.budget? `<span class="session-tag">${escapeHTML(s.budget)}</span>` : ''}
+            <span class="session-tag">${escapeHTML(s.status || 'active')}</span>
+            ${s.messageCount ? `<span class="session-tag">${s.messageCount}件</span>` : ''}
           </div>
-          ${s.summary ? `<div class="session-summary">${escapeHTML(s.summary)}</div>` : ''}
+          ${s.title ? `<div class="session-summary">${escapeHTML(s.title)}</div>` : ''}
         </div>
       </div>`;
     }).join('');
 
   } catch(e) {
     list.innerHTML = `<div class="history-empty">読み込みに失敗しました。<br>${escapeHTML(e.message)}</div>`;
+  }
+}
+
+async function resumeSession(sessionId) {
+  if (!sessionId || !EDGE_URL) return;
+  try {
+    const res = await fetchWithTimeout(EDGE_URL, {
+      method: 'POST',
+      headers: { ...EDGE_HEADERS, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: sessionToken, type: 'get_session', sessionId }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data?.session) throw new Error(data?.error || '相談履歴を開けませんでした');
+    setActiveSessionId(data.session.sessionId);
+    history = Array.isArray(data.session.messages) ? data.session.messages : [];
+    document.getElementById('chat').innerHTML = '';
+    finalizationState = 'draft';
+    finalHandoffStarted = false;
+    restoreCachedChat(history);
+    persistChatHistory();
+    persistChatState('');
+    closeHistoryPanel();
+    scrollBottom();
+  } catch (e) {
+    const list = document.getElementById('historyList');
+    if (list) list.innerHTML = `<div class="history-empty">${escapeHTML(e.message || '履歴を開けませんでした')}</div>`;
   }
 }
 
@@ -3331,6 +3407,8 @@ async function callAgent() {
   persistChatHistory();
   addTyping();
   try {
+    // 初回メッセージ送信時に、AI呼び出しより先にセッションを作成する。
+    await ensureSession();
     let raw = '';
     const templateResponse = getTemplateAgentResponse(history);
     if (templateResponse) {
@@ -3341,7 +3419,7 @@ async function callAgent() {
       const res  = await fetch(EDGE_URL, {
         method: 'POST',
         headers: { ...EDGE_HEADERS, 'Content-Type':'application/json' },
-        body: JSON.stringify({ token: sessionToken, type:'chat', system: SYSTEM_PROMPT, messages: history }),
+        body: JSON.stringify({ token: sessionToken, type:'chat', sessionId: currentSessionId, system: SYSTEM_PROMPT, messages: history }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error?.message || 'APIエラー');
@@ -3350,6 +3428,10 @@ async function callAgent() {
       if (!raw.trim()) throw new Error('AIから空の応答が返されました');
     }
     if (requestToken !== chatResetToken) return;
+    if (templateResponse || MOCK_CHAT_MODE) {
+      const latestUserMessage = [...history].reverse().find(message => message.role === 'user')?.content || '';
+      await saveMockChatTurn(latestUserMessage, raw);
+    }
     removeTyping();
     if (MOCK_CHAT_MODE && !templateResponse) {
       addAgentMessage('\u73fe\u5728\u306fAI\u306b\u63a5\u7d9a\u3057\u3066\u3044\u306a\u3044\u305f\u3081\u3001\u30c7\u30e2\u5fdc\u7b54\u3092\u8868\u793a\u3057\u3066\u3044\u307e\u3059\u3002');
@@ -3418,4 +3500,4 @@ async function callAgent() {
 }
 
 
-Object.assign(window, { fetchWithTimeout, safeLocalGet, safeLocalSet, initAudioCtx, toggleSE, playSound, initIconPicker, getSelectedChar, openQrModal, closeQrModal, switchQrTab, copyQrUrl, copyUrlAndNotify, saveAuthSession, restoreCachedSession, clearAuthSession, initLoginView, showGuestPinManually, startDemoSession, pinKey, pinDel, renderDots, escapeHTML, safeImageSrc, escapeJSString, applySession, toggleUserMenu, switchGoogleAccount, checkPin, cognitoRequest, loginWithCognito, loginWithGoogle, handleGoogleRedirect, openAdminLogin, logoutApp, resetClientCache, lockApp, chatCacheKey, chatStateKey, persistChatHistory, persistChatState, persistCurrentChatState, restoreChatState, clearDraftCache, resetConversation, restoreCachedChat, restoreInteractiveSuggestions, initChat, autoResize, scrollBottom, getIconForEmotion, getAgentIconHTML, removeSuggestions, renderSuggestions, tapChip, addAgentMessage, addUserMessage, addTyping, removeTyping, showUploadCard, useSampleImage, handlePhoto, showIdealImageCard, startPhotoDiagnosis, startCatalogFromDiagnosis, startEstimateFromDiagnosis, startGenerationFromPhoto, getHandoffSummary, handoffToStaff, submitHandoff, startProposalFlow, handleIdealPhoto, generateWithFiles, getFallbackImage, srcToBlob, shareViaLine, shareNative, renderMaterialCandidates, requestMaterialRecommendation, stars, showMaterial, generateNight, showDayNight, switchDN, getMockConversationSummary, fetchConversationSummary, getPdfConversationSummary, generatePDF, calcCost, fmtMoney, updateSimResult, getEstimateCacheKey, readEstimateCache, writeEstimateCache, applyEstimateResult, requestEstimate, getEstimateDurationLabel, showSimulator, simSetSize, simToggleItem, simSetGrade, refreshSim, simResetChoices, showFinalConfirmation, completeFinalConsultation, reselectEstimate, returnToEarlierStep, simConfirm, fetchUsage, renderUsageBadge, updateUsageAfterGen, showUpgradeModal, closeUpgradeModal, openGuestPinPanel, closeGuestPinPanel, closeGuestPinOuter, renderGpinPanel, gpinSetDays, gpinSetUses, issueGuestPin, showGpinResult, copyGpinUrl, generateQR, copyGpinInfo, shareGpin, loadGuestPins, deleteGuestPin, openMenuSheet, closeMenuSheet, closeMenuOuter, openCasesPanel, closeCasesPanel, closeCasesOuter, switchCasesTab, renderCasesTab, renderUploadForm, previewCaseImg, submitCase, renderCasesList, deleteCase, showCases, autoSaveSession, openHistoryPanel, closeHistoryPanel, closeHistory, showQuickForm, render, sendMessage, getMockAgentResponse, callAgent });
+Object.assign(window, { fetchWithTimeout, safeLocalGet, safeLocalSet, initAudioCtx, toggleSE, playSound, initIconPicker, getSelectedChar, openQrModal, closeQrModal, switchQrTab, copyQrUrl, copyUrlAndNotify, saveAuthSession, restoreCachedSession, clearAuthSession, initLoginView, showGuestPinManually, startDemoSession, pinKey, pinDel, renderDots, escapeHTML, safeImageSrc, escapeJSString, applySession, toggleUserMenu, switchGoogleAccount, checkPin, cognitoRequest, loginWithCognito, loginWithGoogle, handleGoogleRedirect, openAdminLogin, logoutApp, resetClientCache, lockApp, chatCacheKey, chatStateKey, persistChatHistory, persistChatState, persistCurrentChatState, restoreChatState, clearDraftCache, resetConversation, restoreCachedChat, restoreInteractiveSuggestions, initChat, autoResize, scrollBottom, getIconForEmotion, getAgentIconHTML, removeSuggestions, renderSuggestions, tapChip, addUserMessage, addTyping, removeTyping, showUploadCard, useSampleImage, handlePhoto, showIdealImageCard, startPhotoDiagnosis, startCatalogFromDiagnosis, startEstimateFromDiagnosis, startGenerationFromPhoto, getHandoffSummary, handoffToStaff, submitHandoff, startProposalFlow, handleIdealPhoto, generateWithFiles, getFallbackImage, srcToBlob, shareViaLine, shareNative, renderMaterialCandidates, requestMaterialRecommendation, stars, showMaterial, generateNight, showDayNight, switchDN, getMockConversationSummary, fetchConversationSummary, getPdfConversationSummary, generatePDF, calcCost, fmtMoney, updateSimResult, getEstimateCacheKey, readEstimateCache, writeEstimateCache, applyEstimateResult, requestEstimate, getEstimateDurationLabel, showSimulator, simSetSize, simToggleItem, simSetGrade, refreshSim, showFinalConfirmation, completeFinalConsultation, reselectEstimate, returnToEarlierStep, simConfirm, fetchUsage, renderUsageBadge, updateUsageAfterGen, showUpgradeModal, closeUpgradeModal, openGuestPinPanel, closeGuestPinPanel, closeGuestPinOuter, renderGpinPanel, gpinSetDays, gpinSetUses, issueGuestPin, showGpinResult, copyGpinUrl, generateQR, copyGpinInfo, shareGpin, loadGuestPins, deleteGuestPin, openMenuSheet, closeMenuSheet, closeMenuOuter, openCasesPanel, closeCasesPanel, closeCasesOuter, switchCasesTab, renderCasesTab, renderUploadForm, previewCaseImg, submitCase, renderCasesList, deleteCase, showCases, autoSaveSession, openHistoryPanel, resumeSession, closeHistoryPanel, closeHistory, showQuickForm, render, sendMessage, getMockAgentResponse, callAgent });
