@@ -5,8 +5,7 @@ const files = {
   backend: '.github/workflows/deploy-backend.yml',
   main: '.github/workflows/main-deploy.yml',
   localstack: '.github/workflows/localstack-test.yml',
-  sync: '.github/workflows/sync-fork.yml',
-  releaseSync: '.github/workflows/sync-upstream-release.yml'
+  sync: '.github/workflows/sync-fork.yml'
 };
 
 const workflows = {};
@@ -31,8 +30,6 @@ assert.match(workflows.sync, /secrets\.FORK_REPO_TOKEN/, 'fork sync token config
 assert.match(workflows.sync, /DaisukeShirai\/RENO\.git/, 'fork repository target is missing');
 assert.match(workflows.sync, /feature\/\*/, 'fork sync feature branch allow-list is missing');
 assert.match(workflows.sync, /--force "HEAD:\$BRANCH"/, 'fork sync feature mirror update is missing');
-assert.match(workflows.releaseSync, /UPSTREAM_REPO_TOKEN/, 'upstream release sync token configuration is missing');
-assert.match(workflows.releaseSync, /IFLAG-hps\/RENO\.git/, 'upstream release sync target is missing');
 const samTemplate = await readFile('backend/template.yaml', 'utf8');
 assert.match(samTemplate, /Environment:\n    Type: String/, 'SAM environment parameter is missing');
 assert.match(samTemplate, /reno-mvp-\$\{Environment\}-users/, 'Cognito user pool environment isolation is missing');

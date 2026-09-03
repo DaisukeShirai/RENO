@@ -30,7 +30,6 @@ Fork先リポジトリ（`DaisukeShirai/RENO`）の **Settings > Environments** 
 - `AWS_SECRET_ACCESS_KEY`
 - `OPENAI_API_KEY`
 - `TOKEN_SECRET`
-- `UPSTREAM_REPO_TOKEN`（Fork先`main`をFork元`main`へ同期する権限）
 
 ### Variables
 
@@ -45,14 +44,13 @@ Fork先リポジトリ（`DaisukeShirai/RENO`）の **Settings > Environments** 
 
 `main`へのPR承認だけで本番を自動デプロイする場合は、`production` Environmentに追加の必須レビューを設定しない。PR承認とデプロイ承認を分けたい場合だけ、`production` Environmentの必須レビューを有効にする。
 
-## リポジトリ間同期用のSecrets
+## リポジトリ間同期用のSecret
 
 | 設定先 | Secret | 用途 |
 | --- | --- | --- |
 | Fork元（`IFLAG-hps/RENO`） | `FORK_REPO_TOKEN` | CI成功した`feature/*`をFork先へ同期 |
-| Fork先（`DaisukeShirai/RENO`） | `UPSTREAM_REPO_TOKEN` | デプロイ成功したFork先`main`をFork元へ同期 |
 
-どちらのトークンも、同期先リポジトリの対象ブランチへContents書き込みできる最小権限に限定する。
+トークンは、Fork先リポジトリの`feature/*`へContents書き込みできる最小権限に限定する。
 
 ## ブランチ保護
 
@@ -78,8 +76,8 @@ Fork先リポジトリの **Settings > Branches** で、`main`、`staging`、`de
 
 ## 初回デプロイ
 
-1. Fork元の`main`へ、このワークフロー設定をpushする。
-2. Fork先の`main`へ同じ設定を一度だけ反映する。以後の公開版同期はWorkflowが行う。
+1. Fork元の`main`へ、このワークフロー設定を一度だけpushする。その後はFork元`main`をアーカイブとして保護する。
+2. Fork先の`main`へ同じ設定を一度だけ反映する。以後の公開版はFork先だけで管理する。
 3. Fork先リポジトリで`dev`と`staging`をFork先`main`から作成する。
 4. Fork先の各EnvironmentへSecrets・Variablesを設定する。
 5. Fork先の`dev`、`staging`、`main`をAmplifyへ接続する。
