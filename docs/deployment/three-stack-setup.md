@@ -10,6 +10,8 @@
 
 各CloudFormationスタックは、独立したDynamoDBテーブル、S3バケット、Cognito User Pool、API Gateway、Lambdaを作成する。環境間で相談データやアップロード画像を共有しない。
 
+この3環境は機能フェーズを分けるものではない。同一コミットを`dev`で開発確認、`staging`で受入確認、`main`で公開するための昇格先である。Phase 2・Phase 3の機能も、同じ順序で全環境へ進める。
+
 ## GitHub Environments
 
 GitHubリポジトリの **Settings > Environments** で、次の3環境を作成する。
