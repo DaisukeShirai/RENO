@@ -32,18 +32,17 @@ flowchart LR
     T -->|失敗| X[forkへは同期しない]
 ```
 
-## staging 昇格時の origin/main 更新
+## 同期・検証後の origin/main 更新
 
-forkのIssueブランチを`staging`へ直接PRマージした場合、fork側で実行される`sync-fork.yml`が同じIssueブランチを`origin/main`へマージします。これにより、次のIssueブランチを`origin/main`から作成しても、受入済みの変更を親にできます。`dev`から`staging`への環境昇格はIssueブランチではないため、このマージ対象にはなりません。
+Issueブランチのfork同期が成功すると、origin側の`promote-tested-issue-branch.yml`が同じコミットを検証します。検証に成功した場合だけ、同じIssueブランチを`origin/main`へマージします。これにより、次のIssueブランチを`origin/main`から作成しても、検証済みの変更を親にできます。
 
 ```mermaid
 flowchart LR
-    OI[origin: Issue作業ブランチ] -->|push| FI[fork: 同名Issueブランチ]
-    FI -->|PRをstagingへマージ| FS[fork/staging]
-    FS -->|closed pull_requestイベント| W[sync-fork.yml<br/>forkで実行]
-    OI -->|fetch| W
-    OM[origin/main] -->|fetch| W
-    W -->|origin/Issueブランチをマージ| OM
+    OI[origin: Issue作業ブランチ] -->|push| S[sync-fork.yml<br/>originで実行]
+    S -->|同名ブランチを同期| FI[fork: Issueブランチ]
+    S -->|完了イベント| T[promote-tested-issue-branch.yml<br/>originで実行]
+    OI -->|同じSHAを検証| T
+    T -->|成功時にマージ| OM[origin/main]
     OM -->|次の作業ブランチの親| NEXT[次のorigin Issue作業ブランチ]
 ```
 

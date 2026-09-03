@@ -30,7 +30,7 @@ Amplifyはfork側の`RENO/main`を参照します。画面の公開・更新は�
 
 `sync-fork.yml`を有効にするには、上流リポジトリ（`IFLAG-hps/RENO`）のActions Secretに`FORK_REPO_TOKEN`を登録します。トークンには`DaisukeShirai/RENO`のIssueブランチへcontentsを書き込む権限が必要です。
 
-fork側（`DaisukeShirai/RENO`）には、`ORIGIN_REPO_TOKEN`もActions Secretとして登録します。このトークンには`IFLAG-hps/RENO`のContents: Read and write権限が必要です。forkのIssueブランチから`staging`へのPRがマージされると、PR元のIssueブランチを`origin/main`へマージします。
+同期が成功すると、origin側の`promote-tested-issue-branch.yml`が同期済みのIssueブランチを検証します。検証に成功した場合だけ、Workflowの`GITHUB_TOKEN`で同ブランチを`origin/main`へマージします。fork側のSecretは不要です。
 
 ## Amplify Hostingの設定
 
