@@ -25,13 +25,18 @@ assert.match(workflows.backend, /needs: \[prepare, localstack-test\]/, 'backend:
 
 assert.match(workflows.localstack, /workflow_call:/, 'LocalStack workflow_call is missing');
 assert.match(workflows.backend, /OPENAI_API_KEY: \$\{\{ secrets\.OPENAI_API_KEY \}\}/, 'backend OpenAI key configuration is missing');
-assert.match(workflows.sync, /workflow_run:/, 'fork sync workflow trigger is missing');
-assert.match(workflows.sync, /github\.event\.workflow_run\.conclusion == 'success'/, 'fork sync success gate is missing');
 assert.match(workflows.sync, /github\.repository == 'IFLAG-hps\/RENO'/, 'fork sync source repository guard is missing');
 assert.match(workflows.sync, /secrets\.FORK_REPO_TOKEN/, 'fork sync token configuration is missing');
 assert.match(workflows.sync, /DaisukeShirai\/RENO\.git/, 'fork repository target is missing');
-assert.match(workflows.sync, /feature\/\*/, 'fork sync feature branch allow-list is missing');
-assert.match(workflows.sync, /--force "HEAD:refs\/heads\/\$BRANCH"/, 'fork sync feature mirror update is missing');
+assert.match(workflows.sync, /\[1-9\]\*-\*/, 'fork sync issue branch allow-list is missing');
+assert.match(workflows.sync, /--force "HEAD:refs\/heads\/\$BRANCH"/, 'fork sync issue mirror update is missing');
+assert.match(workflows.sync, /pull_request:/, 'origin main merge pull request trigger is missing');
+assert.match(workflows.sync, /branches:\s*\n\s*- staging/, 'origin main merge staging branch guard is missing');
+assert.match(workflows.sync, /github\.event\.pull_request\.merged == true/, 'origin main merge merged-PR gate is missing');
+assert.match(workflows.sync, /secrets\.ORIGIN_REPO_TOKEN/, 'origin main merge token configuration is missing');
+assert.match(workflows.sync, /IFLAG-hps\/RENO\.git/, 'origin repository merge target is missing');
+assert.match(workflows.sync, /git merge --no-ff "origin\/\$BRANCH"/, 'origin main merge command is missing');
+assert.match(workflows.sync, /HEAD:refs\/heads\/main/, 'origin main push is missing');
 const samTemplate = await readFile('backend/template.yaml', 'utf8');
 assert.match(samTemplate, /Environment:\n    Type: String/, 'SAM environment parameter is missing');
 assert.match(samTemplate, /reno-mvp-\$\{Environment\}-users/, 'Cognito user pool environment isolation is missing');
