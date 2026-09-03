@@ -17,6 +17,8 @@ assert.match(workflows.backend, /- dev/, 'backend: dev push trigger is missing')
 assert.match(workflows.backend, /workflow_dispatch:/, 'backend: manual deployment trigger is missing');
 assert.match(workflows.backend, /staging:staging/, 'backend: staging branch guard is missing');
 assert.match(workflows.backend, /production:main/, 'backend: production branch guard is missing');
+assert.match(workflows.backend, /staging\) TARGET=staging/, 'backend: staging push target is missing');
+assert.match(workflows.backend, /main\) TARGET=production/, 'backend: production push target is missing');
 assert.match(workflows.backend, /Environment=\$DEPLOYMENT_ENVIRONMENT/, 'backend: CloudFormation environment parameter is missing');
 assert.match(workflows.backend, /uses: \.\/\.github\/workflows\/localstack-test\.yml/, 'backend: LocalStack test is missing');
 assert.match(workflows.backend, /needs: \[prepare, localstack-test\]/, 'backend: test dependency is missing');
