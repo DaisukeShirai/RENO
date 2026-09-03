@@ -35,4 +35,4 @@ jobs:
           BRANCH="${{ github.event.workflow_run.head_branch }}"
           case "$BRANCH" in feature/*) ;; *) echo "Unexpected branch: $BRANCH"; exit 1 ;; esac
           git push "https://x-access-token:${FORK_REPO_TOKEN}@github.com/DaisukeShirai/RENO.git" \
-            --force "HEAD:$BRANCH"
+            --force "HEAD:refs/heads/$BRANCH"
