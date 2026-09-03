@@ -2,7 +2,7 @@
 
 ## この図の前提
 
-このリポジトリでは、`origin`（開発元）でIssueブランチを実装・検証し、CIに成功した同名ブランチだけを`fork`へ同期します。その後、`fork`側で`dev`、`staging`、`main`へPRで昇格します。Amplify Hostingは`fork`側の環境ブランチを参照します。
+このリポジトリでは、`origin`（開発元）でIssueブランチを実装し、pushされた同名ブランチを`fork`へ自動同期します。自動テストは`fork`のIssueブランチから`dev`へPRを出した時点で実行します。その後、`staging`、`main`へPRで昇格します。Amplify Hostingは`fork`側の環境ブランチを参照します。
 
 リモート名は次の意味です。
 
@@ -17,16 +17,16 @@ flowchart LR
     I[issueブランチ<br/>課題ごとの作業・検証]
     PR[Pull Request<br/>fork側でレビュー・差分確認]
     M[fork側 dev<br/>開発環境の統合先]
-    T[CI / E2E / SAM検証<br/>main-deploy.yml]
-    S[sync-fork.yml<br/>workflow_run が成功した場合のみ]
+    T[CI / E2E / SAM検証<br/>devへのPR]
+    S[sync-fork.yml<br/>originのpushで実行]
     F[fork側 Issueブランチ<br/>DaisukeShirai/RENO]
     A[Amplify Hosting<br/>dev / staging / main を公開]
 
     I -->|push| PR
     PR -->|merge| M
     M --> T
-    T -->|成功| S
-    S -->|同じテスト済みコミットを push| F
+    I -->|push| S
+    S -->|同じコミットを push| F
     F --> A
 
     T -->|失敗| X[forkへは同期しない]
