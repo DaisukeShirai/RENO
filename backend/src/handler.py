@@ -84,6 +84,98 @@ def query_user(user, prefix):
     return result.get("Items", [])
 
 
+def session_key(session_id):
+    return "SESSION#" + str(session_id)
+
+
+def message_prefix(session_id):
+    return "SESSION#" + str(session_id) + "#MESSAGE#"
+
+
+def session_item(user, session_id):
+    return TABLE.get_item(Key={"pk": "USER#" + user["sub"], "sk": session_key(session_id)}).get("Item")
+
+
+def public_session(item):
+    return {
+        "sessionId": item.get("session_id"),
+        "status": item.get("status", "active"),
+        "title": item.get("title", "新しいチャット"),
+        "createdAt": item.get("created_at"),
+        "updatedAt": item.get("updated_at"),
+        "lastMessageAt": item.get("last_message_at"),
+        "messageCount": item.get("message_count", 0),
+        "handoffStatus": item.get("handoff_status", "not_requested"),
+        "schemaVersion": item.get("schema_version", 1),
+    }
+
+
+def create_session(user):
+    now = int(time.time())
+    session_id = str(uuid.uuid4())
+    item = {
+        "pk": "USER#" + user["sub"],
+        "sk": session_key(session_id),
+        "session_id": session_id,
+        "status": "active",
+        "message_count": 0,
+        "handoff_status": "not_requested",
+        "created_at": now,
+        "updated_at": now,
+        "schema_version": 1,
+    }
+    save(item)
+    return public_session(item)
+
+
+def list_sessions(user):
+    sessions = [item for item in query_user(user, "SESSION#") if item.get("session_id") and "#MESSAGE#" not in item.get("sk", "")]
+    sessions.sort(key=lambda item: item.get("updated_at", item.get("created_at", 0)), reverse=True)
+    return [public_session(item) for item in sessions]
+
+
+def get_session_detail(user, session_id):
+    item = session_item(user, session_id)
+    if not item:
+        return None
+    result = TABLE.query(
+        KeyConditionExpression=Key("pk").eq("USER#" + user["sub"]) & Key("sk").begins_with(message_prefix(session_id)),
+        ScanIndexForward=True,
+    )
+    messages = [{"role": message.get("role"), "content": message.get("content", "")} for message in result.get("Items", [])]
+    return {**public_session(item), "messages": messages}
+
+
+def save_chat_turn(user, session_id, user_message, assistant_message):
+    now = int(time.time())
+    item = {
+        "pk": "USER#" + user["sub"],
+        "sk": message_prefix(session_id) + str(time.time_ns()),
+        "session_id": session_id,
+        "role": "user",
+        "content": user_message,
+        "created_at": now,
+        "schema_version": 1,
+    }
+    save(item)
+    assistant_item = {
+        "pk": item["pk"],
+        "sk": message_prefix(session_id) + str(time.time_ns()),
+        "session_id": session_id,
+        "role": "assistant",
+        "content": assistant_message,
+        "created_at": now,
+        "schema_version": 1,
+    }
+    save(assistant_item)
+    title = user_message[:80] or "新しいチャット"
+    TABLE.update_item(
+        Key={"pk": item["pk"], "sk": session_key(session_id)},
+        UpdateExpression="SET updated_at = :now, last_message_at = :now, message_count = if_not_exists(message_count, :zero) + :two, title = if_not_exists(title, :title)",
+        ExpressionAttributeValues={":now": now, ":zero": 0, ":two": 2, ":title": title},
+    )
+
+
 def usage(user):
     count = len(query_user(user, "CHAT#"))
     return {"plan": "unlimited" if UNLIMITED_MODE else "standard", "count": count, "limit": USAGE_LIMIT, "remaining": None if UNLIMITED_MODE else max(0, USAGE_LIMIT - count), "unlimited": UNLIMITED_MODE}
@@ -94,7 +186,7 @@ def safe_filename(name):
     return "".join(c for c in name if c.isalnum() or c in "._-")[:120] or "image.jpg"
 
 
-def chat(body, user):
+def chat(body, user, session_id):
     messages = body.get("messages", [])
     if not isinstance(messages, list) or len(messages) > 50: return {"error": "messages must be an array of at most 50 items"}
     current = usage(user)
@@ -112,8 +204,11 @@ def chat(body, user):
         text = payload.get("output_text", "") or "".join(part.get("text", "") for item in payload.get("output", []) for part in item.get("content", []) if part.get("type") == "output_text")
     else:
         text = "ご相談内容を確認しました。現在の状態・ご希望の部屋・ご予算を教えてください。"
-    save({"pk": "USER#" + user["sub"], "sk": "CHAT#" + str(time.time_ns()), "messages": messages[-20:], "updated_at": int(time.time())})
-    return {"content": [{"type": "text", "text": text}], "usage": usage(user)}
+    user_message = next((str(message.get("content", "")) for message in reversed(messages) if isinstance(message, dict) and message.get("role") == "user"), "")
+    save_chat_turn(user, session_id, user_message, text)
+    # Keep the existing usage counter compatible while the session history uses message records.
+    save({"pk": "USER#" + user["sub"], "sk": "CHAT#" + str(time.time_ns()), "session_id": session_id, "messages": messages[-20:], "updated_at": int(time.time())})
+    return {"sessionId": session_id, "content": [{"type": "text", "text": text}], "usage": usage(user)}
 
 
 def estimate(body, user):
@@ -309,7 +404,14 @@ def lambda_handler(event, context):
         user = subject_from_token(body.get("token", ""))
         if not user: return response(401, {"error": "unauthorized"})
         if typ == "chat":
-            result = chat(body, user)
+            session_id = str(body.get("sessionId", "")).strip()
+            if session_id:
+                existing = session_item(user, session_id)
+                if not existing: return response(404, {"error": "session not found"})
+                if existing.get("status") == "archived": return response(409, {"error": "session is archived"})
+            else:
+                session_id = create_session(user)["sessionId"]
+            result = chat(body, user, session_id)
             status = 429 if "usage limit" in result.get("error", "") else 503 if "unavailable" in result.get("error", "") else 400 if "messages" in result.get("error", "") else 200
             return response(status, result)
         if typ == "estimate":
@@ -321,6 +423,27 @@ def lambda_handler(event, context):
             status = 400 if "error" in result else 200
             return response(status, result)
         if typ == "get_usage": return response(200, usage(user))
+        if typ == "create_session":
+            return response(201, {"session": create_session(user)})
+        if typ == "get_sessions":
+            return response(200, {"sessions": list_sessions(user)})
+        if typ == "get_session":
+            session_id = str(body.get("sessionId", "")).strip()
+            if not session_id: return response(400, {"error": "sessionId is required"})
+            detail = get_session_detail(user, session_id)
+            if not detail: return response(404, {"error": "session not found"})
+            return response(200, {"session": detail})
+        if typ == "archive_session":
+            session_id = str(body.get("sessionId", "")).strip()
+            if not session_id: return response(400, {"error": "sessionId is required"})
+            if not session_item(user, session_id): return response(404, {"error": "session not found"})
+            TABLE.update_item(
+                Key={"pk": "USER#" + user["sub"], "sk": session_key(session_id)},
+                UpdateExpression="SET #status = :status, updated_at = :now",
+                ExpressionAttributeNames={"#status": "status"},
+                ExpressionAttributeValues={":status": "archived", ":now": int(time.time())},
+            )
+            return response(200, {"sessionId": session_id, "status": "archived"})
         if typ == "save_session":
             save({"pk": "USER#" + user["sub"], "sk": "SESSION#" + str(time.time_ns()), "data": body.get("data", {}), "created_at": int(time.time())})
             return response(200, {"ok": True})
