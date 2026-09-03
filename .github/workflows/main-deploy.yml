@@ -6,7 +6,7 @@ on:
       - main
       - staging
       - dev
-      - 'feature/**'
+      - '[1-9]*-*'
       - feature/makeActions
       - feature/mvp
   pull_request:
