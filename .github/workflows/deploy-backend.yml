@@ -1,9 +1,11 @@
-name: "DEPLOY: Backend environment (SAM)"
+name: "DEPLOY: Fork environment backend (SAM)"
 
 on:
   push:
     branches:
       - dev
+      - staging
+      - main
   workflow_dispatch:
     inputs:
       target:
@@ -21,6 +23,7 @@ permissions:
 jobs:
   prepare:
     name: Validate target and deployment branch
+    if: github.repository == 'DaisukeShirai/RENO'
     runs-on: ubuntu-latest
     outputs:
       cloudformation_environment: ${{ steps.target.outputs.cloudformation_environment }}

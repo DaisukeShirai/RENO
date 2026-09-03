@@ -2,7 +2,7 @@
 
 ## 構成
 
-| Gitブランチ | Amplify環境 | CloudFormationスタック | 用途 |
+| Fork先Gitブランチ | Amplify環境 | CloudFormationスタック | 用途 |
 | --- | --- | --- | --- |
 | `dev` | 開発用プレビュー | `reno-mvp-dev` | 日常開発と結合確認 |
 | `staging` | レビュー用プレビュー | `reno-mvp-staging` | 上長の受入確認 |
@@ -14,7 +14,7 @@
 
 ## GitHub Environments
 
-GitHubリポジトリの **Settings > Environments** で、次の3環境を作成する。
+Fork先リポジトリ（`DaisukeShirai/RENO`）の **Settings > Environments** で、次の3環境を作成する。
 
 | Environment | デプロイ元ブランチ | 承認設定 |
 | --- | --- | --- |
@@ -30,6 +30,7 @@ GitHubリポジトリの **Settings > Environments** で、次の3環境を作�
 - `AWS_SECRET_ACCESS_KEY`
 - `OPENAI_API_KEY`
 - `TOKEN_SECRET`
+- `UPSTREAM_REPO_TOKEN`（Fork先`main`をFork元`main`へ同期する権限）
 
 ### Variables
 
@@ -42,9 +43,20 @@ GitHubリポジトリの **Settings > Environments** で、次の3環境を作�
 
 `dev`と`staging`のSESは、検証用アドレスまたは空値にする。本番の宛先・送信元は`production`だけに設定する。
 
+`main`へのPR承認だけで本番を自動デプロイする場合は、`production` Environmentに追加の必須レビューを設定しない。PR承認とデプロイ承認を分けたい場合だけ、`production` Environmentの必須レビューを有効にする。
+
+## リポジトリ間同期用のSecrets
+
+| 設定先 | Secret | 用途 |
+| --- | --- | --- |
+| Fork元（`IFLAG-hps/RENO`） | `FORK_REPO_TOKEN` | CI成功した`feature/*`をFork先へ同期 |
+| Fork先（`DaisukeShirai/RENO`） | `UPSTREAM_REPO_TOKEN` | デプロイ成功したFork先`main`をFork元へ同期 |
+
+どちらのトークンも、同期先リポジトリの対象ブランチへContents書き込みできる最小権限に限定する。
+
 ## ブランチ保護
 
-GitHubの **Settings > Branches** で、`main`、`staging`、`dev` に次のルールを設定する。
+Fork先リポジトリの **Settings > Branches** で、`main`、`staging`、`dev` に次のルールを設定する。
 
 - Pull Requestを必須化する
 - `CI: Validate application` の成功を必須化する
@@ -53,7 +65,7 @@ GitHubの **Settings > Branches** で、`main`、`staging`、`dev` に次のル�
 
 ## Amplifyの設定
 
-1. Amplifyでデプロイ元のforkリポジトリに`dev`、`staging`、`main`を接続する。
+1. AmplifyでFork先リポジトリに`dev`、`staging`、`main`を接続する。
 2. 各ブランチの環境変数に、それぞれのスタック出力値を設定する。
 
 | Amplifyブランチ | `RENO_API_URL` | `COGNITO_CLIENT_ID` | `RENO_MOCK_CHAT` |
@@ -66,10 +78,14 @@ GitHubの **Settings > Branches** で、`main`、`staging`、`dev` に次のル�
 
 ## 初回デプロイ
 
-1. `dev`ブランチへpushする。GitHub Actionsが`reno-mvp-dev`を自動作成・更新する。
-2. Actionsの出力から`ApiUrl`と`UserPoolClientId`を取得し、Amplifyの`dev`環境変数へ設定する。
-3. `staging`ブランチから`DEPLOY: Backend environment (SAM)`を手動実行し、targetに`staging`を指定する。
-4. `main`ブランチから同じWorkflowを手動実行し、targetに`production`を指定する。production Environmentの承認後に実行する。
+1. Fork元の`main`へ、このワークフロー設定をpushする。
+2. Fork先の`main`へ同じ設定を一度だけ反映する。以後の公開版同期はWorkflowが行う。
+3. Fork先リポジトリで`dev`と`staging`をFork先`main`から作成する。
+4. Fork先の各EnvironmentへSecrets・Variablesを設定する。
+5. Fork先の`dev`、`staging`、`main`をAmplifyへ接続する。
+6. Fork先の`dev`、`staging`、`main`へPRをマージすると、対象スタックが自動作成・更新される。
+7. Actionsの出力から各環境の`ApiUrl`と`UserPoolClientId`を取得し、対応するAmplify環境変数へ設定する。
+8. Fork元のFeatureがCI成功後にFork先の同名Featureへ同期されることを確認する。
 
 ## 運用上の注意
 

@@ -6,6 +6,7 @@ on:
       - main
       - staging
       - dev
+      - 'feature/**'
       - feature/makeActions
       - feature/mvp
   pull_request:

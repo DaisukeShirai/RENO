@@ -1,59 +1,64 @@
-# 環境別開発ワークフロー
+# Fork中心の環境昇格ワークフロー
 
 ## 目的
 
-2026年9月3日時点の `main` は、動作デモ完成版として固定する。追加のMVP実装は `dev` で行い、レビュー可能な単位で `staging` に反映する。
+Fork元（`IFLAG-hps/RENO`）では、Feature単位の実装とCIだけを行う。Amplifyへの接続権限を持つFork先（`DaisukeShirai/RENO`）で、開発確認・受入確認・公開を完結させる。
 
-フェーズとブランチは別の概念である。フェーズは「何を作るか」という実装範囲、ブランチは「同じ変更をどの環境で確認するか」という昇格経路を表す。Phase 2・Phase 3の変更も、すべて `dev` → `staging` → `main` の順に同じコミットを進める。
+## リポジトリとブランチの役割
 
-## ブランチと環境
+| リポジトリ | ブランチ | 役割 |
+| --- | --- | --- |
+| Fork元 | `feature/<内容>` | 実装、ユニット／E2E／SAMのCI |
+| Fork先 | `feature/<内容>` | CI成功済みFeatureの読み取り専用ミラー |
+| Fork先 | `dev` | 開発環境。Featureを結合して開発用URLで確認 |
+| Fork先 | `staging` | 上長の受入確認用環境 |
+| Fork先 | `main` | 承認済みの公開環境。現在の動作デモ完成版を基準にする |
 
-| ブランチ | 用途 | Amplify Hosting | 変更の扱い |
-| --- | --- | --- | --- |
-| `main` | 動作デモ完成版・承認済み公開版 | 本番デモURL | 直接pushしない。承認済みの`staging`だけをマージ |
-| `staging` | 上長確認・受入確認 | ステージングURL | `dev`からレビュー済みの機能をマージ |
-| `dev` | 日常の開発・結合 | 開発用URL | 作業ブランチからPRをマージ |
-| `feature/<内容>` | 個別タスクの実装 | 原則なし | `dev`向けPRを作成 |
-
-Amplifyには `main`、`staging`、`dev` をそれぞれ別ブランチとして接続し、各ブランチのpushで対応するプレビュー環境を更新する。環境ごとにAPI URL、モック設定、Cognitoクライアントなどの公開設定を分ける。バックエンドはブランチ単位ではなく、`dev`、`staging`、`production`の3スタックで分離する。
+Fork先の`dev`、`staging`、`main`がリリースの正本である。Fork元の`main`、`dev`、`staging`は環境昇格には使用しない。
 
 ## 標準フロー
 
-1. Notionでタスク、完了条件、見積工数を登録する。
-2. `dev`から `feature/<内容>` ブランチを作成する。
-3. 実装・ローカルテストを行い、作業ブランチから `dev` へPRを作成する。
-4. CI（バックエンド、SAM、E2E、Reactビルド）が成功したことを確認して `dev` にマージする。`dev`へのpushは `reno-mvp-dev` バックエンドスタックを更新する。
-5. `dev`のプレビュー環境で動作確認し、タスクの実績工数と検証結果をNotionに記録する。
-6. まとまった機能単位で `dev` から `staging` へPRを作成する。
-7. `staging`のバックエンドデプロイを手動実行して `reno-mvp-staging` を更新し、プレビューURLを上長へ共有して受入確認を受ける。
-8. 承認された変更だけを `staging` から `main` へPRでマージする。`production`スタックの更新は、`main`から手動実行する。
-9. `main`のCI成功後、動作デモURLで最終確認する。
+```mermaid
+flowchart LR
+  OF["Fork元 feature/<内容>"] -->|"CI成功後に自動同期"| FF["Fork先 feature/<内容>"]
+  FF -->|"PR・CI"| D["Fork先 dev\n開発用Amplify・devスタック"]
+  D -->|"PR・CI"| S["Fork先 staging\n受入用Amplify・stagingスタック"]
+  S -->|"上長承認・PR"| M["Fork先 main\n公開用Amplify・prodスタック"]
+```
 
-## マージルール
+1. Notionにタスク、完了条件、見積工数を登録する。
+2. Fork元の`main`を基点に`feature/<内容>`を作成し、実装・ローカルテストを行う。
+3. Fork元のCIが成功すると、同期WorkflowがFork先の同名`feature/<内容>`へ反映する。Fork先のFeatureブランチはミラーのため直接変更しない。
+4. Fork先で`feature/<内容>`から`dev`へのPRを作成する。CI成功後にマージすると、Amplifyの開発用URLと`reno-mvp-dev`が更新される。
+5. 開発用URLで確認した変更を、Fork先の`dev`から`staging`へPRで昇格する。マージ後、Amplifyの受入用URLと`reno-mvp-staging`が更新される。
+6. 上長がstaging URLで受入確認を行う。
+7. 承認後、Fork先の`staging`から`main`へPRを作成してマージする。`reno-mvp-prod`と公開用Amplify URLが更新される。
+8. 本番バックエンドのデプロイ成功後、Fork先の`main`をFork元の`main`へ自動同期する。Fork元の`main`は公開済みリリースのミラーであり、承認経路には含めない。
+9. Notionに実績工数、確認URL、リリース結果を記録する。
 
-- `main`、`staging`、`dev`への直接pushは行わない。
-- `main`には動作デモを壊さない、受入確認済みの変更だけを反映する。
-- 1つのPRは原則として1機能・1課題に分ける。
-- PRには変更内容、確認URL、テスト結果、既知の制約を記載する。
-- `dev`で不安定な実験的変更は `staging`へ上げない。
-- 本番AWSバックエンドのデプロイは、別途承認を得てから実施する。ブランチの自動ビルドとAWSバックエンドのデプロイは分けて扱う。
+## マージとデプロイの規則
 
-## フェーズと昇格経路
+- 同じ機能変更を`feature → dev → staging → main`の順に進める。環境ごとに別実装を作らない。
+- Fork先の`dev`、`staging`、`main`への直接pushは禁止し、必ずPRで昇格する。
+- Fork元のCIに失敗したFeatureはFork先へ同期しない。
+- Fork先のFeatureブランチはFork元の内容で強制同期される。Fork先で直接コミットすると失われる。
+- Fork先`main`の公開内容は、デプロイ成功後にFork元`main`へ同期する。次のFeatureはFork元`main`を基点に作成する。
+- Fork先の`dev`、`staging`、`main`へのpushで、それぞれ`reno-mvp-dev`、`reno-mvp-staging`、`reno-mvp-prod`を自動デプロイする。
+- GitHub Environmentの承認ルールを設定した場合、バックエンドデプロイは承認待ちで停止する。PR承認だけで自動公開したい場合は、`production` Environmentに追加承認を設定しない。
+- Amplifyのブランチ自動ビルドとバックエンドデプロイは並行して動く。API変更は後方互換性を保つか、段階的なリリースにする。
+
+## Phaseとの関係
+
+Phaseは機能範囲、Fork先のブランチは環境昇格の経路である。
 
 | フェーズ | 主な成果物 | 昇格経路 |
 | --- | --- | --- |
-| Phase 1：動作デモ | 現在のReact画面・既存導線 | 完了済み。`main`を基準版として維持 |
-| Phase 2：MVP接続版 | S3アップロード、相談保存、受付API、SES、履歴取得 | `feature/*` → `dev` → `staging` → `main` |
-| Phase 3：本番MVP | 画像生成・ファイル保存・エラー処理・AWS結合テスト | `feature/*` → `dev` → `staging` → `main` |
+| Phase 1：動作デモ | 現在のReact画面・既存導線 | 完了済み。Fork先`main`を基準版として維持 |
+| Phase 2：MVP接続版 | S3アップロード、相談保存、受付API、SES、履歴取得 | Fork先`feature` → `dev` → `staging` → `main` |
+| Phase 3：本番MVP | 画像生成・ファイル保存・エラー処理・AWS結合テスト | Fork先`feature` → `dev` → `staging` → `main` |
 
-例えば「写真のS3保存」を実装したコミットは、まず`dev`のAPI・画面で確認し、同じコミットを`staging`で上長に確認してもらい、承認後に`main`へ反映する。`staging`にだけ存在する機能、`main`にだけ存在する別実装を作らない。
+## ロールバック
 
-## バックエンドデプロイの扱い
-
-| Gitブランチ | CloudFormationスタック | 実行方法 | GitHub Environment |
-| --- | --- | --- | --- |
-| `dev` | `reno-mvp-dev` | push時に自動デプロイ | `dev` |
-| `staging` | `reno-mvp-staging` | 手動実行 | `staging` |
-| `main` | `reno-mvp-prod` | 手動実行・承認必須 | `production` |
-
-`main-deploy.yml` は `main`、`staging`、`dev` へのpushと、それらを対象とするPRで検証を実行する。`deploy-backend.yml` がLocalStackテスト後に対象スタックを更新する。各スタックはDynamoDB、S3、Cognitoを個別に作成するため、データは環境間で共有されない。
+- `dev`／`staging`：問題のPRをrevertし、対象ブランチへマージする。
+- `main`：公開済みPRをrevertし、Fork先`main`へマージする。Amplifyと`reno-mvp-prod`が再デプロイされる。
+- データ形式を破壊する変更は、先に互換性のあるスキーマ・移行処理を入れ、ロールバック手順をPRに記載する。
