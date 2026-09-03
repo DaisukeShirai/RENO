@@ -1,4 +1,4 @@
-name: "SYNC: Mirror tested feature branches to fork"
+name: "SYNC: Mirror tested issue branches to fork"
 
 on:
   workflow_run:
@@ -7,14 +7,14 @@ on:
     types:
       - completed
     branches:
-      - 'feature/**'
+      - '[1-9]*-*'
 
 permissions:
   contents: read
 
 jobs:
   sync:
-    name: Sync tested feature branch to fork
+    name: Sync tested issue branch to fork
     if: ${{ github.repository == 'IFLAG-hps/RENO' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' }}
     runs-on: ubuntu-latest
     steps:
@@ -33,6 +33,6 @@ jobs:
         run: |
           test -n "$FORK_REPO_TOKEN"
           BRANCH="${{ github.event.workflow_run.head_branch }}"
-          case "$BRANCH" in feature/*) ;; *) echo "Unexpected branch: $BRANCH"; exit 1 ;; esac
+          case "$BRANCH" in [1-9]*-*) ;; *) echo "Unexpected branch: $BRANCH"; exit 1 ;; esac
           git push "https://x-access-token:${FORK_REPO_TOKEN}@github.com/DaisukeShirai/RENO.git" \
             --force "HEAD:refs/heads/$BRANCH"
