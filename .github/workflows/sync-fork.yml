@@ -1,11 +1,7 @@
 name: "SYNC: Mirror tested issue branches to fork"
 
 on:
-  workflow_run:
-    workflows:
-      - "CI: Validate application"
-    types:
-      - completed
+  push:
     branches:
       - '[1-9]*-*'
 
@@ -14,25 +10,25 @@ permissions:
 
 jobs:
   sync:
-    name: Sync tested issue branch to fork
-    if: ${{ github.repository == 'IFLAG-hps/RENO' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' }}
+    name: Sync issue branch to fork
+    if: ${{ github.repository == 'IFLAG-hps/RENO' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout tested feature branch
+      - name: Checkout pushed issue branch
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ github.sha }}
           fetch-depth: 0
           # Do not persist GITHUB_TOKEN's HTTP auth header. It would override
           # FORK_REPO_TOKEN below and authenticate the push as github-actions[bot].
           persist-credentials: false
 
-      - name: Push tested feature branch to fork
+      - name: Push issue branch to fork
         env:
           FORK_REPO_TOKEN: ${{ secrets.FORK_REPO_TOKEN }}
         run: |
           test -n "$FORK_REPO_TOKEN"
-          BRANCH="${{ github.event.workflow_run.head_branch }}"
+          BRANCH="${{ github.ref_name }}"
           case "$BRANCH" in [1-9]*-*) ;; *) echo "Unexpected branch: $BRANCH"; exit 1 ;; esac
           git push "https://x-access-token:${FORK_REPO_TOKEN}@github.com/DaisukeShirai/RENO.git" \
             --force "HEAD:refs/heads/$BRANCH"
